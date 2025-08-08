@@ -21,6 +21,7 @@ export const locationManagementInstruction = `
     - 'ownerId' là ID của người sở hữu. Đặt là 'null' nếu không có chủ.
     - 'rules' là một mảng các chuỗi mô tả luật lệ của nơi đó.
 - **Thay đổi Quyền sở hữu:** Khi người chơi thực hiện một hành động hợp lệ để sở hữu một địa điểm (ví dụ: mua, chiếm đoạt), bạn PHẢI cập nhật địa điểm đó. Cung cấp toàn bộ đối tượng địa điểm đã được cập nhật trong mảng 'updatedLocations' với 'ownerId' được đặt thành ''player''.
+- **Giữ Vững Vị Trí (QUAN TRỌNG):** Nếu hành động của người chơi không liên quan đến việc di chuyển (ví dụ: nói chuyện, chiến đấu, tu luyện tại chỗ, mua sắm, quan hệ tình dục), bạn **KHÔNG ĐƯỢC** thay đổi vị trí của họ. Trong trường hợp này, hãy **bỏ qua hoàn toàn** trường 'updatedPlayerLocationId' trong phản hồi JSON của bạn. Đừng đặt nó thành 'null' một cách không cần thiết, vì 'null' có nghĩa là di chuyển đến 'Không Gian Hỗn Độn'.
 - **Di chuyển:** Khi người chơi di chuyển đến một địa điểm đã biết hoặc mới được khám phá, bạn PHẢI cập nhật 'updatedPlayerLocationId' thành 'id' của vị trí đó. Để di chuyển người chơi vào không gian hỗn độn, hãy đặt 'updatedPlayerLocationId' thành 'null'.
 - **Bối cảnh:** Vị trí mới được tạo ra phải phù hợp với bối cảnh của câu chuyện và vị trí hiện tại của người chơi. Ví dụ, người chơi không thể khám phá một địa điểm ở 'Thế Giới Ma Giới' khi đang ở 'Thế Giới Tiên Hiệp'.
 - **Phá hủy & Tái tạo Thế giới:**
