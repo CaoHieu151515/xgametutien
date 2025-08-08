@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { CharacterProfile, StatusEffect, Skill, NPC, WorldSettings, CharacterGender, Location } from '../../types';
+import { CharacterProfile, StatusEffect, Skill, NPC, WorldSettings, CharacterGender, Location, Choice } from '../../types';
 import { getExperienceForNextLevel, getSkillExperienceForNextLevel } from '../../services/progressionService';
 import { ImageLibraryModal } from './ImageLibraryModal';
 
@@ -10,6 +10,7 @@ interface PlayerInfoModalProps {
     npcs: NPC[];
     onUpdateProfile: (newProfile: CharacterProfile) => void;
     worldSettings: WorldSettings; 
+    onAction: (choice: Choice) => void;
 }
 
 const NewBadge = () => <span className="ml-2 px-1.5 py-0.5 text-[10px] font-bold text-slate-900 bg-yellow-300 rounded-full">NEW</span>;
@@ -243,7 +244,97 @@ const getDefaultAvatar = (gender: CharacterGender) => {
         : 'https://i.imgur.com/K8Z3w4q.png';
 };
 
-export const PlayerInfoModal: React.FC<PlayerInfoModalProps> = ({ isOpen, onClose, profile, npcs, onUpdateProfile, worldSettings }) => {
+const CreationTab: React.FC<{
+    profile: CharacterProfile;
+    onAction: (choice: Choice) => void;
+    onClose: () => void;
+}> = ({ profile, onAction, onClose }) => {
+    const [description, setDescription] = useState('');
+    const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
+
+    const unequippedItems = useMemo(() => profile.items.filter(item => !item.isEquipped), [profile.items]);
+
+    const handleMaterialToggle = (itemId: string) => {
+        setSelectedMaterials(prev => 
+            prev.includes(itemId) ? prev.filter(id => id !== itemId) : [...prev, itemId]
+        );
+    };
+
+    const handleSubmit = () => {
+        if (!description.trim()) {
+            alert('Vui lòng nhập mô tả vật phẩm muốn tạo.');
+            return;
+        }
+
+        let actionTitle = `Sử dụng năng lực Sáng Thế, ${profile.name} cố gắng tạo ra một "${description.trim()}"`;
+
+        if (selectedMaterials.length > 0) {
+            const materialNames = selectedMaterials.map(id => {
+                const item = profile.items.find(i => i.id === id);
+                return item ? item.name : 'vật phẩm không rõ';
+            });
+            actionTitle += ` bằng cách sử dụng ${materialNames.join(', ')} làm nguyên liệu.`;
+        } else {
+            actionTitle += ` từ hư vô.`;
+        }
+
+        const creationChoice: Choice = {
+            title: actionTitle,
+            benefit: 'Nhận được vật phẩm mới.',
+            risk: 'Có thể thất bại, mất nguyên liệu hoặc tạo ra một vật phẩm không mong muốn.',
+            successChance: 75, // Reasonable default
+            durationInMinutes: 15,
+        };
+
+        onAction(creationChoice);
+        onClose();
+    };
+
+    return (
+        <div className="space-y-6">
+            <div>
+                <h3 className="text-lg font-bold text-amber-300 border-b border-slate-700 pb-2 mb-4">Sáng Tạo Vật Phẩm</h3>
+                <p className="text-sm text-slate-400 mb-4">Mô tả vật phẩm bạn muốn tạo. Bạn có thể chọn sử dụng các vật phẩm trong túi đồ làm nguyên liệu.</p>
+                <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Ví dụ: Một thanh trường kiếm phát ra hàn khí, một viên đan dược chữa lành mọi vết thương..."
+                    rows={4}
+                    className="w-full p-2 bg-slate-700 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all text-slate-200 resize-y"
+                />
+            </div>
+            <div>
+                <h4 className="font-semibold text-slate-200 mb-2">Chọn Nguyên Liệu (Tùy chọn)</h4>
+                <div className="max-h-48 overflow-y-auto space-y-2 p-2 bg-slate-900/50 rounded-lg border border-slate-700 custom-scrollbar">
+                    {unequippedItems.length > 0 ? (
+                        unequippedItems.map(item => (
+                            <label key={item.id} className="flex items-center p-2 rounded-md hover:bg-slate-700/50 cursor-pointer transition-colors">
+                                <input
+                                    type="checkbox"
+                                    checked={selectedMaterials.includes(item.id)}
+                                    onChange={() => handleMaterialToggle(item.id)}
+                                    className="h-4 w-4 rounded text-amber-500 bg-slate-700 border-slate-600 focus:ring-amber-500"
+                                />
+                                <span className="ml-3 text-slate-300">{item.name} <span className="text-slate-500 text-xs">(x{item.quantity})</span></span>
+                            </label>
+                        ))
+                    ) : (
+                        <p className="text-slate-500 text-center p-4">Không có vật phẩm nào để làm nguyên liệu.</p>
+                    )}
+                </div>
+            </div>
+            <button
+                onClick={handleSubmit}
+                disabled={!description.trim()}
+                className="w-full py-3 bg-amber-600 text-slate-900 font-bold rounded-lg hover:bg-amber-500 transition-colors disabled:opacity-50"
+            >
+                Tạo Vật
+            </button>
+        </div>
+    );
+};
+
+export const PlayerInfoModal: React.FC<PlayerInfoModalProps> = ({ isOpen, onClose, profile, npcs, onUpdateProfile, worldSettings, onAction }) => {
     const [activeTab, setActiveTab] = useState('stats');
     const [localAvatarUrl, setLocalAvatarUrl] = useState(profile.avatarUrl || '');
     const [isImageLibraryOpen, setIsImageLibraryOpen] = useState(false);
@@ -526,6 +617,7 @@ export const PlayerInfoModal: React.FC<PlayerInfoModalProps> = ({ isOpen, onClos
                                     <TabButton isActive={activeTab === 'skills'} onClick={() => setActiveTab('skills')}>Kỹ năng</TabButton>
                                     <TabButton isActive={activeTab === 'relationships'} onClick={() => setActiveTab('relationships')}>Quan Hệ</TabButton>
                                     <TabButton isActive={activeTab === 'ownedLocations'} onClick={() => setActiveTab('ownedLocations')}>Địa Điểm Sở Hữu</TabButton>
+                                    <TabButton isActive={activeTab === 'creation'} onClick={() => setActiveTab('creation')}>Sáng Tạo</TabButton>
                                     <TabButton isActive={activeTab === 'info'} onClick={() => setActiveTab('info')}>Thông tin</TabButton>
                                 </nav>
                             </div>
@@ -534,6 +626,7 @@ export const PlayerInfoModal: React.FC<PlayerInfoModalProps> = ({ isOpen, onClos
                                 {activeTab === 'skills' && renderSkillsTab()}
                                 {activeTab === 'relationships' && renderRelationshipsTab()}
                                 {activeTab === 'ownedLocations' && renderOwnedLocationsTab()}
+                                {activeTab === 'creation' && <CreationTab profile={profile} onAction={onAction} onClose={onClose} />}
                                 {activeTab === 'info' && renderInfoTab()}
                             </div>
                         </div>
