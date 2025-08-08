@@ -1,0 +1,22 @@
+
+[
+  { "url": "https://i.imgur.com/9CXRf64.png", "type": "character", "gender": "male", "tags": ["kiếm sĩ", "lạnh lùng", "tóc trắng", "nam", "kiếm"] },
+  { "url": "https://i.imgur.com/QhGf6z6.png", "type": "character", "gender": "male", "tags": ["ma đạo", "tà ác", "áo choàng", "nam", "hắc ám"] },
+  { "url": "https://i.imgur.com/i4aYyqS.png", "type": "character", "gender": "male", "tags": ["hoàng tử", "quý tộc", "điển trai", "nam", "vương giả"] },
+  { "url": "https://i.imgur.com/JzY3pQe.png", "type": "character", "gender": "male", "tags": ["lãng tử", "tự do", "sáo", "nam", "phong流"] },
+  { "url": "https://i.imgur.com/sM4w2a5.png", "type": "character", "gender": "male", "tags": ["tu sĩ", "phật", "trọc đầu", "nam", "thiền"] },
+  { "url": "https://i.imgur.com/a4gHj8d.png", "type": "character", "gender": "male", "tags": ["chiến binh", "cơ bắp", "mạnh mẽ", "nam", "rìu"] },
+  { "url": "https://i.imgur.com/K8Z3w4q.png", "type": "character", "gender": "female", "tags": ["tiên nữ", "thanh tú", "váy trắng", "nữ", "nhẹ nhàng"] },
+  { "url": "https://i.imgur.com/7gM5S3A.png", "type": "character", "gender": "female", "tags": ["sát thủ", "bí ẩn", "mặt nạ", "nữ", "dao găm"] },
+  { "url": "https://i.imgur.com/pBwB4aB.png", "type": "character", "gender": "female", "tags": ["cung thủ", "mạnh mẽ", "tóc đỏ", "nữ", "cung tên"] },
+  { "url": "https://i.imgur.com/dAmYf8J.png", "type": "character", "gender": "female", "tags": ["công chúa", "dịu dàng", "hoa", "nữ", "quý phái"] },
+  { "url": "https://i.imgur.com/R3aB5C7.png", "type": "character", "gender": "female", "tags": ["pháp sư", "quyến rũ", "hắc ám", "nữ", "ma pháp"] },
+  { "url": "https://i.imgur.com/W2d0fG5.png", "type": "character", "gender": "female", "tags": ["nữ hoàng", "uy nghiêm", "vương miện", "nữ", "quyền lực"] },
+  { "url": "https://i.imgur.com/R3x3q4z.png", "type": "monster", "gender": "none", "tags": ["rồng", "lửa", "quái vật", "bay"] },
+  { "url": "https://i.imgur.com/O6L9d8n.png", "type": "monster", "gender": "none", "tags": ["hồ ly", "tinh ranh", "chín đuôi", "yêu thú", "mê hoặc"] },
+  { "url": "https://i.imgur.com/eZ8xV5j.png", "type": "monster", "gender": "none", "tags": ["cương thi", "xác sống", "kinh dị", "quái vật"] },
+  { "url": "https://i.imgur.com/T0b3o0r.png", "type": "monster", "gender": "none", "tags": ["người đá", "khổng lồ", "phòng thủ", "quái vật"] },
+  { "url": "https://i.imgur.com/E5d3s1v.png", "type": "pet", "gender": "none", "tags": ["linh thú", "dễ thương", "thú cưng", "kỳ lân"] },
+  { "url": "https://i.imgur.com/Y9g3f1h.png", "type": "pet", "gender": "none", "tags": ["phượng hoàng", "lửa", "thần thú", "thú cưng"] },
+  { "url": "https://i.imgur.com/C5A2r1o.png", "type": "pet", "gender": "none", "tags": ["rùa", "huyền vũ", "thần thú", "thú cưng", "phòng thủ"] }
+]

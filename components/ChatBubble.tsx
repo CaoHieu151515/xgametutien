@@ -1,0 +1,48 @@
+import React from 'react';
+import { CharacterGender } from '../types';
+
+interface ChatBubbleProps {
+    speakerName: string;
+    speakerAvatar?: string;
+    message: React.ReactNode;
+    isPlayer: boolean;
+    gender: CharacterGender;
+    isGeneric?: boolean; // For gray bubbles
+}
+
+const getDefaultAvatar = (gender: CharacterGender) => {
+    return gender === CharacterGender.MALE 
+        ? 'https://i.imgur.com/9CXRf64.png' 
+        : 'https://i.imgur.com/K8Z3w4q.png';
+};
+
+
+export const ChatBubble: React.FC<ChatBubbleProps> = ({ speakerName, speakerAvatar, message, isPlayer, gender, isGeneric }) => {
+    
+    let bubbleColorClass = '';
+    if (isGeneric) {
+        bubbleColorClass = 'bg-slate-700/80';
+    } else if (gender === CharacterGender.MALE) {
+        bubbleColorClass = 'bg-sky-800/60';
+    } else {
+        bubbleColorClass = 'bg-fuchsia-800/60';
+    }
+    
+    const alignmentClass = isPlayer ? 'justify-end' : 'justify-start';
+    const nameAlignmentClass = isPlayer ? 'text-right' : 'text-left';
+
+    const avatar = <img src={speakerAvatar || getDefaultAvatar(gender)} alt={speakerName} className="w-8 h-8 rounded-full object-cover flex-shrink-0" onError={(e) => { e.currentTarget.src = getDefaultAvatar(gender); }} />;
+
+    return (
+        <div className={`flex items-end gap-2 my-4 ${alignmentClass} animate-fade-in`}>
+            {!isPlayer && avatar}
+            <div className={`flex flex-col max-w-lg ${isPlayer ? 'items-end' : 'items-start'}`}>
+                <span className={`text-xs text-slate-400 mx-3 mb-1 ${nameAlignmentClass}`}>{speakerName}</span>
+                <div className={`p-3 text-white rounded-xl ${bubbleColorClass}`}>
+                    {message}
+                </div>
+            </div>
+            {isPlayer && avatar}
+        </div>
+    );
+}
