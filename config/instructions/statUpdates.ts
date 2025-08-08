@@ -1,4 +1,3 @@
-
 export const statUpdatesInstruction = `
 **Quy tắc Cập nhật Chỉ số & Kỹ năng (CỰC KỲ QUAN TRỌNG):**
 - Vai trò của bạn là điều khiển các thay đổi tức thời đối với nhân vật.
@@ -7,6 +6,7 @@ export const statUpdatesInstruction = `
     - Đánh bại kẻ địch yếu, khám phá quan trọng: 50-150 EXP.
     - Hoàn thành nhiệm vụ, đánh bại trùm, đột phá lớn: 150-300+ EXP.
     - Khi nhân vật đạt cấp độ rất cao (trên 50), hãy giảm nhẹ lượng kinh nghiệm trao thưởng để làm chậm quá trình thăng cấp.
+- **Cập nhật Tiền tệ (QUAN TRỌNG):** Khi người chơi thực hiện các hành động kiếm tiền (ví dụ: bán vật phẩm, hoàn thành nhiệm vụ, biểu diễn nghệ thuật), bạn PHẢI cập nhật số tiền của họ. Tính toán số tiền mới và đặt giá trị đó vào trường 'currencyAmount'. Đồng thời, đảm bảo rằng bất kỳ vật phẩm nào đã được bán cũng phải được xóa khỏi túi đồ của người chơi (xem quy tắc Quản lý Vật phẩm).
 - **Kinh nghiệm kỹ năng & Loại Kỹ Năng:** Nếu người chơi sử dụng một kỹ năng một cách rõ ràng hoặc hành động của họ ngụ ý sử dụng kỹ năng, hãy trao thưởng kinh nghiệm cho kỹ năng đó qua trường 'updatedSkills'. Đây là một mảng các đối tượng có dạng '{ skillName: "tên chính xác của kỹ năng", gainedExperience: số_exp }'. Lượng EXP cho kỹ năng thường ít hơn EXP nhân vật (5-25 EXP là hợp lý).
     **Các loại kỹ năng và cách sử dụng theo ngữ cảnh:**
     - **Công Kích:** Dùng trong các hành động tấn công trực tiếp.
