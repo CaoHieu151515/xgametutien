@@ -11,7 +11,7 @@ interface WorldInfoModalProps {
     npcs: NPC[];
 }
 
-type TabName = 'overview' | 'knowledge' | 'factions' | 'skills' | 'items' | 'locations' | 'bestiary' | 'rules';
+type TabName = 'overview' | 'knowledge' | 'factions' | 'skills' | 'items' | 'locations' | 'bestiary' | 'npcs' | 'rules';
 
 const NewBadge = () => <span className="ml-2 px-1.5 py-0.5 text-[10px] font-bold text-slate-900 bg-yellow-300 rounded-full">NEW</span>;
 
@@ -152,6 +152,11 @@ export const WorldInfoModal: React.FC<WorldInfoModalProps> = ({ isOpen, onClose,
     const sortedMonsters = useMemo(() =>
         [...characterProfile.discoveredMonsters].sort((a, b) => a.name.localeCompare(b.name)),
         [characterProfile.discoveredMonsters]
+    );
+    
+    const sortedNpcs = useMemo(() =>
+        [...npcs].sort((a, b) => a.name.localeCompare(b.name)),
+        [npcs]
     );
 
     if (!isOpen) return null;
@@ -301,6 +306,32 @@ export const WorldInfoModal: React.FC<WorldInfoModalProps> = ({ isOpen, onClose,
                         )}
                     </div>
                 );
+            case 'npcs':
+                return (
+                    <div className="bg-slate-900/50 p-6 rounded-lg space-y-4 border border-slate-700/50">
+                        <h3 className="text-lg font-bold text-purple-300 mb-2">Nhân Vật Đã Gặp</h3>
+                        {sortedNpcs.length > 0 ? (
+                            <div className="space-y-2 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
+                                {sortedNpcs.map(npc => (
+                                    <InfoAccordionItem 
+                                        key={npc.id}
+                                        title={npc.name}
+                                        content={
+                                            <>
+                                                <p className="font-semibold">{npc.realm}</p>
+                                                <p className="mt-2">{npc.description}</p>
+                                            </>
+                                        }
+                                        isNew={npc.isNew}
+                                        titleColor="text-purple-300"
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-slate-500 text-center py-4">Chưa gặp gỡ nhân vật nào.</p>
+                        )}
+                    </div>
+                );
             default:
                 return null;
         }
@@ -336,6 +367,7 @@ export const WorldInfoModal: React.FC<WorldInfoModalProps> = ({ isOpen, onClose,
                         <TabButton isActive={activeTab === 'items'} onClick={() => setActiveTab('items')} count={(characterProfile.discoveredItems || []).length}>Vật phẩm</TabButton>
                         <TabButton isActive={activeTab === 'locations'} onClick={() => setActiveTab('locations')} count={characterProfile.discoveredLocations.length}>Địa Điểm</TabButton>
                         <TabButton isActive={activeTab === 'bestiary'} onClick={() => setActiveTab('bestiary')} count={characterProfile.discoveredMonsters.length}>Sinh Vật</TabButton>
+                        <TabButton isActive={activeTab === 'npcs'} onClick={() => setActiveTab('npcs')} count={npcs.length}>NPC</TabButton>
                         <TabButton isActive={activeTab === 'rules'} onClick={() => setActiveTab('rules')}>Quy Tắc</TabButton>
                     </nav>
                 </div>
