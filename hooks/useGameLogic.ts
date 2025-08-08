@@ -235,6 +235,16 @@ export const useGameLogic = () => {
                  notifications.push(`Bạn nhận được <b>${gainedXp} EXP</b>.`);
             }
 
+            if (response.updatedStats?.currencyAmount !== undefined && response.updatedStats.currencyAmount !== characterProfile.currencyAmount) {
+                const change = response.updatedStats.currencyAmount - characterProfile.currencyAmount;
+                const currencyName = characterProfile.currencyName || 'tiền';
+                if (change > 0) {
+                    notifications.push(`💰 Bạn nhận được <b>${change.toLocaleString()} ${currencyName}</b>.`);
+                } else if (change < 0) {
+                    notifications.push(`💸 Bạn đã tiêu <b>${Math.abs(change).toLocaleString()} ${currencyName}</b>.`);
+                }
+            }
+
             response.newItems?.forEach(item => notifications.push(`✨ Bạn nhận được vật phẩm: <b>${item.name}</b> (x${item.quantity}).`));
             response.newSkills?.forEach(s => notifications.push(`📖 Bạn đã lĩnh ngộ kỹ năng mới: <b>${s.name}</b>.`));
             response.newLocations?.forEach(l => notifications.push(`🗺️ Bạn đã khám phá ra địa điểm mới: <b>${l.name}</b>.`));
