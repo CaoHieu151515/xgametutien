@@ -289,25 +289,6 @@ export const useGameLogic = () => {
                 notifications.push(`🚶 Bạn đã di chuyển đến <b>${newLocName}</b>.`);
             }
 
-            response.updatedNPCs?.forEach(update => {
-                const oldNpc = nextNpcs.find(n => n.id === update.id);
-                if (oldNpc) {
-                    if (update.relationship !== undefined && update.relationship !== oldNpc.relationship) {
-                        const change = update.relationship - oldNpc.relationship;
-                        const changeText = change > 0 
-                            ? `<span class='text-green-400'>tăng ${change}</span>` 
-                            : `<span class='text-red-400'>giảm ${Math.abs(change)}</span>`;
-                        notifications.push(`😊 Hảo cảm của <b>${oldNpc.name}</b> đã ${changeText} điểm (hiện tại: ${update.relationship}).`);
-                    }
-                    if (update.gainedExperience && update.gainedExperience > 0) {
-                        const tempNpc = processNpcLevelUps(oldNpc, update.gainedExperience, finalWorldSettings);
-                        if (tempNpc.level > oldNpc.level) {
-                            notifications.push(`✨ <b>${tempNpc.name}</b> đã đạt đến <b>cấp độ ${tempNpc.level}</b>!`);
-                        }
-                    }
-                }
-            });
-
             if (response.newNPCs?.length) {
                 const brandNewNpcs: NPC[] = response.newNPCs.map((newNpcData: NewNPCFromAI) => {
                     const isValidPowerSystem = finalWorldSettings.powerSystems.some(ps => ps.name === newNpcData.powerSystem);
@@ -341,28 +322,43 @@ export const useGameLogic = () => {
                     const existingNpc = npcsToUpdateMap.get(update.id);
                     if (existingNpc) {
                         let modifiedNpc = { ...existingNpc };
-        
+            
                         if (update.isDead) {
                             modifiedNpc.isDead = true;
                             modifiedNpc.locationId = null;
                             notifications.push(`💀 <b>${modifiedNpc.name}</b> đã tử vong.`);
                         }
                         
-                        // Don't update other stats if they died this turn
                         if (!modifiedNpc.isDead) {
                             if (update.gainedExperience && update.gainedExperience > 0) {
+                                const oldLevel = modifiedNpc.level;
                                 modifiedNpc = processNpcLevelUps(modifiedNpc, update.gainedExperience, finalWorldSettings);
+                                if (modifiedNpc.level > oldLevel) {
+                                    notifications.push(`✨ <b>${modifiedNpc.name}</b> đã đạt đến <b>cấp độ ${modifiedNpc.level}</b>!`);
+                                }
                             }
             
-                            // Enforce permanent DaoLu relationship
                             if (update.isDaoLu && !existingNpc.isDaoLu) {
                                 modifiedNpc.isDaoLu = true;
                                 modifiedNpc.relationship = 1000;
                                 notifications.push(`❤️ Bạn và <b>${modifiedNpc.name}</b> đã trở thành Đạo Lữ!`);
                             } else if (existingNpc.isDaoLu) {
-                                modifiedNpc.relationship = 1000; // Force relationship to max, ignore AI changes
-                            } else if (update.relationship !== undefined) {
-                                modifiedNpc.relationship = update.relationship;
+                                modifiedNpc.relationship = 1000;
+                            } else if (update.relationship !== undefined && update.relationship !== existingNpc.relationship) {
+                                const oldRelationship = existingNpc.relationship;
+                                const newRelationshipFromAI = update.relationship;
+                                const change = newRelationshipFromAI - oldRelationship;
+                                const cappedChange = Math.max(-100, Math.min(100, change));
+                                const finalRelationship = oldRelationship + cappedChange;
+            
+                                modifiedNpc.relationship = finalRelationship;
+                                
+                                if (cappedChange !== 0) {
+                                    const changeText = cappedChange > 0 
+                                        ? `<span class='text-green-400'>tăng ${cappedChange}</span>` 
+                                        : `<span class='text-red-400'>giảm ${Math.abs(cappedChange)}</span>`;
+                                    notifications.push(`😊 Hảo cảm của <b>${modifiedNpc.name}</b> đã ${changeText} điểm (hiện tại: ${finalRelationship}).`);
+                                }
                             }
                             
                             if (update.gender !== undefined && update.gender !== existingNpc.gender) {
@@ -387,7 +383,7 @@ export const useGameLogic = () => {
                             }
                             modifiedNpc.statusEffects = currentStatusEffects;
                         }
-        
+            
                         npcsToUpdateMap.set(update.id, modifiedNpc);
                     }
                 });

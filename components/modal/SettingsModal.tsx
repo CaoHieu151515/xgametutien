@@ -33,6 +33,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, o
 
     const handleSave = () => {
         onSave(settings);
+        onClose();
     };
 
     const handleGeminiUseDefaultChange = (useDefault: boolean) => {
