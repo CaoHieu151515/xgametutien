@@ -85,6 +85,7 @@ const App: React.FC = () => {
                     npcs={npcs}
                     onUpdateProfile={setCharacterProfile}
                     worldSettings={worldSettings}
+                    onAction={handleAction}
                 />
             )}
             {characterProfile && worldSettings && modals.worldInfo && (
