@@ -243,16 +243,25 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
 
     const renderStoryPart = (part: StoryPart) => {
         if (!characterProfile) return null;
-
-        const lines = part.text.split('\n').filter(line => line.trim() !== '');
-        const dialogueRegex = /^\s*\[([^\]]+)\]:\s*"(.*)"\s*$/;
-
-        return lines.map((line, index) => {
-            const match = line.match(dialogueRegex);
-
-            if (match) {
-                const speakerName = match[1].trim();
-                const message = match[2];
+    
+        // This regex captures a full dialogue line.
+        const dialogueCaptureRegex = /(\s*\[[^\]]+\]:\s*".*?"\s*)/g;
+        // This regex is used to extract parts from a matched dialogue line.
+        const dialogueExtractRegex = /^\s*\[([^\]]+)\]:\s*"(.*)"\s*$/;
+    
+        // Split the text by the dialogue pattern, keeping the delimiters.
+        const segments = part.text.split(dialogueCaptureRegex);
+    
+        return segments.map((segment, index) => {
+            if (!segment || segment.trim() === '') {
+                return null; // Skip empty segments
+            }
+            
+            const dialogueMatch = segment.match(dialogueExtractRegex);
+    
+            if (dialogueMatch) {
+                const speakerName = dialogueMatch[1].trim();
+                const message = dialogueMatch[2];
                 
                 if (speakerName === characterProfile.name) {
                     return (
@@ -292,15 +301,17 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
                         isGeneric={true}
                     />
                 );
-
+    
             } else {
                 // Narration text
-                return (
-                    <div key={`${part.id}-${index}`} className="flex items-start gap-3 my-3 text-slate-300 text-base leading-relaxed animate-fade-in">
+                // Split narration by newlines to preserve paragraph breaks within narration blocks.
+                const narrationLines = segment.split('\n').filter(line => line.trim() !== '');
+                return narrationLines.map((line, lineIndex) => (
+                    <div key={`${part.id}-${index}-${lineIndex}`} className="flex items-start gap-3 my-3 text-slate-300 text-base leading-relaxed animate-fade-in">
                        <span className="text-slate-600 text-lg leading-tight mt-1 select-none">➤</span>
                        <p className="flex-1 whitespace-pre-wrap">{linkifyStory(line)}</p>
                     </div>
-                );
+                ));
             }
         });
     };

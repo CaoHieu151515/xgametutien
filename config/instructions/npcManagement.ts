@@ -89,19 +89,23 @@ ${powerSystemsList}
     - **Đối tượng cập nhật:** Mỗi đối tượng PHẢI có 'id' của NPC. Sau đó, chỉ cần cung cấp các trường đã thay đổi.
     - **Trao kinh nghiệm ('gainedExperience'):** Nếu NPC xứng đáng nhận kinh nghiệm (ví dụ: chiến đấu, tu luyện), hãy cung cấp một số dương cho trường này. Hệ thống sẽ tự xử lý việc lên cấp.
     - **Cập nhật giới tính ('gender'):** Tương tự như người chơi, NPC cũng có thể thay đổi giới tính. Khi một sự kiện như vậy xảy ra, bạn PHẢI cập nhật giới tính của họ trong 'updatedNPCs' bằng cách cung cấp trường 'gender' mới. Mọi cách xưng hô và mô tả về NPC đó phải được điều chỉnh cho phù hợp ngay lập tức.
-    - **Cập nhật quan hệ với người chơi ('relationship'):** Đây là yếu tố cốt lõi để NPC có cảm xúc. Quan hệ với người chơi phải được cập nhật một cách logic và tinh tế, phản ánh đúng bản chất của hành động. **Chỉ cập nhật hảo cảm cho các NPC có liên quan trực tiếp đến hành động.** TUYỆT ĐỐI KHÔNG thay đổi hảo cảm của NPC chỉ vì họ có mặt ở cùng một địa điểm với người chơi. Phải có sự tương tác trực tiếp (lời nói, hành động) giữa người chơi và NPC đó.
+    - **Cập nhật quan hệ với người chơi ('relationship'):** Đây là yếu tố cốt lõi để NPC có cảm xúc. Việc cập nhật này PHẢI tuân thủ các quy tắc NGHIÊM NGẶT sau:
+        - **Tương tác TRỰC TIẾP & CÓ Ý NGHĨA:** Hảo cảm CHỈ được thay đổi khi người chơi và NPC có sự tương tác MỚI, TRỰC TIẾP và CÓ Ý NGHĨA trong lượt chơi hiện tại.
+        - **QUY TẮC CẤM (RẤT QUAN TRỌNG):**
+            - **KHÔNG** thay đổi hảo cảm nếu NPC chỉ được nhắc đến trong lời kể về một sự kiện đã qua (ví dụ: "nhớ lại cuộc trò chuyện với X").
+            - **KHÔNG** thay đổi hảo cảm nếu NPC chỉ có mặt trong một cảnh nhưng không tham gia trực tiếp vào hành động của người chơi.
+            - **KHÔNG** thay đổi hảo cảm một cách đáng kể chỉ vì một lời chào hỏi đơn thuần.
         - **Giá trị:** Một số từ -1000 (Kẻ thù không đội trời chung) đến 1000 (Tri kỷ sâu đậm).
         - **Mức độ thay đổi (QUAN TRỌNG):**
-            - **Hành động nhỏ:** Lời nói lịch sự/thô lỗ, giúp đỡ nhỏ -> Thay đổi ±(5-20) điểm.
-            - **Hành động trung bình:** Cứu giúp, hoàn thành nhiệm vụ phụ, nói dối/xúc phạm -> Thay đổi ±(25-50) điểm.
-            - **Hành động lớn:** Cứu mạng, phản bội, phá hủy thứ quan trọng -> Thay đổi ±(50-100) điểm.
-        - **Giới hạn thay đổi:** Tổng thay đổi hảo cảm (tăng hoặc giảm) cho một NPC trong một lượt **KHÔNG ĐƯỢC VƯỢT QUÁ 100 điểm**, trừ trường hợp trở thành Đạo Lữ.
+            - **Hành động nhỏ:** Lời nói lịch sự/thô lỗ, một lời chào hỏi thân thiện -> Thay đổi ±(2-10) điểm.
+            - **Hành động trung bình:** Giúp đỡ nhỏ, hoàn thành nhiệm vụ phụ, nói dối/xúc phạm -> Thay đổi ±(15-35) điểm.
+            - **Hành động lớn:** Cứu mạng, phản bội, phá hủy thứ quan trọng -> Thay đổi ±(40-80) điểm.
+        - **Giới hạn thay đổi:** Tổng thay đổi hảo cảm (tăng hoặc giảm) cho một NPC trong một lượt **KHÔNG ĐƯỢỢC VƯỢT QUÁ 100 điểm**, trừ trường hợp trở thành Đạo Lữ.
         - **Logic:** Sự thay đổi phải dựa trên tính cách của NPC. Một NPC kiêu ngạo sẽ không dễ dàng tăng thiện cảm chỉ vì một lời khen. Một NPC tà ác có thể tăng thiện cảm nếu bạn làm điều ác.
         - **Thể hiện qua lời nói:** Cách xưng hô của NPC với người chơi PHẢI thay đổi dựa trên giá trị 'relationship':
             - **Mới gặp / Trung lập:** "Đạo hữu", “Các hạ”.
             - **Thân thiết:** “Huynh đệ”, “Muội muội”, “Bằng hữu”.
             - **Yêu đương / Đạo lữ:** “Chàng”, “Nàng”, “Ái nhân”, "Thê Tử", "Phu Quân".
-        - **Ví dụ:** Nếu người chơi cứu NPC, hãy tăng 'relationship' lên một giá trị đáng kể (ví dụ: +80).
     - **Cập nhật quan hệ giữa các NPC ('updatedNpcRelationships'):** Đây là một cơ chế CỐT LÕI để làm cho thế giới có chiều sâu và sống động. Bạn PHẢI xử lý nó một cách cẩn thận.
         - **Nguyên tắc:** Hành động của người chơi có thể ảnh hưởng trực tiếp hoặc gián tiếp đến cách các NPC nhìn nhận nhau. Sau mỗi sự kiện, hãy đánh giá lại mối quan hệ giữa các NPC có liên quan.
         - **Cách cập nhật:** Đối với MỌI NPC có sự thay đổi trong mối quan hệ của họ, bạn PHẢI cung cấp lại TOÀN BỘ danh sách mối quan hệ của họ trong trường 'updatedNpcRelationships'. Danh sách này phải bao gồm tất cả các mối quan hệ hiện có (kể cả những mối quan hệ không thay đổi) CÙNG VỚI bất kỳ mối quan hệ nào mới được hình thành hoặc thay đổi. Nếu một NPC không có mối quan hệ nào, hãy gửi một mảng rỗng '[]', không phải 'null'.
