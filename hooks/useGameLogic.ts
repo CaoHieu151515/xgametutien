@@ -157,14 +157,8 @@ export const useGameLogic = () => {
             .map(part => `${part.type === 'story' ? 'Bối cảnh' : 'Người chơi'}: ${part.text}`)
             .join('\n');
             
-        const profileForApi = { ...characterProfile };
-        if (choice.title.trim().toLowerCase() === "tìm mua một căn nhà nhỏ") {
-            log('useGameLogic.ts', 'Special action triggered: moving to Chaos Space context for API.', 'INFO');
-            profileForApi.currentLocationId = null;
-        }
-
         try {
-            const { storyResponse, usageMetadata }: StoryApiResponse = await api.getNextStoryStep(historyText, choice.title, settings.isMature, settings.perspective, profileForApi, worldSettings, npcs, apiKeyForService);
+            const { storyResponse, usageMetadata }: StoryApiResponse = await api.getNextStoryStep(historyText, choice.title, settings.isMature, settings.perspective, characterProfile, worldSettings, npcs, apiKeyForService);
             const response = storyResponse;
             log('useGameLogic.ts', 'Received story response from API.', 'INFO');
             
