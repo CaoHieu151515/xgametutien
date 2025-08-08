@@ -102,35 +102,6 @@ interface Keyword {
     isNew?: boolean;
 }
 
-function escapeRegExp(string: string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-const linkifyStory = (text: string, keywords: Keyword[]): React.ReactNode => {
-    if (keywords.length === 0) {
-        return text;
-    }
-
-    const sortedKeywords = keywords
-        .filter(k => k.keyword && k.keyword.trim() !== "")
-        .sort((a, b) => b.keyword.length - a.keyword.length);
-
-    if (sortedKeywords.length === 0) {
-        return text;
-    }
-
-    const regex = new RegExp(`(${sortedKeywords.map(k => escapeRegExp(k.keyword)).join('|')})`, 'g');
-    const parts = text.split(regex);
-    
-    return parts.map((part, index) => {
-        const keywordData = sortedKeywords.find(k => k.keyword === part);
-        if (keywordData) {
-            return <KeywordTooltip key={index} keyword={keywordData.keyword} description={keywordData.description} isNew={keywordData.isNew} />;
-        }
-        return <React.Fragment key={index}>{part}</React.Fragment>;
-    });
-};
-
 const NotificationBlock: React.FC<{ notifications: string[] }> = ({ notifications }) => {
   const [isOpen, setIsOpen] = useState(true);
 
@@ -234,6 +205,42 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
     return allKeywords;
   }, [characterProfile, worldSettings, npcs]);
 
+    const renderedNewKeywordsThisTurn = new Set<string>();
+
+    const escapeRegExp = (string: string) => {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    const linkifyStory = (text: string): React.ReactNode => {
+        if (keywords.length === 0) {
+            return text;
+        }
+
+        const sortedKeywords = keywords
+            .filter(k => k.keyword && k.keyword.trim() !== "")
+            .sort((a, b) => b.keyword.length - a.keyword.length);
+
+        if (sortedKeywords.length === 0) {
+            return text;
+        }
+
+        const regex = new RegExp(`(${sortedKeywords.map(k => escapeRegExp(k.keyword)).join('|')})`, 'g');
+        const parts = text.split(regex);
+        
+        return parts.map((part, index) => {
+            const keywordData = sortedKeywords.find(k => k.keyword === part);
+            if (keywordData) {
+                let showNewBadge = false;
+                if (keywordData.isNew && !renderedNewKeywordsThisTurn.has(keywordData.keyword)) {
+                    showNewBadge = true;
+                    renderedNewKeywordsThisTurn.add(keywordData.keyword);
+                }
+                return <KeywordTooltip key={index} keyword={keywordData.keyword} description={keywordData.description} isNew={showNewBadge} />;
+            }
+            return <React.Fragment key={index}>{part}</React.Fragment>;
+        });
+    };
+
     const renderStoryPart = (part: StoryPart) => {
         if (!characterProfile) return null;
 
@@ -253,7 +260,7 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
                             key={`${part.id}-${index}`} 
                             speakerName={speakerName}
                             speakerAvatar={characterProfile.avatarUrl}
-                            message={linkifyStory(message, keywords)} 
+                            message={linkifyStory(message)} 
                             isPlayer={true}
                             gender={characterProfile.gender}
                         />
@@ -267,7 +274,7 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
                             key={`${part.id}-${index}`} 
                             speakerName={speakerName}
                             speakerAvatar={npc.avatarUrl}
-                            message={linkifyStory(message, keywords)} 
+                            message={linkifyStory(message)} 
                             isPlayer={false}
                             gender={npc.gender}
                         />
@@ -279,7 +286,7 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
                     <ChatBubble 
                         key={`${part.id}-${index}`} 
                         speakerName={speakerName}
-                        message={linkifyStory(message, keywords)} 
+                        message={linkifyStory(message)} 
                         isPlayer={false}
                         gender={CharacterGender.MALE} // does not matter for generic
                         isGeneric={true}
@@ -291,7 +298,7 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
                 return (
                     <div key={`${part.id}-${index}`} className="flex items-start gap-3 my-3 text-slate-300 text-base leading-relaxed animate-fade-in">
                        <span className="text-slate-600 text-lg leading-tight mt-1 select-none">➤</span>
-                       <p className="flex-1 whitespace-pre-wrap">{linkifyStory(line, keywords)}</p>
+                       <p className="flex-1 whitespace-pre-wrap">{linkifyStory(line)}</p>
                     </div>
                 );
             }
@@ -311,7 +318,7 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
             </>
           ) : (
             <p className="font-sans text-amber-400 italic text-right text-md md:text-lg border-t border-slate-700 pt-4 mt-4 animate-fade-in">
-              &gt; {linkifyStory(part.text, keywords)}
+              &gt; {linkifyStory(part.text)}
             </p>
           )}
         </div>

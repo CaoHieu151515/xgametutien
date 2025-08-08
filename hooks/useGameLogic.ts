@@ -481,10 +481,6 @@ export const useGameLogic = () => {
                     return loc;
                 });
             }
-
-            if (response.updatedPlayerLocationId !== undefined) {
-                nextProfile.currentLocationId = response.updatedPlayerLocationId;
-            }
         
             if (response.updatedStats) {
                 const stats = response.updatedStats;
@@ -522,6 +518,11 @@ export const useGameLogic = () => {
                 nextProfile = recalculateDerivedStats(nextProfile);
             }
             
+            // Critical fix: Apply location update AFTER all other profile modifications to prevent overwrites.
+            if (response.updatedPlayerLocationId !== undefined) {
+                nextProfile.currentLocationId = response.updatedPlayerLocationId;
+            }
+
             const timePassedInMinutes = choice.durationInMinutes;
             if (timePassedInMinutes > 0) {
                 const oldDate = new Date(nextProfile.gameTime);
