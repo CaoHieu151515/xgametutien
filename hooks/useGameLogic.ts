@@ -371,7 +371,7 @@ export const useGameLogic = () => {
                             if (update.personality !== undefined) modifiedNpc.personality = update.personality;
                             if (update.description !== undefined) modifiedNpc.description = update.description;
                             if (update.locationId !== undefined) modifiedNpc.locationId = update.locationId;
-                            if (update.updatedNpcRelationships !== undefined) modifiedNpc.npcRelationships = update.updatedNpcRelationships;
+                            if (update.updatedNpcRelationships !== undefined) modifiedNpc.npcRelationships = update.updatedNpcRelationships || [];
             
                             let currentStatusEffects = modifiedNpc.statusEffects;
                             if (update.removedStatusEffects?.length) {
