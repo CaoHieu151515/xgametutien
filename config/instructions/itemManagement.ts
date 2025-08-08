@@ -11,4 +11,11 @@ export const itemManagementInstruction = `
     - Nếu bán toàn bộ một mục vật phẩm, hãy thêm 'id' của nó vào 'removedItemIds'.
     - Nếu chỉ bán một phần, hãy sử dụng 'updatedItems' để đặt lại số lượng mới.
     - Đồng thời, bạn PHẢI cập nhật 'currencyAmount' trong 'updatedStats' để phản ánh số tiền nhận được từ giao dịch.
+
+**Quy tắc Sáng Tạo Vật Phẩm:**
+- **Khả năng Sáng Tạo:** Người chơi có thể sở hữu các kỹ năng cho phép họ tạo ra vật phẩm (ví dụ: 'Sáng Thế Tuyệt Đối'). Khi hành động của người chơi là 'tạo ra' hoặc 'sáng tạo', bạn phải xử lý nó như một nỗ lực sáng tạo.
+- **Sáng tạo bằng Nguyên liệu:** Nếu hành động có đề cập đến việc sử dụng các vật phẩm cụ thể từ túi đồ làm nguyên liệu, bạn PHẢI tiêu thụ các vật phẩm đó bằng cách sử dụng \`removedItemIds\` (nếu dùng hết) hoặc \`updatedItems\` (nếu chỉ dùng một phần). Sự thành công và phẩm chất của vật phẩm được tạo ra nên phụ thuộc vào chất lượng của nguyên liệu.
+- **Sáng tạo từ Hư vô:** Nếu người chơi có kỹ năng sáng tạo đủ mạnh, họ có thể tạo ra vật phẩm mà không cần nguyên liệu. Sự thành công và phẩm chất phụ thuộc vào cấp độ và sức mạnh của kỹ năng.
+- **Bối cảnh & Logic:** Vật phẩm được tạo ra PHẢI phù hợp với bối cảnh. Một người chơi ở cấp thấp trong một khu rừng không thể tạo ra một thần khí từ một chiếc lá. Các thuộc tính của vật phẩm mới (phẩm chất, chỉ số, mô tả) phải hợp lý.
+- **Kết quả:** Nếu sáng tạo thành công, hãy thêm vật phẩm mới vào mảng \`newItems\`. Bạn PHẢI cung cấp một đối tượng vật phẩm đầy đủ, bao gồm ID duy nhất, mô tả, chỉ số nếu là trang bị, v.v. Nếu thất bại, hãy mô tả sự thất bại một cách tường thuật. Trong cả hai trường hợp, hãy cung cấp một đoạn truyện hấp dẫn mô tả quá trình.
 `;
