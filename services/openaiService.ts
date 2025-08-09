@@ -1,3 +1,4 @@
+
 import { StoryResponse, NarrativePerspective, CharacterGender, CharacterProfile, WorldSettings, NPC, Location, Skill, StoryApiResponse } from '../types';
 import { getSystemInstruction } from '../config/contentConfig';
 import { log } from './logService';
@@ -25,8 +26,8 @@ const getJsonSchemaDescription = (forWorldGen: boolean): string => {
         "updatedLocations": (optional array of Location objects) For existing locations that have changed.
         "updatedPlayerLocationId": (optional string or null) The player's new location ID.
         "newNPCs": (optional array of NewNPCFromAI objects) For newly encountered NPCs. Each 'npcRelationships' object can optionally have a "relationshipType" ('FAMILY' | 'ROMANTIC' | 'FRIENDLY' | 'RIVAL').
-        "updatedNPCs": (optional array of NPCUpdate objects) For existing NPCs that have changed. Can include "isDead": (boolean), "gender": ('male' | 'female'). Each 'updatedNpcRelationships' object can optionally have a "relationshipType".
-        "newItems": (optional array of Item objects) for newly acquired items.
+        "updatedNPCs": (optional array of NPCUpdate objects) For existing NPCs that have changed. Can include "isDead": (boolean), "gender": ('male' | 'female'), "aptitude": (string). Each 'updatedNpcRelationships' object can optionally have a "relationshipType".
+        "newItems": (optional array of Item objects) for newly acquired items. If the item type is 'Dược Phẩm', you MUST provide an 'effectsDescription' field detailing its effect.
         "updatedItems": (optional array of {name: string, quantity: number}) for updating item quantities.
         "removedItemIds": (optional array of strings) IDs of items to remove.
         "newWorldKnowledge": (optional array of WorldKnowledge objects) For newly discovered lore/factions. Each object: {"id": string, "title": string, "content": string, "category": string ('Bang Phái' | 'Lịch Sử' | 'Nhân Vật' | 'Khác')}.
