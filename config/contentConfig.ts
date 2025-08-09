@@ -10,6 +10,7 @@ import { getNpcManagementInstruction } from './instructions/npcManagement';
 import { playerDefinedRulesInstruction } from './instructions/playerDefinedRules';
 import { statUpdatesInstruction } from './instructions/statUpdates';
 import { getWorldInstruction } from './instructions/world';
+import { creationInstruction } from './instructions/creation';
 
 /**
  * Lấy chỉ thị hệ thống phù hợp dựa trên cài đặt của người chơi.
@@ -39,6 +40,7 @@ export const getSystemInstruction = (
         locationManagementInstruction,
         getNpcManagementInstruction(worldSettings),
         itemManagementInstruction,
+        creationInstruction,
         playerDefinedRulesInstruction
     ];
 
