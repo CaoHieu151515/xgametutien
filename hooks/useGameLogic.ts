@@ -245,6 +245,24 @@ export const useGameLogic = () => {
                 }
             }
 
+            if (response.removedItemIds?.length) {
+                response.removedItemIds.forEach(itemId => {
+                    const removedItem = characterProfile.items.find(i => i.id === itemId);
+                    if (removedItem) {
+                        notifications.push(`🎒 Đã sử dụng <b>[${removedItem.quality}] ${removedItem.name}</b> (x${removedItem.quantity}).`);
+                    }
+                });
+            }
+            if (response.updatedItems?.length) {
+                response.updatedItems.forEach(update => {
+                    const originalItem = characterProfile.items.find(i => i.name === update.name);
+                    if (originalItem && update.quantity < originalItem.quantity) {
+                        const quantityUsed = originalItem.quantity - update.quantity;
+                        notifications.push(`🎒 Đã sử dụng <b>${quantityUsed} [${originalItem.quality}] ${originalItem.name}</b>.`);
+                    }
+                });
+            }
+
             response.newItems?.forEach(item => notifications.push(`✨ Bạn nhận được vật phẩm: <b>${item.name}</b> (x${item.quantity}).`));
             response.newSkills?.forEach(s => notifications.push(`📖 Bạn đã lĩnh ngộ kỹ năng mới: <b>${s.name}</b>.`));
             response.newLocations?.forEach(l => notifications.push(`🗺️ Bạn đã khám phá ra địa điểm mới: <b>${l.name}</b>.`));
