@@ -342,10 +342,16 @@ export const useGameLogic = () => {
                     if (existingNpc) {
                         let modifiedNpc = { ...existingNpc };
             
-                        if (update.isDead) {
+                        if (update.isDead === true) {
                             modifiedNpc.isDead = true;
                             modifiedNpc.locationId = null;
                             notifications.push(`💀 <b>${modifiedNpc.name}</b> đã tử vong.`);
+                        } else if (update.isDead === false && existingNpc.isDead) { // Revival logic
+                            modifiedNpc.isDead = false;
+                            const stats = calculateBaseStatsForLevel(modifiedNpc.level);
+                            modifiedNpc.health = stats.maxHealth;
+                            modifiedNpc.mana = stats.maxMana;
+                            notifications.push(`✨ <b>${modifiedNpc.name}</b> đã được hồi sinh!`);
                         }
                         
                         if (!modifiedNpc.isDead) {
