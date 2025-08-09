@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { CharacterProfile, Item, ItemType, EquipmentSlot, EquipmentType, EquipmentStat } from '../../types';
 import { recalculateDerivedStats } from '../../services/progressionService';
@@ -7,6 +8,7 @@ interface InventoryModalProps {
     onClose: () => void;
     profile: CharacterProfile;
     onUpdateProfile: (newProfile: CharacterProfile) => void;
+    onUseItem: (item: Item) => void;
 }
 
 const itemTypeFilters = ['Tất cả', ...Object.values(ItemType)];
@@ -72,7 +74,7 @@ const statTranslations: Record<EquipmentStat['key'], string> = {
     maxMana: 'Linh Lực Tối Đa',
 };
 
-export const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, onClose, profile, onUpdateProfile }) => {
+export const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, onClose, profile, onUpdateProfile, onUseItem }) => {
     const [itemTypeFilter, setItemTypeFilter] = useState('Tất cả');
     const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
@@ -139,6 +141,11 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, onClose,
         const finalProfile = recalculateDerivedStats(newProfile);
         onUpdateProfile(finalProfile);
         setSelectedItemId(itemToUnequip.id);
+    };
+
+    const handleUse = (item: Item) => {
+        onUseItem(item);
+        onClose();
     };
 
     if (!isOpen) {
@@ -259,8 +266,13 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, onClose,
                                                 )}
                                             </div>
                                         )}
+                                        {selectedItem.effectsDescription && (
+                                            <div className="border-t border-slate-700 pt-3 space-y-1">
+                                                <p className="text-sm text-cyan-300"><span className="font-bold">Hiệu ứng:</span> {selectedItem.effectsDescription}</p>
+                                            </div>
+                                        )}
                                     </div>
-                                    <div className="flex-shrink-0 pt-4 border-t border-slate-700">
+                                    <div className="flex-shrink-0 pt-4 border-t border-slate-700 space-y-2">
                                         {isSelectedItemEquipped && (
                                              <button onClick={() => handleUnequip(selectedItem)} className="w-full py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-500 transition-colors text-sm">Gỡ Trang Bị</button>
                                         )}
@@ -279,6 +291,9 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, onClose,
                                                     ))}
                                                 </div>
                                             </div>
+                                        )}
+                                        {selectedItem.type === ItemType.DUOC_PHAM && (
+                                            <button onClick={() => handleUse(selectedItem)} className="w-full py-2 bg-green-600 text-white font-bold rounded-lg hover:bg-green-500 transition-colors text-sm">Sử Dụng</button>
                                         )}
                                     </div>
                                 </div>
