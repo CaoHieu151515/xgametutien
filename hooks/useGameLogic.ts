@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import * as geminiService from '../services/geminiService';
 import * as openaiService from '../services/openaiService';
@@ -389,6 +390,7 @@ export const useGameLogic = () => {
                             if (update.personality !== undefined) modifiedNpc.personality = update.personality;
                             if (update.description !== undefined) modifiedNpc.description = update.description;
                             if (update.locationId !== undefined) modifiedNpc.locationId = update.locationId;
+                            if (update.aptitude !== undefined) modifiedNpc.aptitude = update.aptitude;
                             if (update.updatedNpcRelationships !== undefined) modifiedNpc.npcRelationships = update.updatedNpcRelationships || [];
             
                             let currentStatusEffects = modifiedNpc.statusEffects;
@@ -593,6 +595,20 @@ export const useGameLogic = () => {
         }
     }, [characterProfile, worldSettings, npcs, history, gameLog, settings, api, apiKeyForService, choices]);
     
+    const handleUseItem = useCallback((item: Item) => {
+        log('useGameLogic.ts', `Player uses item: "${item.name}"`, 'FUNCTION');
+        
+        const useChoice: Choice = {
+            title: `Sử dụng ${item.name}`,
+            benefit: item.effectsDescription || 'Chưa rõ',
+            risk: 'Có thể có tác dụng phụ',
+            successChance: 95,
+            durationInMinutes: 0,
+        };
+        
+        handleAction(useChoice);
+    }, [handleAction]);
+
     useEffect(() => {
         if (history.length === 0) {
             setDisplayHistory([]);
@@ -800,6 +816,6 @@ export const useGameLogic = () => {
 
     return {
         gameState, setGameState, hasSaves, characterProfile, setCharacterProfile, worldSettings, setWorldSettings, history, displayHistory, npcs, setNpcs, choices, gameLog, isLoading, error, settings,
-        handleAction, handleContinue, handleGoHome, handleLoadGame, handleRestart, saveSettings, handleStartGame, handleUpdateLocation, handleUpdateWorldSettings, handleRewind, handleSave
+        handleAction, handleContinue, handleGoHome, handleLoadGame, handleRestart, saveSettings, handleStartGame, handleUpdateLocation, handleUpdateWorldSettings, handleRewind, handleSave, handleUseItem
     };
 };
