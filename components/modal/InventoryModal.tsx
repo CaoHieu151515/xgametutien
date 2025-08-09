@@ -238,6 +238,10 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, onClose,
                                             {selectedItem.name}
                                             {selectedItem.isNew && <NewBadge />}
                                         </h3>
+                                        <div className="flex items-baseline space-x-4 text-sm text-slate-400 border-b border-slate-700/50 pb-3">
+                                            <span>Phẩm chất: <span className="font-semibold text-slate-200">{selectedItem.quality}</span></span>
+                                            <span>Loại: <span className="font-semibold text-slate-200">{selectedItem.type}</span></span>
+                                        </div>
                                         <p className="text-sm text-slate-300 whitespace-pre-wrap">{selectedItem.description}</p>
                                         {selectedItem.equipmentDetails && (
                                             <div className="border-t border-slate-700 pt-3 space-y-1">
