@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
-import { CharacterProfile, StatusEffect, Skill, NPC, WorldSettings, CharacterGender, Location, Choice } from '../../types';
+import { CharacterProfile, StatusEffect, Skill, NPC, WorldSettings, CharacterGender, Location, Choice, ItemType } from '../../types';
 import { getExperienceForNextLevel, getSkillExperienceForNextLevel } from '../../services/progressionService';
 import { ImageLibraryModal } from './ImageLibraryModal';
 
@@ -249,10 +250,11 @@ const CreationTab: React.FC<{
     onAction: (choice: Choice) => void;
     onClose: () => void;
 }> = ({ profile, onAction, onClose }) => {
+    const [creationType, setCreationType] = useState<'item' | 'npc' | 'world'>('item');
     const [description, setDescription] = useState('');
     const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
 
-    const unequippedItems = useMemo(() => profile.items.filter(item => !item.isEquipped), [profile.items]);
+    const unequippedItems = useMemo(() => profile.items.filter(item => !item.isEquipped && item.type === ItemType.NGUYEN_LIEU), [profile.items]);
 
     const handleMaterialToggle = (itemId: string) => {
         setSelectedMaterials(prev => 
@@ -262,11 +264,23 @@ const CreationTab: React.FC<{
 
     const handleSubmit = () => {
         if (!description.trim()) {
-            alert('Vui lòng nhập mô tả vật phẩm muốn tạo.');
+            alert('Vui lòng nhập mô tả thứ bạn muốn tạo.');
             return;
         }
 
-        let actionTitle = `Sử dụng năng lực Sáng Thế, ${profile.name} cố gắng tạo ra một "${description.trim()}"`;
+        let actionTitle = '';
+        switch(creationType) {
+            case 'npc':
+                actionTitle = `Sử dụng năng lực Sáng Thế, ${profile.name} cố gắng tạo ra một sinh mệnh mới với mô tả: "${description.trim()}"`;
+                break;
+            case 'world':
+                actionTitle = `Sử dụng năng lực Sáng Thế, ${profile.name} tập trung sức mạnh để cố gắng tạo ra một thế giới mới với mô tả: "${description.trim()}"`;
+                break;
+            case 'item':
+            default:
+                actionTitle = `Sử dụng năng lực Sáng Thế, ${profile.name} cố gắng tạo ra một vật phẩm: "${description.trim()}"`;
+        }
+
 
         if (selectedMaterials.length > 0) {
             const materialNames = selectedMaterials.map(id => {
@@ -280,25 +294,50 @@ const CreationTab: React.FC<{
 
         const creationChoice: Choice = {
             title: actionTitle,
-            benefit: 'Nhận được vật phẩm mới.',
-            risk: 'Có thể thất bại, mất nguyên liệu hoặc tạo ra một vật phẩm không mong muốn.',
-            successChance: 75, // Reasonable default
-            durationInMinutes: 15,
+            benefit: 'Nhận được sản phẩm sáng tạo.',
+            risk: 'Có thể thất bại, mất nguyên liệu hoặc tạo ra sản phẩm không mong muốn.',
+            successChance: 75,
+            durationInMinutes: 60,
         };
 
         onAction(creationChoice);
         onClose();
     };
+    
+    const placeholderText = useMemo(() => ({
+        item: "Ví dụ: Một thanh trường kiếm phát ra hàn khí, một viên đan dược chữa lành mọi vết thương...",
+        npc: "Ví dụ: Một nữ kiếm linh lạnh lùng, trung thành tuyệt đối. Một tiểu yêu hồ ly tinh nghịch, có khả năng tìm kiếm thảo dược.",
+        world: "Ví dụ: Một bí cảnh chứa đầy linh khí thuần khiết, phù hợp cho việc tu luyện. Một tiểu thế giới bỏ túi dùng để lưu trữ vật phẩm."
+    }), []);
+
+    const buttonText = useMemo(() => ({
+        item: "Tạo Vật Phẩm",
+        npc: "Tạo Sinh Mệnh",
+        world: "Tạo Thế Giới"
+    }), []);
 
     return (
         <div className="space-y-6">
             <div>
-                <h3 className="text-lg font-bold text-amber-300 border-b border-slate-700 pb-2 mb-4">Sáng Tạo Vật Phẩm</h3>
-                <p className="text-sm text-slate-400 mb-4">Mô tả vật phẩm bạn muốn tạo. Bạn có thể chọn sử dụng các vật phẩm trong túi đồ làm nguyên liệu.</p>
+                <h3 className="text-lg font-bold text-amber-300 border-b border-slate-700 pb-2 mb-4">Sáng Tạo</h3>
+                <p className="text-sm text-slate-400 mb-4">Sử dụng năng lực 'Sáng Thế Tuyệt Đối' để tạo ra vật phẩm, sinh mệnh, hoặc thậm chí là cả một thế giới mới.</p>
+                
+                 <div className="flex justify-center gap-2 p-1 bg-slate-900/50 rounded-lg mb-4">
+                    {(['item', 'npc', 'world'] as const).map(type => (
+                        <button
+                            key={type}
+                            onClick={() => setCreationType(type)}
+                            className={`w-full py-2 px-3 rounded-md text-sm font-semibold transition-colors ${creationType === type ? 'bg-amber-600 text-slate-900' : 'hover:bg-slate-700/50'}`}
+                        >
+                            {type === 'item' ? 'Vật Phẩm' : type === 'npc' ? 'Sinh Mệnh' : 'Thế Giới'}
+                        </button>
+                    ))}
+                </div>
+
                 <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Ví dụ: Một thanh trường kiếm phát ra hàn khí, một viên đan dược chữa lành mọi vết thương..."
+                    placeholder={placeholderText[creationType]}
                     rows={4}
                     className="w-full p-2 bg-slate-700 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all text-slate-200 resize-y"
                 />
@@ -319,7 +358,7 @@ const CreationTab: React.FC<{
                             </label>
                         ))
                     ) : (
-                        <p className="text-slate-500 text-center p-4">Không có vật phẩm nào để làm nguyên liệu.</p>
+                        <p className="text-slate-500 text-center p-4">Không có nguyên liệu nào trong túi đồ.</p>
                     )}
                 </div>
             </div>
@@ -328,11 +367,12 @@ const CreationTab: React.FC<{
                 disabled={!description.trim()}
                 className="w-full py-3 bg-amber-600 text-slate-900 font-bold rounded-lg hover:bg-amber-500 transition-colors disabled:opacity-50"
             >
-                Tạo Vật
+                {buttonText[creationType]}
             </button>
         </div>
     );
 };
+
 
 export const PlayerInfoModal: React.FC<PlayerInfoModalProps> = ({ isOpen, onClose, profile, npcs, onUpdateProfile, worldSettings, onAction }) => {
     const [activeTab, setActiveTab] = useState('stats');
@@ -340,6 +380,7 @@ export const PlayerInfoModal: React.FC<PlayerInfoModalProps> = ({ isOpen, onClos
     const [isImageLibraryOpen, setIsImageLibraryOpen] = useState(false);
 
     const defaultAvatar = useMemo(() => getDefaultAvatar(profile.gender), [profile.gender]);
+    const canCreate = useMemo(() => profile.skills.some(skill => skill.name === 'Sáng Thế Tuyệt Đối'), [profile.skills]);
 
     // On open, reset the tab to stats. This avoids resetting on profile updates.
     useEffect(() => {
@@ -616,8 +657,8 @@ export const PlayerInfoModal: React.FC<PlayerInfoModalProps> = ({ isOpen, onClos
                                     <TabButton isActive={activeTab === 'stats'} onClick={() => setActiveTab('stats')}>Chỉ số</TabButton>
                                     <TabButton isActive={activeTab === 'skills'} onClick={() => setActiveTab('skills')}>Kỹ năng</TabButton>
                                     <TabButton isActive={activeTab === 'relationships'} onClick={() => setActiveTab('relationships')}>Quan Hệ</TabButton>
-                                    <TabButton isActive={activeTab === 'ownedLocations'} onClick={() => setActiveTab('ownedLocations')}>Địa Điểm Sở Hữu</TabButton>
-                                    <TabButton isActive={activeTab === 'creation'} onClick={() => setActiveTab('creation')}>Sáng Tạo</TabButton>
+                                    <TabButton isActive={activeTab === 'ownedLocations'} onClick={() => setActiveTab('ownedLocations')}>Địa Điểm</TabButton>
+                                    {canCreate && <TabButton isActive={activeTab === 'creation'} onClick={() => setActiveTab('creation')}>Sáng Tạo</TabButton>}
                                     <TabButton isActive={activeTab === 'info'} onClick={() => setActiveTab('info')}>Thông tin</TabButton>
                                 </nav>
                             </div>
@@ -626,7 +667,7 @@ export const PlayerInfoModal: React.FC<PlayerInfoModalProps> = ({ isOpen, onClos
                                 {activeTab === 'skills' && renderSkillsTab()}
                                 {activeTab === 'relationships' && renderRelationshipsTab()}
                                 {activeTab === 'ownedLocations' && renderOwnedLocationsTab()}
-                                {activeTab === 'creation' && <CreationTab profile={profile} onAction={onAction} onClose={onClose} />}
+                                {activeTab === 'creation' && canCreate && <CreationTab profile={profile} onAction={onAction} onClose={onClose} />}
                                 {activeTab === 'info' && renderInfoTab()}
                             </div>
                         </div>
