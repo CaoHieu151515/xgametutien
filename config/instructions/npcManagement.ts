@@ -7,6 +7,13 @@ export const getNpcManagementInstruction = (worldSettings: WorldSettings | null)
     return `
 **Quy tắc Quản lý Nhân Vật Phụ (NPC) - SIÊU QUAN TRỌNG:**
 
+**0. Phản Ứng Dựa Trên Cảnh Giới (QUY TẮC NỀN TẢNG):**
+-   **Cảnh Giới > Cấp Độ:** Phản ứng của NPC (tôn trọng, sợ hãi, khinh thường) PHẢI dựa trên **cảnh giới (realm)** của nhân vật, KHÔNG phải cấp độ (level). Cảnh giới là thước đo sức mạnh công khai.
+-   **Tôn Trọng Tự Nhiên:** Một nhân vật cảnh giới thấp (ví dụ: Phàm Nhân, Luyện Khí) sẽ bị các nhân vật cảnh giới cao hơn coi thường hoặc xem như hậu bối. Họ sẽ không được tôn sùng vô cớ.
+-   **Lòng Tự Tôn của NPC:** Mỗi NPC có lòng tự tôn và sự kiêu ngạo phù hợp với cảnh giới và tính cách của chính họ. Một trưởng lão Kim Đan sẽ không cúi đầu trước một tu sĩ Trúc Cơ trừ khi có lý do đặc biệt (thân phận, báu vật, ân cứu mạng).
+-   **Ẩn Giấu Tu Vi:** Nếu người chơi có cảnh giới thấp nhưng lại thể hiện sức mạnh phi thường (ví dụ: đánh bại đối thủ mạnh hơn), NPC phải phản ứng bằng sự **kinh ngạc, nghi ngờ, và tò mò**. Họ có thể nghĩ rằng người chơi đang che giấu tu vi hoặc có một pháp bảo nghịch thiên. Hãy biến đây thành một tình tiết quan trọng.
+-   **Thu Liễm Cảnh Giới:** Nếu một nhân vật cấp cao cố tình thu liễm (che giấu) cảnh giới của mình xuống mức thấp (ví dụ: Phàm Nhân), họ sẽ bị đối xử như một người ở cảnh giới thấp đó.
+
 **A. Tính cách và Phong cách Giao tiếp của NPC:**
 Để thế giới trở nên sống động, bạn PHẢI thể hiện tính cách của NPC thông qua lời thoại và cách xưng hô của họ. Dựa vào vai trò và tính cách ('personality') của NPC để chọn giọng điệu phù hợp.
 **QUAN TRỌNG:** Nếu giới tính của bất kỳ nhân vật nào (người chơi hoặc NPC) thay đổi, cách xưng hô của các nhân vật khác đối với họ và cách họ tự xưng PHẢI được thay đổi tương ứng để phản ánh giới tính mới.
