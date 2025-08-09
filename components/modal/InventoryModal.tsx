@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { CharacterProfile, Item, ItemType, EquipmentSlot, EquipmentType } from '../../types';
+import { CharacterProfile, Item, ItemType, EquipmentSlot, EquipmentType, EquipmentStat } from '../../types';
 import { recalculateDerivedStats } from '../../services/progressionService';
 
 interface InventoryModalProps {
@@ -64,6 +64,12 @@ const EquipmentSlotDisplay: React.FC<{
             )}
         </button>
     );
+};
+
+const statTranslations: Record<EquipmentStat['key'], string> = {
+    attack: 'Tấn Công',
+    maxHealth: 'Sinh Lực Tối Đa',
+    maxMana: 'Linh Lực Tối Đa',
 };
 
 export const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, onClose, profile, onUpdateProfile }) => {
@@ -240,13 +246,13 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, onClose,
                                         </h3>
                                         <div className="flex items-baseline space-x-4 text-sm text-slate-400 border-b border-slate-700/50 pb-3">
                                             <span>Phẩm chất: <span className="font-semibold text-slate-200">{selectedItem.quality}</span></span>
-                                            <span>Loại: <span className="font-semibold text-slate-200">{selectedItem.type}</span></span>
+                                            <span>Loại: <span className="font-semibold text-slate-200">{selectedItem.equipmentDetails?.type || selectedItem.type}</span></span>
                                         </div>
                                         <p className="text-sm text-slate-300 whitespace-pre-wrap">{selectedItem.description}</p>
                                         {selectedItem.equipmentDetails && (
                                             <div className="border-t border-slate-700 pt-3 space-y-1">
                                                 {selectedItem.equipmentDetails.stats.map((stat, i) => (
-                                                    <p key={i} className="text-sm text-green-400 font-semibold">{stat.key}: +{stat.value}</p>
+                                                    <p key={i} className="text-sm text-green-400 font-semibold">{(statTranslations as any)[stat.key] || stat.key}: +{stat.value.toLocaleString()}</p>
                                                 ))}
                                                 {selectedItem.equipmentDetails.effect && (
                                                      <p className="text-sm text-cyan-300"><span className="font-bold">Hiệu ứng:</span> {selectedItem.equipmentDetails.effect}</p>
