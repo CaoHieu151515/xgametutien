@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
 import { StoryResponse, NarrativePerspective, CharacterGender, CharacterProfile, WorldSettings, SkillType, Location, LocationType, NPC, NewNPCFromAI, NPCUpdate, Skill, Choice, ItemType, EquipmentType, StoryApiResponse, WorldKnowledge } from '../types';
 import { getSystemInstruction } from '../config/contentConfig';
@@ -89,7 +90,8 @@ const itemSchema = {
         quality: { type: Type.STRING, description: "Phẩm chất của vật phẩm, dựa trên worldSettings.qualityTiers." },
         quantity: { type: Type.NUMBER, description: "Số lượng vật phẩm." },
         value: { type: Type.NUMBER, description: "Giá trị tham khảo của vật phẩm bằng tiền tệ trong game.", nullable: true },
-        equipmentDetails: { ...equipmentDetailsSchema, nullable: true, description: "Chi tiết nếu vật phẩm là một trang bị." }
+        equipmentDetails: { ...equipmentDetailsSchema, nullable: true, description: "Chi tiết nếu vật phẩm là một trang bị." },
+        effectsDescription: { type: Type.STRING, description: "Mô tả hiệu ứng cụ thể của vật phẩm nếu nó là 'Dược Phẩm'. Ví dụ: 'Hồi phục 500 sinh lực', 'Tăng 10% tấn công trong 3 lượt', 'Gây trúng độc, giảm 100 sinh lực mỗi lượt trong 5 lượt.'", nullable: true }
     },
     required: ["id", "name", "description", "type", "quality", "quantity"]
 };
@@ -455,6 +457,7 @@ const updatedNpcSchema = {
         personality: { type: Type.STRING, description: "Tính cách mới của NPC nếu có sự thay đổi lớn.", nullable: true },
         description: { type: Type.STRING, description: "Mô tả mới của NPC nếu có sự thay đổi.", nullable: true },
         locationId: { type: Type.STRING, description: "ID vị trí mới của NPC.", nullable: true },
+        aptitude: { type: Type.STRING, description: "Tư chất mới của NPC nếu bị thay đổi bởi độc dược hoặc sự kiện.", nullable: true },
         updatedNpcRelationships: { type: Type.ARRAY, items: npcRelationshipSchema, description: "Toàn bộ danh sách mối quan hệ MỚI của NPC này với các NPC khác.", nullable: true },
         isDaoLu: { type: Type.BOOLEAN, description: "Đặt thành true nếu NPC trở thành Đạo Lữ của người chơi.", nullable: true },
         isDead: { type: Type.BOOLEAN, description: "Đặt thành true nếu NPC đã chết.", nullable: true },
