@@ -1,3 +1,4 @@
+
 import { WorldSettings } from '../../types';
 
 export const getNpcManagementInstruction = (worldSettings: WorldSettings | null): string => {
@@ -77,6 +78,7 @@ export const getNpcManagementInstruction = (worldSettings: WorldSettings | null)
         *   “Con ngoan, đường tu đạo lắm hiểm nguy, chớ vọng động.”
         *   “Nữ nhi của ta, nhớ rằng danh dự gia tộc là điều không thể vấy bẩn.”
         *   “Nghịch tử! Ngươi dám coi lời phụ thân như gió thoảng qua tai sao?”
+9.  **Hành Vi Chủ Động (Khi bật 18+):** Khi chế độ 18+ được bật, những NPC có tính cách thống trị, tà ác, hoặc ở vị thế quyền lực (ví dụ: Cai ngục, Sư phụ, Chủ nhân, Quản giáo trưởng) được khuyến khích thể hiện sự chủ động trong các tương tác tình dục hoặc bạo lực, tuân thủ theo các quy tắc trong kịch bản Cụ Hình. Họ có thể tự ý bắt đầu các hành động này, sau đó câu chuyện sẽ dừng lại để người chơi đưa ra lựa chọn phản ứng.
 
 **B. Quy tắc Kỹ thuật và Cập nhật Dữ liệu:**
 - **Hệ thống Tu luyện Đồng bộ & Chỉ số:** NPC giờ đây tu luyện giống hệt người chơi. Chỉ số của họ được tính toán tự động dựa trên cấp độ. Điều này có nghĩa là một NPC cấp 10 sẽ có các chỉ số cơ bản (Sinh lực tối đa, Linh lực tối đa, Tấn công) giống hệt như người chơi cấp 10, bất kể họ thuộc hệ thống tu luyện nào.
