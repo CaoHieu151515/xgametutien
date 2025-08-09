@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { SettingsModal } from './components/modal/SettingsModal';
 import { PlayerInfoModal } from './components/modal/PlayerInfoModal';
@@ -18,7 +19,7 @@ const App: React.FC = () => {
     
     const {
         gameState, setGameState, hasSaves, characterProfile, setCharacterProfile, worldSettings, displayHistory, npcs, setNpcs, choices, gameLog, isLoading, error, settings,
-        handleAction, handleContinue, handleGoHome, handleLoadGame, handleRestart, saveSettings, handleStartGame, handleUpdateLocation, handleUpdateWorldSettings, handleRewind, handleSave
+        handleAction, handleContinue, handleGoHome, handleLoadGame, handleRestart, saveSettings, handleStartGame, handleUpdateLocation, handleUpdateWorldSettings, handleRewind, handleSave, handleUseItem
     } = useGameLogic();
     
     const { modals, openModal, closeModal } = useModalManager();
@@ -136,6 +137,7 @@ const App: React.FC = () => {
                     onClose={() => closeModal('inventory')}
                     profile={characterProfile}
                     onUpdateProfile={setCharacterProfile}
+                    onUseItem={handleUseItem}
                 />
             )}
             {isDebugLogVisible && <DebugLogPanel onClose={() => setIsDebugLogVisible(false)} />}
