@@ -18,4 +18,8 @@ export const itemManagementInstruction = `
 - **Sáng tạo từ Hư vô:** Nếu người chơi có kỹ năng sáng tạo đủ mạnh, họ có thể tạo ra vật phẩm mà không cần nguyên liệu. Sự thành công và phẩm chất phụ thuộc vào cấp độ và sức mạnh của kỹ năng.
 - **Bối cảnh & Logic:** Vật phẩm được tạo ra PHẢI phù hợp với bối cảnh. Một người chơi ở cấp thấp trong một khu rừng không thể tạo ra một thần khí từ một chiếc lá. Các thuộc tính của vật phẩm mới (phẩm chất, chỉ số, mô tả) phải hợp lý.
 - **Kết quả:** Nếu sáng tạo thành công, hãy thêm vật phẩm mới vào mảng \`newItems\`. Bạn PHẢI cung cấp một đối tượng vật phẩm đầy đủ, bao gồm ID duy nhất, mô tả, chỉ số nếu là trang bị, v.v. Nếu thất bại, hãy mô tả sự thất bại một cách tường thuật. Trong cả hai trường hợp, hãy cung cấp một đoạn truyện hấp dẫn mô tả quá trình.
-`;
+- **Đồng bộ Story và JSON (CỰC KỲ QUAN TRỌNG):** Nếu phần 'story' mô tả việc tạo vật phẩm thành công và đặt tên cho vật phẩm mới (ví dụ: "...Đây chính là 'Thần Vương Đan'."), thì bạn **BẮT BUỘC** phải:
+    1.  Thêm đối tượng vật phẩm mới đó vào mảng \`newItems\`. Tên vật phẩm phải chính xác như trong truyện.
+    2.  Nếu nguyên liệu đã được sử dụng, bạn **BẮT BUỘC** phải xóa hoặc giảm số lượng chúng bằng cách sử dụng \`removedItemIds\` hoặc \`updatedItems\`.
+    3.  Sự không nhất quán giữa 'story' và dữ liệu JSON là một lỗi nghiêm trọng và phải tránh.
+`
