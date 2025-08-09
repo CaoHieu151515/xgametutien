@@ -48,7 +48,7 @@ export interface SkillUpdate {
 }
 
 export enum LocationType {
-  WORLD = 'THẾ GIỚI',
+  WORLD = 'THẾ GIỚỚI',
   CITY = 'THÀNH TRẤN',
   THE_LUC = 'THẾ LỰC',
   TOWN = 'THÔN LÀNG',
@@ -145,6 +145,7 @@ export interface NPCUpdate {
     personality?: string;
     description?: string;
     locationId?: string;
+    aptitude?: string;
     updatedNpcRelationships?: NpcRelationship[];
     isDaoLu?: boolean; // Cập nhật trạng thái bạn đời
     isDead?: boolean; // Cập nhật trạng thái đã chết
@@ -281,6 +282,7 @@ export interface Item {
     value?: number;
     isEquipped?: boolean;
     equipmentDetails?: EquipmentDetails;
+    effectsDescription?: string;
     isNew?: boolean;
 }
 
