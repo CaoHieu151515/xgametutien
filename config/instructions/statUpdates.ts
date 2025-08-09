@@ -1,4 +1,4 @@
-export const statUpdatesInstruction = `**QUY TẮC TỐI THƯỢỢNG VỀ KỸ NĂNG:** Thế giới tu tiên có vô số kỹ năng. Khi người chơi ra lệnh trực tiếp sử dụng một kỹ năng, bạn BẮT BUỘC phải diễn giải hiệu ứng của kỹ năng đó và thể hiện nó một cách máy móc thông qua các trường JSON có sẵn. Điều này bao gồm, nhưng không giới hạn ở: gây/chữa trị sát thương ('health'), thay đổi trạng thái ('newStatusEffects', 'removedStatusEffects'), hồi sinh người chết ('updatedNPCs' với 'isDead: false'), và bất kỳ hiệu ứng nào khác có thể được biểu diễn qua schema. SỰ THẤT BẠI TRONG VIỆC ÁP DỤNG HIỆU ỨNG CỦA MỘT KỸ NĂNG ĐƯỢC CHỈ ĐỊNH LÀ MỘT LỖI NGHIÊM TRỌNG.
+export const statUpdatesInstruction = `**QUY TẮC TỐI THƯỢNG VỀ KỸ NĂNG:** Thế giới tu tiên có vô số kỹ năng. Khi người chơi ra lệnh trực tiếp sử dụng một kỹ năng, bạn BẮT BUỘC phải diễn giải hiệu ứng của kỹ năng đó và thể hiện nó một cách máy móc thông qua các trường JSON có sẵn. Điều này bao gồm, nhưng không giới hạn ở: gây/chữa trị sát thương ('health'), thay đổi trạng thái ('newStatusEffects', 'removedStatusEffects'), hồi sinh người chết ('updatedNPCs' với 'isDead: false'), và bất kỳ hiệu ứng nào khác có thể được biểu diễn qua schema. SỰ THẤT BẠI TRONG VIỆC ÁP DỤNG HIỆU ỨNG CỦA MỘT KỸ NĂNG ĐƯỢC CHỈ ĐỊNH LÀ MỘT LỖI NGHIÊM TRỌNG.
 
 **Quy tắc Cập nhật Chỉ số & Kỹ năng (CỰC KỲ QUAN TRỌNG):**
 - Vai trò của bạn là điều khiển các thay đổi tức thời đối với nhân vật.
@@ -12,6 +12,7 @@ export const statUpdatesInstruction = `**QUY TẮC TỐI THƯỢỢNG VỀ KỸ 
     - Đánh bại kẻ địch yếu, khám phá quan trọng: 50-150 EXP.
     - Hoàn thành nhiệm vụ, đánh bại trùm, đột phá lớn: 150-300+ EXP.
     - Khi nhân vật đạt cấp độ rất cao (trên 50), hãy giảm nhẹ lượng kinh nghiệm trao thưởng để làm chậm quá trình thăng cấp.
+- **Kinh nghiệm từ Tu Luyện (CỰC KỲ QUAN TRỌNG):** Nếu hành động của người chơi có tiêu đề chứa các từ khóa liên quan đến tu luyện (ví dụ: "tu luyện", "bế quan", "luyện hóa", "thiền định", "hấp thụ"), bạn **BẮT BUỘC** phải trao một lượng kinh nghiệm hợp lý trong \`gainedExperience\`. Lượng kinh nghiệm này nên tỷ lệ thuận với thời gian thực hiện hành động (\`durationInMinutes\`). Ví dụ, tu luyện trong 4 giờ (240 phút) phải cho nhiều kinh nghiệm hơn tu luyện trong 15 phút. Tuyệt đối không được bỏ qua việc trao kinh nghiệm cho các hành động tu luyện.
 - **Cập nhật Tiền tệ (CỰC KỲ QUAN TRỌNG):**
     - **Quy ước & Quy đổi (BẮT BUỘC):** Khi xử lý tiền tệ, bạn PHẢI tuân thủ nghiêm ngặt các quy ước sau để chuyển đổi từ chữ sang số một cách chính xác. Các đơn vị có thể được kết hợp.
         - **1 vạn = 10,000**
