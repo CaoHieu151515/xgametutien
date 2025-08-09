@@ -1,7 +1,9 @@
-export const statUpdatesInstruction = `**QUY TẮC TỐI THƯỢNG VỀ KỸ NĂNG:** Thế giới tu tiên có vô số kỹ năng. Khi người chơi ra lệnh trực tiếp sử dụng một kỹ năng, bạn BẮT BUỘC phải diễn giải hiệu ứng của kỹ năng đó và thể hiện nó một cách máy móc thông qua các trường JSON có sẵn. Điều này bao gồm, nhưng không giới hạn ở: gây/chữa trị sát thương ('health'), thay đổi trạng thái ('newStatusEffects', 'removedStatusEffects'), hồi sinh người chết ('updatedNPCs' với 'isDead: false'), và bất kỳ hiệu ứng nào khác có thể được biểu diễn qua schema. SỰ THẤT BẠI TRONG VIỆC ÁP DỤNG HIỆU ỨNG CỦA MỘT KỸ NĂNG ĐƯỢC CHỈ ĐỊNH LÀ MỘT LỖI NGHIÊM TRỌNG.
+export const statUpdatesInstruction = `**QUY TẮC TỐI THƯỢỢNG VỀ KỸ NĂNG:** Thế giới tu tiên có vô số kỹ năng. Khi người chơi ra lệnh trực tiếp sử dụng một kỹ năng, bạn BẮT BUỘC phải diễn giải hiệu ứng của kỹ năng đó và thể hiện nó một cách máy móc thông qua các trường JSON có sẵn. Điều này bao gồm, nhưng không giới hạn ở: gây/chữa trị sát thương ('health'), thay đổi trạng thái ('newStatusEffects', 'removedStatusEffects'), hồi sinh người chết ('updatedNPCs' với 'isDead: false'), và bất kỳ hiệu ứng nào khác có thể được biểu diễn qua schema. SỰ THẤT BẠI TRONG VIỆC ÁP DỤNG HIỆU ỨNG CỦA MỘT KỸ NĂNG ĐƯỢC CHỈ ĐỊNH LÀ MỘT LỖI NGHIÊM TRỌNG.
 
 **Quy tắc Cập nhật Chỉ số & Kỹ năng (CỰC KỲ QUAN TRỌNG):**
 - Vai trò của bạn là điều khiển các thay đổi tức thời đối với nhân vật.
+
+- **Thay đổi Giới tính (QUAN TRỌNG):** Nếu một kỹ năng hoặc vật phẩm có hiệu ứng thay đổi giới tính của nhân vật chính, bạn BẮT BUỘC phải cập nhật giới tính của họ bằng cách sử dụng trường 'updatedGender'. Ví dụ, nếu một nhân vật nam sử dụng 'Nghịch Chuyển Âm Dương' để biến thành nữ, bạn phải đặt 'updatedGender': 'female' trong phản hồi JSON. Tương tự đối với việc biến nữ thành nam. Đây là một cơ chế quan trọng của trò chơi.
 
 - **QUY TẮC CỐT LÕI VỀ KỸ NĂNG (CỰC KỲ QUAN TRỌNG):** Bạn **TUYỆT ĐỐI KHÔNG** được tự ý sử dụng các kỹ năng (đặc biệt là kỹ năng \`Công Kích\` hoặc các kỹ năng có ảnh hưởng tiêu cực) thay cho người chơi. Người chơi phải là người ra quyết định. Nếu hành động của người chơi không nói rõ "dùng [tên kỹ năng]", bạn không được tự động kích hoạt nó, trừ các trường hợp ngoại lệ dưới đây.
 
@@ -38,4 +40,4 @@ export const statUpdatesInstruction = `**QUY TẮC TỐI THƯỢNG VỀ KỸ NĂ
 - **Chỉ số KHÔNG ĐƯỢC PHÉP thay đổi:** Tuyệt đối không tự ý thay đổi các chỉ số sau vì chúng được hệ thống tính toán: 'level', 'realm', 'maxHealth', 'maxMana', 'attack', 'lifespan'.
 - **Chỉ số CÓ THỂ thay đổi:** Bạn có thể thay đổi 'health' (do chịu sát thương/hồi phục), 'mana' (do sử dụng kỹ năng), và 'currencyAmount' (do giao dịch/nhặt được).
 - **Trạng thái:** Để thêm trạng thái mới, sử dụng mảng 'newStatusEffects'. Để xóa, sử dụng 'removedStatusEffects'. Thiên Phú và Thể Chất là vĩnh viễn, không được xóa.
-`;
+`
