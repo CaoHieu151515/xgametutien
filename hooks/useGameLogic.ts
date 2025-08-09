@@ -1,4 +1,5 @@
 
+
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import * as geminiService from '../services/geminiService';
 import * as openaiService from '../services/openaiService';
@@ -357,9 +358,13 @@ export const useGameLogic = () => {
                         if (!modifiedNpc.isDead) {
                             if (update.gainedExperience && update.gainedExperience > 0) {
                                 const oldLevel = modifiedNpc.level;
+                                const oldRealm = modifiedNpc.realm;
                                 modifiedNpc = processNpcLevelUps(modifiedNpc, update.gainedExperience, finalWorldSettings);
                                 if (modifiedNpc.level > oldLevel) {
                                     notifications.push(`✨ <b>${modifiedNpc.name}</b> đã đạt đến <b>cấp độ ${modifiedNpc.level}</b>!`);
+                                    if (modifiedNpc.realm !== oldRealm) {
+                                        notifications.push(`⚡️ **ĐỘT PHÁ!** <b>${modifiedNpc.name}</b> đã tiến vào cảnh giới <b>${modifiedNpc.realm}</b>.`);
+                                    }
                                 }
                             }
             
@@ -402,9 +407,16 @@ export const useGameLogic = () => {
                             let currentStatusEffects = modifiedNpc.statusEffects;
                             if (update.removedStatusEffects?.length) {
                                 const effectsToRemove = new Set(update.removedStatusEffects);
+                                const removedEffects = currentStatusEffects.filter(effect => effectsToRemove.has(effect.name));
+                                removedEffects.forEach(effect => {
+                                    notifications.push(`🍃 Trạng thái "<b>${effect.name}</b>" của <b>${modifiedNpc.name}</b> đã kết thúc.`);
+                                });
                                 currentStatusEffects = currentStatusEffects.filter(effect => !effectsToRemove.has(effect.name));
                             }
                             if (update.newStatusEffects?.length) {
+                                update.newStatusEffects.forEach(effect => {
+                                    notifications.push(`✨ <b>${modifiedNpc.name}</b> nhận được trạng thái: <b>${effect.name}</b>.`);
+                                });
                                 currentStatusEffects = [...currentStatusEffects, ...update.newStatusEffects];
                             }
                             modifiedNpc.statusEffects = currentStatusEffects;
