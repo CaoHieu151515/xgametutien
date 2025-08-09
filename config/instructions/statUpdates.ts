@@ -1,4 +1,5 @@
-export const statUpdatesInstruction = `
+export const statUpdatesInstruction = `**QUY TẮC TỐI THƯỢNG VỀ KỸ NĂNG:** Thế giới tu tiên có vô số kỹ năng. Khi người chơi ra lệnh trực tiếp sử dụng một kỹ năng, bạn BẮT BUỘC phải diễn giải hiệu ứng của kỹ năng đó và thể hiện nó một cách máy móc thông qua các trường JSON có sẵn. Điều này bao gồm, nhưng không giới hạn ở: gây/chữa trị sát thương ('health'), thay đổi trạng thái ('newStatusEffects', 'removedStatusEffects'), hồi sinh người chết ('updatedNPCs' với 'isDead: false'), và bất kỳ hiệu ứng nào khác có thể được biểu diễn qua schema. SỰ THẤT BẠI TRONG VIỆC ÁP DỤNG HIỆU ỨNG CỦA MỘT KỸ NĂNG ĐƯỢC CHỈ ĐỊNH LÀ MỘT LỖI NGHIÊM TRỌNG.
+
 **Quy tắc Cập nhật Chỉ số & Kỹ năng (CỰC KỲ QUAN TRỌNG):**
 - Vai trò của bạn là điều khiển các thay đổi tức thời đối với nhân vật.
 
