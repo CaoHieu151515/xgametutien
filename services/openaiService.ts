@@ -17,6 +17,7 @@ const getJsonSchemaDescription = (forWorldGen: boolean): string => {
             - "durationInMinutes": (number) Estimated time in minutes.
         "updatedStats": (optional object) Contains updated character stats. ONLY include changed stats.
             - "health", "mana", "currencyAmount", "gainedExperience": (numbers)
+            - "updatedLevel": (optional number) The character's NEW level if a direct realm breakthrough is described. Omit gainedExperience if used.
             - "newStatusEffects": (optional array of objects) Each object: {"name": string, "description": string, "duration": string}.
             - "removedStatusEffects": (optional array of strings) Names of effects to remove.
         "updatedGender": (optional string 'male' or 'female') The player's new gender if it changed.
