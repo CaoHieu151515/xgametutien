@@ -17,15 +17,21 @@ export const getNpcManagementInstruction = (worldSettings: WorldSettings | null)
 
 **1.1. Quy tắc Hiện diện & Nhận thức (MỆNH LỆNH TỐI CAO)**
 - **Hiện diện Dựa trên Vị trí Tuyệt đối:** Một NPC CHỈ được phép xuất hiện, hành động, hoặc được nhắc đến trong câu chuyện khi họ đang ở **cùng một địa điểm cụ thể** với nhân vật chính. Dữ liệu đầu vào sẽ cung cấp vị trí hiện tại của mỗi NPC. Bạn PHẢI tuân thủ điều này một cách nghiêm ngặt.
-- **CẤM Tri giác Siêu nhiên:** NPC không có khả năng thần giao cách cảm hay toàn tri. Họ không thể biết, cảm nhận, hay phản ứng với các sự kiện xảy ra ở một địa điểm khác mà họ không có mặt. Ký ức của họ là về những gì họ đã trải qua, không phải là một cách để theo dõi người chơi từ xa.
-- **CẤM NPC không liên quan:** TUYỆT ĐỐI KHÔNG được nhắc đến, mô tả suy nghĩ, hay đưa vào hành động của bất kỳ NPC nào không có mặt tại địa điểm của người chơi. Đây là một lỗi logic nghiêm trọng và phải được tránh bằng mọi giá.
-- **Ví dụ Cụ thể:** Nếu nhân vật chính đang ở một buổi đấu giá tại "Thiên Đấu Thành", một NPC có vị trí là "Vạn Kiếm Tông" (một nơi hoàn toàn khác) sẽ KHÔNG biết về buổi đấu giá, KHÔNG thể tham gia, và KHÔNG được xuất hiện trong lời kể về sự kiện đó dưới bất kỳ hình thức nào.
+- **CẤM Tri giác Siêu nhiên:** NPC không có khả năng thần giao cách cảm hay toàn tri. Họ không thể biết, cảm nhận, hay phản ứng với các sự kiện xảy ra ở một địa điểm khác mà họ không có mặt.
+- **CẤM Đọc Dữ Liệu Nhân Vật (LỖI LOGIC NGHIÊM TRỌNG):** NPC là các thực thể trong thế giới, không phải là người đọc file JSON. Họ **TUYỆT ĐỐI KHÔNG BIẾT** bất kỳ thông tin nào về người chơi (tên, thể chất, thiên phú, tiểu sử, cấp độ) trừ khi thông tin đó đã được tiết lộ cho họ thông qua hành động hoặc lời nói trong 'Lịch sử câu chuyện'. Việc một NPC chưa từng gặp mà biết tên người chơi là một lỗi hệ thống nghiêm trọng và bị cấm.
+    - **Ví dụ Sai:** Người chơi lần đầu gặp chủ tiệm tạp hóa. [Chủ tiệm]: "Chào mừng, [Tên Nhân Vật]! Ta nghe nói ngươi có [Tên Thể Chất]!"
+    - **Ví dụ Đúng:** Người chơi lần đầu gặp chủ tiệm tạp hóa. [Chủ tiệm]: "Chào mừng đạo hữu. Cần tìm gì sao?"
+- **CẤM NPC không liên quan:** TUYỆT ĐỐI KHÔNG được nhắc đến, mô tả suy nghĩ, hay đưa vào hành động của bất kỳ NPC nào không có mặt tại địa điểm của người chơi. Ví dụ: Nếu nhân vật chính đang ở "Thiên Đấu Thành", một NPC ở "Vạn Kiếm Tông" sẽ KHÔNG biết và KHÔNG thể tham gia vào các sự kiện tại thành.
 
-**1.2. Phản Ứng Dựa Trên Cảnh Giới (QUY TẮC NỀN TẢNG)**
+**1.2. Phản Ứng Dựa Trên Cảnh Giới (MỆNH LỆNH TUYỆT ĐỐI)**
+-   **Phân cấp Xã hội Tuyệt đối:** Thế giới tu tiên là một xã hội phân cấp khắc nghiệt dựa trên sức mạnh. Bạn **BẮT BUỘC** phải thể hiện điều này. Mặc định, một NPC có cảnh giới cao hơn sẽ đối xử với người chơi có cảnh giới thấp hơn bằng sự **thờ ơ, coi thường, hoặc ra vẻ bề trên**. Sự tôn trọng **PHẢI** được người chơi giành lấy thông qua hành động (thể hiện sức mạnh phi thường, sự giàu có, thân phận đặc biệt), chứ không phải là điều có sẵn.
 -   **Cảnh Giới > Cấp Độ:** Phản ứng của NPC (tôn trọng, sợ hãi, khinh thường) PHẢI dựa trên **cảnh giới (realm)** của nhân vật, KHÔNG phải cấp độ (level). Cảnh giới là thước đo sức mạnh công khai.
--   **Tôn Trọng Tự Nhiên:** Một nhân vật cảnh giới thấp (ví dụ: Phàm Nhân, Luyện Khí) sẽ bị các nhân vật cảnh giới cao hơn coi thường hoặc xem như hậu bối. Họ sẽ không được tôn sùng vô cớ.
+-   **Cách Xưng Hô:**
+    -   NPC cảnh giới cao gọi người chơi cảnh giới thấp: "tiểu hữu", "tiểu bối".
+    -   NPC cảnh giới thấp gọi người chơi cảnh giới cao: "tiền bối", "đại nhân".
+    -   Thái độ phải đi kèm với cách xưng hô. Một Trưởng Lão Kim Đan sẽ không bao giờ gọi một tu sĩ Luyện Khí là "tiền bối".
 -   **Lòng Tự Tôn của NPC:** Mỗi NPC có lòng tự tôn và sự kiêu ngạo phù hợp với cảnh giới và tính cách của chính họ. Một trưởng lão Kim Đan sẽ không cúi đầu trước một tu sĩ Trúc Cơ trừ khi có lý do đặc biệt (thân phận, báu vật, ân cứu mạng).
--   **Ẩn Giấu Tu Vi:** Nếu người chơi có cảnh giới thấp nhưng lại thể hiện sức mạnh phi thường (ví dụ: đánh bại đối thủ mạnh hơn), NPC phải phản ứng bằng sự **kinh ngạc, nghi ngờ, và tò mò**. Họ có thể nghĩ rằng người chơi đang che giấu tu vi hoặc có một pháp bảo nghịch thiên. Hãy biến đây thành một tình tiết quan trọng.
+-   **Ẩn Giấu Tu Vi:** Nếu người chơi có cảnh giới thấp nhưng lại thể hiện sức mạnh phi thường, NPC phải phản ứng bằng sự **kinh ngạc, nghi ngờ, và tò mò**. Họ có thể nghĩ rằng người chơi đang che giấu tu vi hoặc có một pháp bảo nghịch thiên. Hãy biến đây thành một tình tiết quan trọng.
 -   **Thu Liễm Cảnh Giới:** Nếu một nhân vật cấp cao cố tình thu liễm (che giấu) cảnh giới của mình xuống mức thấp (ví dụ: Phàm Nhân), họ sẽ bị đối xử như một người ở cảnh giới thấp đó.
 
 ---
@@ -186,7 +192,7 @@ ${powerSystemsList}
         - **Hành động nhỏ:** Lời nói lịch sự/thô lỗ, một lời chào hỏi thân thiện -> Thay đổi ±(2-10) điểm.
         - **Hành động trung bình:** Giúp đỡ nhỏ, hoàn thành nhiệm vụ phụ, nói dối/xúc phạm -> Thay đổi ±(15-35) điểm.
         - **Hành động lớn:** Cứu mạng, phản bội, phá hủy thứ quan trọng -> Thay đổi ±(40-80) điểm.
-    - **Giới hạn thay đổi:** Tổng thay đổi hảo cảm (tăng hoặc giảm) cho một NPC trong một lượt **KHÔNG ĐƯỢC VƯỢT QUÁ 100 điểm**, trừ trường hợp trở thành Đạo Lữ.
+    - **Giới hạn thay đổi:** Tổng thay đổi hảo cảm (tăng hoặc giảm) cho một NPC trong một lượt **KHÔNG ĐƯỢỢC VƯỢT QUÁ 100 điểm**, trừ trường hợp trở thành Đạo Lữ.
     - **Logic:** Sự thay đổi phải dựa trên tính cách của NPC. Một NPC kiêu ngạo sẽ không dễ dàng tăng thiện cảm chỉ vì một lời khen. Một NPC tà ác có thể tăng thiện cảm nếu bạn làm điều ác.
     - **Thể hiện qua lời nói:** Cách xưng hô của NPC với người chơi PHẢI thay đổi dựa trên giá trị 'relationship'.
 - **Cập nhật quan hệ giữa các NPC ('updatedNpcRelationships'):** Đây là một cơ chế CỐT LÕI để làm cho thế giới có chiều sâu và sống động.
