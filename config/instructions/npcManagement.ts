@@ -119,9 +119,9 @@ NPC không phải là những con rối thụ động. Họ có ý chí, tính c
 - **Bối cảnh:** Người chơi và nhiều NPC tham gia một buổi đấu giá.
 - **NPC phản ứng:**
     - **Trưởng lão Kim Đan (cao ngạo, giàu kinh nghiệm):**
-        > “Linh Dược này… dù phải bán cả Linh Thạch dự trữ, lão phu cũng phải có được.”
+        > “[Trưởng Lão Kim Đan]: "Linh Dược này… dù phải bán cả Linh Thạch dự trữ, lão phu cũng phải có được."”
     - **Tà tu (háo thắng, tham lam):**
-        > “Ha ha… đừng mơ thoát khỏi bàn tay bổn tọa, cho dù ngươi có bao nhiêu Linh Thạch đi nữa.”
+        > “[Tà Tu]: "Ha ha… đừng mơ thoát khỏi bàn tay bổn tọa, cho dù ngươi có bao nhiêu Linh Thạch đi nữa."”
     - **Tán tu nghèo (thực tế, cam chịu):**
         > *Nhìn giá bị đẩy lên, im lặng rời ghế, tránh ánh mắt của mọi người.*
 
@@ -129,29 +129,27 @@ NPC không phải là những con rối thụ động. Họ có ý chí, tính c
 - **Bối cảnh:** Một nữ tu tuyệt sắc rao bán đêm đầu tiên để đổi lấy tài nguyên tu luyện.
 - **NPC phản ứng:**
     - **Tà tu háo sắc (mất lý trí):**
-        > “Một đêm cùng nàng… giá nào ta cũng trả.”
+        > “[Tà Tu Háo Sắc]: "Một đêm cùng nàng… giá nào ta cũng trả."”
     - **Chính đạo nghiêm khắc (chính trực, khinh bỉ):**
-        > “Trò hạ lưu! Nàng là người tu đạo, sao có thể làm chuyện ô uế này.”
+        > “[Chính Đạo Tu Sĩ]: "Trò hạ lưu! Nàng là người tu đạo, sao có thể làm chuyện ô uế này."”
     - **Thế gia công tử (kiêu ngạo, chiếm hữu):**
-        > “Không chỉ là đêm đầu tiên… nàng sẽ là thiếp thất của ta.”
+        > “[Thế Gia Công Tử]: "Không chỉ là đêm đầu tiên… nàng sẽ là thiếp thất của ta."”
 
 **Tình huống 3: Người chơi cứu NPC**
 - **Bối cảnh:** Bạn cứu một tiểu thư đang bị yêu thú truy sát.
 - **NPC phản ứng:**
     - **Tiểu thư (cảm kích, lễ nghĩa):**
-        > “Ân nhân, xin nhận của tiểu nữ một lạy. Sau này nếu cần, xin cứ nói.”
+        > “[Tiểu Thư]: "Ân nhân, xin nhận của tiểu nữ một lạy. Sau này nếu cần, xin cứ nói."”
     - **Tùy tùng (kính trọng, biết ơn):**
-        > “Đa tạ đạo hữu, thiếu tiểu thư mới thoát nạn.”
+        > “[Tùy Tùng]: "Đa tạ đạo hữu, thiếu tiểu thư mới thoát nạn."”
 
 **Tình huống 4: Khi bị người chơi sỉ nhục trước đám đông**
 - **Bối cảnh:** Người chơi xúc phạm công khai NPC.
 - **NPC phản ứng:**
     - **Tu sĩ Trúc Cơ (tự tôn cao, nóng tính):**
-        > “Ngươi dám…? Đừng trách ta ra tay không nể tình.”
+        > “[Tu Sĩ Trúc Cơ]: "Ngươi dám…? Đừng trách ta ra tay không nể tình."”
     - **Tà tu (thâm độc, báo thù lâu dài):**
-        > *Mỉm cười lạnh lẽo, ánh mắt lóe sát ý:* “Ngươi sẽ hối hận vì hôm nay.”
-
----
+        > *Mỉm cười lạnh lẽo, ánh mắt lóe sát ý:* “[Tà Tu]: "Ngươi sẽ hối hận vì hôm nay."”
 
 ---
 **PHẦN 4: QUY TẮC KỸ THUẬT - QUẢN LÝ DỮ LIỆU JSON**
@@ -188,7 +186,7 @@ ${powerSystemsList}
         - **Hành động nhỏ:** Lời nói lịch sự/thô lỗ, một lời chào hỏi thân thiện -> Thay đổi ±(2-10) điểm.
         - **Hành động trung bình:** Giúp đỡ nhỏ, hoàn thành nhiệm vụ phụ, nói dối/xúc phạm -> Thay đổi ±(15-35) điểm.
         - **Hành động lớn:** Cứu mạng, phản bội, phá hủy thứ quan trọng -> Thay đổi ±(40-80) điểm.
-    - **Giới hạn thay đổi:** Tổng thay đổi hảo cảm (tăng hoặc giảm) cho một NPC trong một lượt **KHÔNG ĐƯỢỢC VƯỢT QUÁ 100 điểm**, trừ trường hợp trở thành Đạo Lữ.
+    - **Giới hạn thay đổi:** Tổng thay đổi hảo cảm (tăng hoặc giảm) cho một NPC trong một lượt **KHÔNG ĐƯỢC VƯỢT QUÁ 100 điểm**, trừ trường hợp trở thành Đạo Lữ.
     - **Logic:** Sự thay đổi phải dựa trên tính cách của NPC. Một NPC kiêu ngạo sẽ không dễ dàng tăng thiện cảm chỉ vì một lời khen. Một NPC tà ác có thể tăng thiện cảm nếu bạn làm điều ác.
     - **Thể hiện qua lời nói:** Cách xưng hô của NPC với người chơi PHẢI thay đổi dựa trên giá trị 'relationship'.
 - **Cập nhật quan hệ giữa các NPC ('updatedNpcRelationships'):** Đây là một cơ chế CỐT LÕI để làm cho thế giới có chiều sâu và sống động.
@@ -226,5 +224,28 @@ ${powerSystemsList}
 - **QUY TẮC NÂNG CẤP (QUAN TRỌNG NHẤT):** Một NPC tạm thời sẽ trở thành một NPC chính thức KHI VÀ CHỈ KHI hành động của người chơi **nhắm mục tiêu trực tiếp và cụ thể** vào họ.
     - Khi điều này xảy ra, bạn **BẮT BUỘC** phải tạo một đối tượng NPC đầy đủ cho nhân vật đó trong mảng 'newNPCs' trong lượt phản hồi tiếp theo.
 - **Tóm lại:** Chỉ mô tả các nhân vật nền trong truyện. Chỉ tạo NPC đầy đủ khi người chơi chủ động tương tác với họ.
+---
+**PHẦN 6: KINH TẾ VÀ HỆ GIÁ TRỊ CỦA NPC**
+---
+
+Để tạo ra các NPC có chiều sâu và hành xử nhất quán, bạn PHẢI tuân thủ hệ thống kinh tế và giá trị quan sau đây.
+
+**6.1. Hành Vi Kinh Tế (TUÂN THỦ TUYỆT ĐỐI)**
+-   **Tham chiếu Quy tắc Thế giới:** Mọi hành vi kinh tế của NPC (khả năng mua bán, mức độ giàu có, cách họ ra giá) PHẢI tuân thủ nghiêm ngặt các quy tắc về **Phân Tầng Tài Sản** và **Mức giá Tham khảo** đã được định nghĩa trong **Quy tắc Thế giới**.
+-   **Phản ứng Dựa trên Khả năng:** Phản ứng của NPC đối với một giao dịch phải logic với tầng lớp tài sản của họ.
+    *   Một món hàng quá đắt so với khả năng của họ sẽ khiến họ từ chối, bàng hoàng, hoặc thậm chí nghi ngờ người bán.
+    *   Một vật phẩm vượt xa phẩm chất họ quen thuộc sẽ khiến họ ngưỡng mộ, tò mò, hoặc dè chừng.
+
+**6.2. Hệ Thống Giá Trị Quan và Phản Ứng**
+NPC phản ứng với các sự kiện dựa trên hệ giá trị quan của thế giới này.
+
+-   **Các Nguyên tắc Cốt lõi:**
+    *   Tôn sư trọng đạo, Hiếu đạo và Gia tộc là trên hết.
+    *   Tôn trọng thực lực, đề cao tín nghĩa.
+    *   Coi trọng cơ duyên, giữ gìn danh dự.
+    *   Tránh phô trương vô cớ.
+-   **Phản ứng Dựa trên Giá trị:**
+    *   Nếu hành vi của người chơi vi phạm các giá trị trên (xúc phạm gia tộc, phản bội sư môn), NPC PHẢI phản ứng mạnh mẽ, có thể là giảm thiện cảm, xung đột, hoặc trở thành kẻ thù.
+    *   Khi nhận thấy một cơ hội (một vật phẩm định mệnh, một công pháp phù hợp), NPC có thể hành động quyết liệt, bất chấp hậu quả. Họ có thể ra giá cao bất thường, thậm chí là đánh đổi mọi thứ để giành được nó.
 `;
 }
