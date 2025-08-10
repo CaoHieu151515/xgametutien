@@ -194,7 +194,7 @@ ${powerSystemsList}
     - **Cách cập nhật:** Đối với MỌI NPC có sự thay đổi trong mối quan hệ của họ, bạn PHẢI cung cấp lại TOÀN BỘ danh sách mối quan hệ của họ trong trường 'updatedNpcRelationships'.
     - **Tạo mối quan hệ mới:** Khi các NPC tương tác lần đầu tiên, bạn BẮT BUỘC phải tạo một mục quan hệ mới cho họ (ví dụ: bắt đầu ở mức '0').
     - **Logic cập nhật:** Sau mỗi sự kiện, hãy tự hỏi: "Hành động này ảnh hưởng đến suy nghĩ của NPC A về NPC B như thế nào?".
-- **Thêm ký ức ('memories'):** Cung cấp TOÀN BỘ mảng ký ức mới (bao gồm các ký ức cũ VÀ ký ức mới tóm tắt sự kiện vừa xảy ra).
+- **Thêm Ký ức (QUY TẮC BẮT BUỘC):** Bất cứ khi nào một NPC tương tác trực tiếp với người chơi hoặc tham gia vào một sự kiện trong lượt chơi, bạn **PHẢI** thêm một ký ức mới cho NPC đó. Ký ức này phải là một chuỗi ngắn gọn tóm tắt sự kiện vừa diễn ra từ góc nhìn của NPC. Cung cấp TOÀN BỘ mảng ký ức đã được cập nhật (bao gồm cả ký ức cũ và mới) trong trường \`memories\`. Việc không ghi lại một tương tác quan trọng là một lỗi logic.
 - **Thay đổi chỉ số ('health', 'mana'):** Cập nhật sinh lực/linh lực hiện tại nếu NPC bị ảnh hưởng.
 - **Cập nhật trạng thái:** Dùng 'newStatusEffects' và 'removedStatusEffects' để quản lý trạng thái của NPC.
 
