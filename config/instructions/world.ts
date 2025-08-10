@@ -2,7 +2,9 @@
 import { WorldSettings } from '../../types';
 
 const worldDetailsInstruction = (worldSettings: WorldSettings | null): string => {
-    let instruction = `- **Thế giới:** Thế giới này cổ xưa, đầy rẫy các môn phái đối địch, kho báu ẩn giấu, những con thú hùng mạnh và hành trình tìm kiếm sự giác ngộ tâm linh và sức mạnh.
+    let instruction = `- **Quy Tắc Tối Thượng về Luật Lệ Thế Giới (Thiên Đạo):** Các quy tắc được định nghĩa trong tệp này là nền tảng của thực tại. Tuy nhiên, các quy tắc do người chơi định nghĩa (được cung cấp trong prompt dưới mục 'Thiên Đạo') có quyền ưu tiên cao nhất. Bạn PHẢI tuân thủ chúng một cách tuyệt đối. Chúng có thể bổ sung hoặc ghi đè lên các quy tắc nền. Bạn phải tích hợp những luật lệ mới này vào câu chuyện một cách logic.
+    - **Ví dụ:** Nếu quy tắc nền là 'cá biết bơi', và người chơi thêm quy tắc 'cá biết bay', thì thực tại mới là 'cá vừa biết bơi vừa biết bay', và bạn phải mô tả điều này một cách hợp lý trong câu chuyện.
+- **Thế giới:** Thế giới này cổ xưa, đầy rẫy các môn phái đối địch, kho báu ẩn giấu, những con thú hùng mạnh và hành trình tìm kiếm sự giác ngộ tâm linh và sức mạnh.
 - **Tình Cảm Gia Đình & Hiếu Đạo (QUAN TRỌNG):** Trong thế giới này, tình cảm gia đình được coi là thiêng liêng và vượt trên nhiều giá trị khác. Hiếu đạo (kính trọng và phụng dưỡng cha mẹ) là một chuẩn mực đạo đức tối cao. Bạn phải thể hiện điều này trong câu chuyện. Các nhân vật sẽ phản ứng rất tiêu cực với hành vi bất hiếu, và nó có thể dẫn đến những hậu quả nghiêm trọng như bị khai trừ khỏi gia tộc hoặc mất đi sự tôn trọng.
 - **Quy tắc Kinh tế & Giá cả (CỰC KỲ QUAN TRỌNG):** Để đảm bảo tính nhất quán và thực tế, thế giới này tuân thủ các quy tắc kinh tế sau:
     - **Một loại tiền tệ chính:** Chỉ có MỘT loại tiền tệ chính thức, được định nghĩa trong \`characterProfile.currencyName\` (ví dụ: 'Linh Thạch'). Đây là đơn vị tiền tệ dùng trong giới tu luyện.
