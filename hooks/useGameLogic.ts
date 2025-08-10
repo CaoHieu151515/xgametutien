@@ -5,7 +5,7 @@ import * as geminiService from '../services/geminiService';
 import * as openaiService from '../services/openaiService';
 import * as saveService from '../services/saveService';
 import { StoryPart, StoryResponse, GameState, NarrativePerspective, CharacterProfile, WorldSettings, StatusEffect, Skill, Location, NPC, NewNPCFromAI, WorldKnowledge, Choice, ApiProvider, AppSettings, GameSnapshot, Item, ItemType, FullGameState, StoryApiResponse, CharacterGender } from '../types';
-import { processLevelUps, getRealmDisplayName, calculateBaseStatsForLevel, processSkillLevelUps, processNpcLevelUps, recalculateDerivedStats } from '../services/progressionService';
+import { processLevelUps, getRealmDisplayName, calculateBaseStatsForLevel, processSkillLevelUps, processNpcLevelUps, recalculateDerivedStats, getLevelFromRealmName, calculateExperienceForBreakthrough } from '../services/progressionService';
 import { log } from '../services/logService';
 
 const SETTINGS_KEY = 'tuTienTruyenSettings_v2';
@@ -351,10 +351,25 @@ export const useGameLogic = () => {
                         }
                         
                         if (!modifiedNpc.isDead) {
-                            if (update.gainedExperience && update.gainedExperience > 0) {
+                            let gainedNpcXp = update.gainedExperience ?? 0;
+
+                            if (update.breakthroughToRealm) {
+                                const targetLevel = getLevelFromRealmName(update.breakthroughToRealm, modifiedNpc.powerSystem, finalWorldSettings);
+                                if (targetLevel > modifiedNpc.level) {
+                                    const xpForBreakthrough = calculateExperienceForBreakthrough(
+                                        modifiedNpc.level,
+                                        modifiedNpc.experience,
+                                        targetLevel
+                                    );
+                                    gainedNpcXp += xpForBreakthrough;
+                                    notifications.push(`✨ **TRỢ GIÚP ĐỘT PHÁ!** <b>${modifiedNpc.name}</b> nhận được một lượng lớn kinh nghiệm để đạt đến <b>${update.breakthroughToRealm}</b>.`);
+                                }
+                            }
+
+                            if (gainedNpcXp > 0) {
                                 const oldLevel = modifiedNpc.level;
                                 const oldRealm = modifiedNpc.realm;
-                                modifiedNpc = processNpcLevelUps(modifiedNpc, update.gainedExperience, finalWorldSettings);
+                                modifiedNpc = processNpcLevelUps(modifiedNpc, gainedNpcXp, finalWorldSettings);
                                 if (modifiedNpc.level > oldLevel) {
                                     notifications.push(`✨ <b>${modifiedNpc.name}</b> đã đạt đến <b>cấp độ ${modifiedNpc.level}</b>!`);
                                     if (modifiedNpc.realm !== oldRealm) {
@@ -532,34 +547,26 @@ export const useGameLogic = () => {
                 nextProfile.statusEffects = currentStatusEffects;
             }
 
-            const gainedXp = response.updatedStats?.gainedExperience ?? 0;
-            const directLevelUp = response.updatedStats?.updatedLevel;
+            let gainedXp = response.updatedStats?.gainedExperience ?? 0;
+            const breakthroughRealm = response.updatedStats?.breakthroughToRealm;
         
-            if (directLevelUp !== undefined && directLevelUp > nextProfile.level) {
-                const oldRealm = nextProfile.realm;
-                
-                nextProfile.level = directLevelUp;
-                nextProfile.experience = 0; // Reset exp for new level
-                
-                const newBaseStats = calculateBaseStatsForLevel(nextProfile.level);
-                nextProfile.baseMaxHealth = newBaseStats.maxHealth;
-                nextProfile.baseMaxMana = newBaseStats.maxMana;
-                nextProfile.baseAttack = newBaseStats.attack;
-                nextProfile.lifespan = newBaseStats.lifespan;
-                
-                nextProfile = recalculateDerivedStats(nextProfile);
-                
-                nextProfile.health = nextProfile.maxHealth;
-                nextProfile.mana = nextProfile.maxMana;
-                
-                nextProfile.realm = getRealmDisplayName(nextProfile.level, nextProfile.powerSystem, finalWorldSettings);
-                
-                notifications.push(`🎉 **TRỰC TIẾP ĐỘT PHÁ!** Bạn đã đạt đến <b>cấp độ ${nextProfile.level}</b>.`);
-                if (nextProfile.realm !== oldRealm) {
-                    notifications.push(`⚡️ Bạn đã tiến vào cảnh giới mới: <b>${nextProfile.realm}</b>.`);
+            if (breakthroughRealm) {
+                const targetLevel = getLevelFromRealmName(breakthroughRealm, nextProfile.powerSystem, finalWorldSettings);
+                if (targetLevel > nextProfile.level) {
+                     const xpForBreakthrough = calculateExperienceForBreakthrough(
+                        nextProfile.level,
+                        nextProfile.experience,
+                        targetLevel
+                    );
+                    gainedXp += xpForBreakthrough;
+                    notifications.push(`✨ **ĐỘT PHÁ THẦN TỐC!** Vận may ập đến, bạn nhận được một lượng lớn kinh nghiệm để đạt đến <b>${breakthroughRealm}</b>.`);
                 }
-            } else if (gainedXp > 0) {
-                notifications.push(`Bạn nhận được <b>${gainedXp} EXP</b>.`);
+            }
+            
+            if (gainedXp > 0) {
+                if ((response.updatedStats?.gainedExperience ?? 0) > 0 && !breakthroughRealm) {
+                    notifications.push(`Bạn nhận được <b>${gainedXp.toLocaleString()} EXP</b>.`);
+                }
                 const oldLevel = nextProfile.level;
                 const oldRealm = nextProfile.realm;
                 nextProfile = processLevelUps(nextProfile, gainedXp, finalWorldSettings);
