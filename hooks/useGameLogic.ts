@@ -231,11 +231,6 @@ export const useGameLogic = () => {
                 });
                 nextProfile.skills = tempSkills;
             }
-            
-            const gainedXp = response.updatedStats?.gainedExperience ?? 0;
-            if (gainedXp > 0) {
-                 notifications.push(`Bạn nhận được <b>${gainedXp} EXP</b>.`);
-            }
 
             if (response.updatedStats?.currencyAmount !== undefined && response.updatedStats.currencyAmount !== characterProfile.currencyAmount) {
                 const change = response.updatedStats.currencyAmount - characterProfile.currencyAmount;
@@ -537,12 +532,34 @@ export const useGameLogic = () => {
                 nextProfile.statusEffects = currentStatusEffects;
             }
 
-            if (response.updatedGender && response.updatedGender !== nextProfile.gender) {
-                nextProfile.gender = response.updatedGender;
-                notifications.push(`🚻 Giới tính của bạn đã thay đổi thành <b>${response.updatedGender === 'male' ? 'Nam' : 'Nữ'}</b>!`);
-            }
+            const gainedXp = response.updatedStats?.gainedExperience ?? 0;
+            const directLevelUp = response.updatedStats?.updatedLevel;
         
-            if (gainedXp > 0) {
+            if (directLevelUp !== undefined && directLevelUp > nextProfile.level) {
+                const oldRealm = nextProfile.realm;
+                
+                nextProfile.level = directLevelUp;
+                nextProfile.experience = 0; // Reset exp for new level
+                
+                const newBaseStats = calculateBaseStatsForLevel(nextProfile.level);
+                nextProfile.baseMaxHealth = newBaseStats.maxHealth;
+                nextProfile.baseMaxMana = newBaseStats.maxMana;
+                nextProfile.baseAttack = newBaseStats.attack;
+                nextProfile.lifespan = newBaseStats.lifespan;
+                
+                nextProfile = recalculateDerivedStats(nextProfile);
+                
+                nextProfile.health = nextProfile.maxHealth;
+                nextProfile.mana = nextProfile.maxMana;
+                
+                nextProfile.realm = getRealmDisplayName(nextProfile.level, nextProfile.powerSystem, finalWorldSettings);
+                
+                notifications.push(`🎉 **TRỰC TIẾP ĐỘT PHÁ!** Bạn đã đạt đến <b>cấp độ ${nextProfile.level}</b>.`);
+                if (nextProfile.realm !== oldRealm) {
+                    notifications.push(`⚡️ Bạn đã tiến vào cảnh giới mới: <b>${nextProfile.realm}</b>.`);
+                }
+            } else if (gainedXp > 0) {
+                notifications.push(`Bạn nhận được <b>${gainedXp} EXP</b>.`);
                 const oldLevel = nextProfile.level;
                 const oldRealm = nextProfile.realm;
                 nextProfile = processLevelUps(nextProfile, gainedXp, finalWorldSettings);
@@ -555,7 +572,12 @@ export const useGameLogic = () => {
             } else {
                 nextProfile = recalculateDerivedStats(nextProfile);
             }
-            
+
+            if (response.updatedGender && response.updatedGender !== nextProfile.gender) {
+                nextProfile.gender = response.updatedGender;
+                notifications.push(`🚻 Giới tính của bạn đã thay đổi thành <b>${response.updatedGender === 'male' ? 'Nam' : 'Nữ'}</b>!`);
+            }
+
             // Critical fix: Apply location update AFTER all other profile modifications to prevent overwrites.
             if (response.updatedPlayerLocationId !== undefined) {
                 nextProfile.currentLocationId = response.updatedPlayerLocationId;
