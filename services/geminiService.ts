@@ -33,6 +33,7 @@ const updatedStatsSchema = {
         mana: { type: Type.NUMBER, description: "Linh lực/Năng lượng hiện tại của nhân vật (ví dụ: sau khi dùng phép)." },
         currencyAmount: { type: Type.NUMBER, description: "Số lượng tiền tệ hiện tại của nhân vật." },
         gainedExperience: { type: Type.NUMBER, description: "Điểm kinh nghiệm nhân vật NHẬN ĐƯỢỢC từ hành động này (không phải tổng kinh nghiệm). Hệ thống sẽ tự cộng dồn." },
+        updatedLevel: { type: Type.NUMBER, description: "Cấp độ MỚI của nhân vật nếu có một sự đột phá cảnh giới trực tiếp được mô tả trong truyện. Hệ thống sẽ tự cập nhật cảnh giới và chỉ số. Bỏ qua gainedExperience khi dùng trường này.", nullable: true },
         newStatusEffects: {
             type: Type.ARRAY,
             description: "Một mảng các trạng thái mới được thêm cho nhân vật do sự kiện trong truyện. Bỏ qua nếu không có.",
