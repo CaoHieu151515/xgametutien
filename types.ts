@@ -166,6 +166,7 @@ export interface StoryResponse {
     mana: number;
 gainedExperience: number; // Điểm kinh nghiệm NHẬN ĐƯỢỢC, không phải tổng số.
     currencyAmount: number;
+    updatedLevel?: number; // Cấp độ mới của nhân vật nếu có đột phá trực tiếp.
     newStatusEffects?: StatusEffect[];
     removedStatusEffects?: string[]; // Mảng tên các trạng thái cần xóa
   }>;
