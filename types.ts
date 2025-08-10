@@ -140,6 +140,7 @@ export interface NPCUpdate {
     mana?: number; // Cập nhật linh lực hiện tại
     newStatusEffects?: StatusEffect[];
     removedStatusEffects?: string[];
+    breakthroughToRealm?: string; // Tên cảnh giới mới, hệ thống sẽ tự tính EXP.
     // Các trường khác có thể được AI cập nhật
     gender?: CharacterGender;
     personality?: string;
@@ -164,9 +165,10 @@ export interface StoryResponse {
   updatedStats?: Partial<{
     health: number;
     mana: number;
-gainedExperience: number; // Điểm kinh nghiệm NHẬN ĐƯỢỢC, không phải tổng số.
+    gainedExperience: number; // Điểm kinh nghiệm NHẬN ĐƯỢỢC, không phải tổng số.
     currencyAmount: number;
-    updatedLevel?: number; // Cấp độ mới của nhân vật nếu có đột phá trực tiếp.
+    updatedLevel?: number; // (Không dùng nữa) Cấp độ mới của nhân vật nếu có đột phá trực tiếp.
+    breakthroughToRealm?: string; // Tên cảnh giới mới, hệ thống sẽ tự tính EXP.
     newStatusEffects?: StatusEffect[];
     removedStatusEffects?: string[]; // Mảng tên các trạng thái cần xóa
   }>;
