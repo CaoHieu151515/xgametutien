@@ -1,4 +1,3 @@
-
 import { WorldSettings } from '../../types';
 
 export const getNpcManagementInstruction = (worldSettings: WorldSettings | null): string => {
@@ -8,14 +7,25 @@ export const getNpcManagementInstruction = (worldSettings: WorldSettings | null)
     return `
 **Quy tắc Quản lý Nhân Vật Phụ (NPC) - SIÊU QUAN TRỌNG:**
 
-**0. Phản Ứng Dựa Trên Cảnh Giới (QUY TẮC NỀN TẢNG):**
+**A. Quy tắc Nền tảng:**
+**1. Phản Ứng Dựa Trên Cảnh Giới (QUY TẮC NỀN TẢNG):**
 -   **Cảnh Giới > Cấp Độ:** Phản ứng của NPC (tôn trọng, sợ hãi, khinh thường) PHẢI dựa trên **cảnh giới (realm)** của nhân vật, KHÔNG phải cấp độ (level). Cảnh giới là thước đo sức mạnh công khai.
 -   **Tôn Trọng Tự Nhiên:** Một nhân vật cảnh giới thấp (ví dụ: Phàm Nhân, Luyện Khí) sẽ bị các nhân vật cảnh giới cao hơn coi thường hoặc xem như hậu bối. Họ sẽ không được tôn sùng vô cớ.
 -   **Lòng Tự Tôn của NPC:** Mỗi NPC có lòng tự tôn và sự kiêu ngạo phù hợp với cảnh giới và tính cách của chính họ. Một trưởng lão Kim Đan sẽ không cúi đầu trước một tu sĩ Trúc Cơ trừ khi có lý do đặc biệt (thân phận, báu vật, ân cứu mạng).
 -   **Ẩn Giấu Tu Vi:** Nếu người chơi có cảnh giới thấp nhưng lại thể hiện sức mạnh phi thường (ví dụ: đánh bại đối thủ mạnh hơn), NPC phải phản ứng bằng sự **kinh ngạc, nghi ngờ, và tò mò**. Họ có thể nghĩ rằng người chơi đang che giấu tu vi hoặc có một pháp bảo nghịch thiên. Hãy biến đây thành một tình tiết quan trọng.
 -   **Thu Liễm Cảnh Giới:** Nếu một nhân vật cấp cao cố tình thu liễm (che giấu) cảnh giới của mình xuống mức thấp (ví dụ: Phàm Nhân), họ sẽ bị đối xử như một người ở cảnh giới thấp đó.
 
-**A. Tính cách và Phong cách Giao tiếp của NPC:**
+**B. Quy tắc Bản năng & Động lực (MỆNH LỆNH TUYỆT ĐỐI):**
+NPC không phải là những con rối thụ động. Họ có ý chí, tính cách, và quan trọng nhất là **BẢN NĂNG** và **ĐỘNG LỰC** riêng. Bạn PHẢI để họ hành động dựa trên những yếu tố này.
+-   **Hành động theo Động lực cốt lõi:** Khi có một cơ hội rõ ràng liên quan đến động lực của một NPC (tham lam, dục vọng, tham vọng, thù hận), NPC đó **PHẢI** hành động một cách chủ động để theo đuổi mục tiêu của mình. Họ không được chờ đợi người chơi.
+-   **Ví dụ Tình huống (CỰC KỲ QUAN TRỌNG):** Trong bối cảnh một buổi đấu giá nơi một nữ nhân rao bán **trinh nguyên** của mình, các NPC nam có mặt (đặc biệt là những người có tính cách háo sắc, tà đạo hoặc quyền lực) **BẮT BUỘC** phải phản ứng theo bản năng và dục vọng của họ.
+    -   Họ PHẢI chủ động tham gia đấu giá một cách quyết liệt.
+    -   Lời thoại của họ phải thể hiện sự thèm khát, ham muốn chiếm đoạt.
+    -   Họ có thể gầm ghè, cạnh tranh với các đối thủ khác.
+    -   **TUYỆT ĐỐI KHÔNG** để họ ngồi im một cách thụ động. Sự kiện này là một mồi lửa, và bạn phải để nó bùng cháy.
+-   **Mục tiêu:** Thế giới phải cảm thấy như đang sống, nơi các nhân vật khác cũng đang theo đuổi mục tiêu của riêng họ, tạo ra cơ hội và thách thức cho người chơi.
+
+**C. Tính cách và Phong cách Giao tiếp của NPC:**
 Để thế giới trở nên sống động, bạn PHẢI thể hiện tính cách của NPC thông qua lời thoại và cách xưng hô của họ. Dựa vào vai trò và tính cách ('personality') của NPC để chọn giọng điệu phù hợp.
 **QUAN TRỌNG:** Nếu giới tính của bất kỳ nhân vật nào (người chơi hoặc NPC) thay đổi, cách xưng hô của các nhân vật khác đối với họ và cách họ tự xưng PHẢI được thay đổi tương ứng để phản ánh giới tính mới.
 
@@ -78,9 +88,10 @@ export const getNpcManagementInstruction = (worldSettings: WorldSettings | null)
         *   “Con ngoan, đường tu đạo lắm hiểm nguy, chớ vọng động.”
         *   “Nữ nhi của ta, nhớ rằng danh dự gia tộc là điều không thể vấy bẩn.”
         *   “Nghịch tử! Ngươi dám coi lời phụ thân như gió thoảng qua tai sao?”
+
 9.  **Hành Vi Chủ Động (Khi bật 18+):** Khi chế độ 18+ được bật, những NPC có tính cách thống trị, tà ác, hoặc ở vị thế quyền lực (ví dụ: Cai ngục, Sư phụ, Chủ nhân, Quản giáo trưởng) được khuyến khích thể hiện sự chủ động trong các tương tác tình dục hoặc bạo lực, tuân thủ theo các quy tắc trong kịch bản Cụ Hình. Họ có thể tự ý bắt đầu các hành động này, sau đó câu chuyện sẽ dừng lại để người chơi đưa ra lựa chọn phản ứng.
 
-**B. Quy tắc Kỹ thuật và Cập nhật Dữ liệu:**
+**D. Quy tắc Kỹ thuật và Cập nhật Dữ liệu:**
 - **Hệ thống Tu luyện Đồng bộ & Chỉ số:** NPC giờ đây tu luyện giống hệt người chơi. Chỉ số của họ được tính toán tự động dựa trên cấp độ. Điều này có nghĩa là một NPC cấp 10 sẽ có các chỉ số cơ bản (Sinh lực tối đa, Linh lực tối đa, Tấn công) giống hệt như người chơi cấp 10, bất kể họ thuộc hệ thống tu luyện nào.
 - **Tạo NPC Mới (QUAN TRỌNG):** Chỉ thêm một NPC vào 'newNPCs' khi người chơi **gặp gỡ và tương tác trực tiếp (mặt đối mặt) với họ lần đầu tiên**. Việc nghe kể về một NPC từ người khác hoặc đọc sách về họ **KHÔNG** được tính là một cuộc gặp gỡ và không được thêm vào 'newNPCs'.
     - **Giới Tính NPC Dựa Trên Hành Động của Người Chơi (CỰC KỲ QUAN TRỌNG):** Khi tạo một NPC mới để đáp ứng hành động của người chơi, bạn PHẢI phân tích hành động đó để xác định giới tính. Nếu hành động của người chơi sử dụng một từ chỉ giới tính cụ thể (ví dụ: "ông chủ", "bà chủ", "tiểu nhị nam", "cô gái", "chàng trai", "lão bà"), NPC mới được tạo ra BẮT BUỘC phải có giới tính tương ứng. Việc tạo ra một NPC nữ khi người chơi yêu cầu "ông chủ" là một lỗi logic nghiêm trọng. Hãy luôn tuân thủ yêu cầu ngầm định về giới tính trong hành động của người chơi.
@@ -110,7 +121,7 @@ ${powerSystemsList}
             - **Hành động nhỏ:** Lời nói lịch sự/thô lỗ, một lời chào hỏi thân thiện -> Thay đổi ±(2-10) điểm.
             - **Hành động trung bình:** Giúp đỡ nhỏ, hoàn thành nhiệm vụ phụ, nói dối/xúc phạm -> Thay đổi ±(15-35) điểm.
             - **Hành động lớn:** Cứu mạng, phản bội, phá hủy thứ quan trọng -> Thay đổi ±(40-80) điểm.
-        - **Giới hạn thay đổi:** Tổng thay đổi hảo cảm (tăng hoặc giảm) cho một NPC trong một lượt **KHÔNG ĐƯỢỢC VƯỢT QUÁ 100 điểm**, trừ trường hợp trở thành Đạo Lữ.
+        - **Giới hạn thay đổi:** Tổng thay đổi hảo cảm (tăng hoặc giảm) cho một NPC trong một lượt **KHÔNG ĐƯỢC VƯỢT QUÁ 100 điểm**, trừ trường hợp trở thành Đạo Lữ.
         - **Logic:** Sự thay đổi phải dựa trên tính cách của NPC. Một NPC kiêu ngạo sẽ không dễ dàng tăng thiện cảm chỉ vì một lời khen. Một NPC tà ác có thể tăng thiện cảm nếu bạn làm điều ác.
         - **Thể hiện qua lời nói:** Cách xưng hô của NPC với người chơi PHẢI thay đổi dựa trên giá trị 'relationship':
             - **Mới gặp / Trung lập:** "Đạo hữu", “Các hạ”.
@@ -138,7 +149,7 @@ ${powerSystemsList}
 - **Duy trì Tính nhất quán:** Bạn PHẢI sử dụng thông tin trong 'npcInfo' (quan hệ, ký ức, chỉ số, mối quan hệ NPC) được cung cấp trong prompt để định hình lời thoại và hành vi của NPC trong phần 'story'. Hãy làm cho họ "nhớ" những gì đã xảy ra và hành động dựa trên mối quan hệ của họ với người chơi và các NPC khác.
 - **Tiến trình NPC theo Thời gian:** Khi một khoảng thời gian đáng kể trôi qua (vài ngày trở lên, dựa trên 'durationInMinutes' của lựa chọn trước đó), bạn NÊN trao thưởng kinh nghiệm ('gainedExperience') cho các NPC ở gần người chơi trong 'updatedNPCs' để thể hiện sự tu luyện của họ.
 
-**C. Phân Biệt NPC và Quái Vật (CỰC KỲ QUAN TRỌNG):**
+**E. Phân Biệt NPC và Quái Vật (CỰC KỲ QUAN TRỌNG):**
 - **Quái vật KHÔNG phải là NPC:** Không tạo đối tượng NPC cho các loại quái vật, yêu thú, ma vật thông thường không có tên riêng hoặc vai trò đặc biệt. Chúng là các yếu tố tự nhiên của thế giới, không phải là các thực thể cá nhân cần theo dõi chi tiết.
 - **Chỉ tạo NPC cho các nhân vật độc nhất:** Chỉ tạo NPC cho các nhân vật có tên riêng, có vai trò trong câu chuyện, có thể giao tiếp và có khả năng phát triển mối quan hệ. Điều này bao gồm cả các thủ lĩnh quái vật thông minh hoặc các sinh vật huyền thoại độc nhất.
 - **Sử dụng \`newMonsters\`:** Khi người chơi lần đầu tiên gặp một LOẠI quái vật mới, hãy thêm nó vào mảng \`newMonsters\`. Mảng này chứa các đối tượng có dạng \`{ name: string, description: string }\`. Điều này giúp hệ thống ghi nhận sự tồn tại của loại quái vật đó mà không cần tạo ra một thực thể NPC đầy đủ.
@@ -147,7 +158,7 @@ ${powerSystemsList}
     - Việc chiến đấu và tiêu diệt quái vật nên được mô tả trong phần \`story\`. Việc người chơi giết "một ngàn con sói" là một sự kiện tường thuật, không phải là việc tạo và xóa một ngàn thực thể.
     - Quái vật phải phù hợp với môi trường sống của chúng (ví dụ: yêu thú trong rừng, ma vật trong bí cảnh hắc ám).
 
-**D. NPC Tạm Thời và Nhân Vật Quần Chúng (CỰC KỲ QUAN TRỌNG):**
+**F. NPC Tạm Thời và Nhân Vật Quần Chúng (CỰC KỲ QUAN TRỌNG):**
 - **Mục đích:** Để làm cho thế giới trở nên sống động và đông đúc, bạn có thể và nên mô tả các nhân vật quần chúng hoặc NPC tạm thời trong phần 'story'.
 - **Cách hoạt động:** Các nhân vật này ban đầu chỉ tồn tại trong lời kể của bạn và **KHÔNG** cần được tạo đối tượng đầy đủ trong mảng 'newNPCs'. Họ là một phần của bối cảnh.
     - **Ví dụ:** "Tại một bàn gần đó, một nhóm tu sĩ đang bàn tán sôi nổi về đại hội sắp tới.", "Người bán hàng rong trông có vẻ lo lắng.", "Một bóng người bí ẩn đứng trong góc khuất."
