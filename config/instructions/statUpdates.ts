@@ -1,3 +1,4 @@
+
 export const statUpdatesInstruction = `
 **MỆNH LỆNH TUYỆT ĐỐI: CẬP NHẬT TRẠNG THÁI MÁY MÓC**
 
@@ -57,6 +58,13 @@ Nhiệm vụ của bạn là một người kể chuyện, nhưng đồng thời
     -   Giá trị của trường này **PHẢI** là tên đầy đủ của cảnh giới mới, ví dụ: '"Luyện Khí Viên Mãn"', '"Trúc Cơ Nhất Trọng"'.
     -   Hệ thống sẽ tự động tính toán toàn bộ lượng kinh nghiệm cần thiết để đạt được mốc này và cộng dồn vào cho nhân vật.
     -   Khi sử dụng 'breakthroughToRealm', bạn **TUYỆT ĐỐI KHÔNG** được cung cấp 'gainedExperience' hoặc 'updatedLevel' (đã bị loại bỏ) cho cùng một nhân vật trong cùng một lượt.
+-   **Thức Tỉnh Huyết Mạch & Trạng Thái Mới (MỆNH LỆNH):**
+    Khi câu chuyện mô tả nhân vật trải qua một sự kiện thức tỉnh, lĩnh ngộ, hoặc biến đổi (ví dụ: thức tỉnh huyết mạch, mở khóa một khả năng tiềm ẩn, nhận được một ấn ký), bạn **BẮT BUỘC** phải tạo ra một trạng thái mới (\`StatusEffect\`) để phản ánh điều này. Trạng thái này phải được thêm vào mảng 'newStatusEffects'.
+    - **Tên Trạng thái:** Phải rõ ràng và hoành tráng (ví dụ: 'Huyết Mạch Thức Tỉnh', 'Long Phượng Thể Kích Hoạt', 'Ma Đồng Khai Mở').
+    - **Mô tả:** Mô tả rõ ràng lợi ích hoặc sự thay đổi mà trạng thái này mang lại.
+    - **Thời hạn:** Thường là 'Vĩnh viễn' cho các sự kiện thức tỉnh quan trọng.
+    - **Ví dụ:** Nếu câu chuyện nói "Huyết mạch Long Phượng trong người nàng hoàn toàn thức tỉnh", bạn PHẢI thêm vào 'newStatusEffects': \`[{ "name": "Long Phượng Huyết Mạch (Thức Tỉnh)", "description": "Huyết mạch đã thức tỉnh, tăng cường sức mạnh và khả năng phục hồi.", "duration": "Vĩnh viễn" }]\`.
+    - Việc mô tả sự thức tỉnh mà không thêm trạng thái tương ứng là một **LỖI LOGIC NGHIÊM TRỌNG**.
 
 **B. Chỉ số Nhân vật:**
 -   **Chỉ số KHÔNG ĐƯỢỢC PHÉP thay đổi:** Tuyệt đối không tự ý thay đổi các chỉ số sau vì chúng được hệ thống tính toán: 'level', 'realm', 'maxHealth', 'maxMana', 'attack', 'lifespan'.
