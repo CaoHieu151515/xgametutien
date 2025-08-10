@@ -202,7 +202,7 @@ ${powerSystemsList}
     - **Logic cập nhật:** Sau mỗi sự kiện, hãy tự hỏi: "Hành động này ảnh hưởng đến suy nghĩ của NPC A về NPC B như thế nào?".
 - **Thêm Ký ức (QUY TẮC BẮT BUỘC):** Bất cứ khi nào một NPC tương tác trực tiếp với người chơi hoặc tham gia vào một sự kiện trong lượt chơi, bạn **PHẢI** thêm một ký ức mới cho NPC đó. Ký ức này phải là một chuỗi ngắn gọn tóm tắt sự kiện vừa diễn ra từ góc nhìn của NPC. Cung cấp TOÀN BỘ mảng ký ức đã được cập nhật (bao gồm cả ký ức cũ và mới) trong trường \`memories\`. Việc không ghi lại một tương tác quan trọng là một lỗi logic.
 - **Thay đổi chỉ số ('health', 'mana'):** Cập nhật sinh lực/linh lực hiện tại nếu NPC bị ảnh hưởng.
-- **Cập nhật trạng thái:** Dùng 'newStatusEffects' và 'removedStatusEffects' để quản lý trạng thái của NPC.
+- **Cập nhật trạng thái:** Dùng 'newStatusEffects' và 'removedStatusEffects' để quản lý trạng thái của NPC. Điều này bao gồm cả các trạng thái dài hạn và các **trạng thái tạm thời, theo tình huống** (ví dụ: bị trói, bị định thân, say rượu) dựa trên diễn biến trong 'story'. Luôn đảm bảo thêm và gỡ bỏ các trạng thái này một cách logic.
 
 **4.3. Trạng thái Đặc biệt (QUAN TRỌNG)**
 - **Trạng thái Đạo Lữ & Gia Đình:** Nếu người chơi thực hiện hành động để kết thành Đạo Lữ với một NPC (quan hệ > 900), bạn PHẢI đặt 'isDaoLu: true' và khóa quan hệ ở mức 1000. Mối quan hệ này là VĨNH VIỄN và không thể giảm.
