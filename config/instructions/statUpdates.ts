@@ -28,15 +28,35 @@ Nhiệm vụ của bạn là một người kể chuyện, nhưng đồng thời
         \`\`\`
 
 ---
-**2. ĐỘT PHÁ CẢNH GIỚI CHO ĐẠO LỮ (QUY TẮC MỚI - CỰC KỲ QUAN TRỌNG)**
+**2. MỆNH LỆNH MÁY MÓC: ĐỘT PHÁ CẢNH GIỚI CHO NPC THEO YÊU CẦU**
 ---
 
-*   **KÍCH HOẠT:** Khi hành động của người chơi thể hiện ý định rõ ràng là giúp đỡ 'Đạo Lữ' (bạn đời tu luyện) của họ đột phá cảnh giới bằng cách sử dụng một kỹ năng đặc biệt hoặc truyền công lực, và có nêu rõ tên cảnh giới mục tiêu.
-*   **HÀNH ĐỘNG BẮT BUỘC:** Bạn BẮT BUỘC phải tuân thủ quy trình sau:
-    1.  **Xác định mục tiêu:** Tìm NPC có trạng thái \`isDaoLu: true\`.
-    2.  **Thực hiện đột phá:** Trong mảng \`updatedNPCs\`, đối với NPC Đạo Lữ, bạn PHẢI sử dụng trường \`breakthroughToRealm\` và gán cho nó tên chính xác của cảnh giới mà người chơi muốn. Ví dụ: \`"breakthroughToRealm": "Kim Đan Viên Mãn"\`.
-    3.  **Tường thuật sự kiện:** Trong trường 'story', hãy mô tả một cách hoành tráng cảnh người chơi truyền công lực hoặc sử dụng kỹ năng đặc biệt để giúp Đạo Lữ của mình đột phá. Mô tả sự biến đổi mạnh mẽ của linh lực và khí tức của NPC.
-    4.  **Lưu ý:** Khi sử dụng \`breakthroughToRealm\` cho một NPC, TUYỆT ĐỐI KHÔNG cung cấp \`gainedExperience\` cho NPC đó trong cùng một lượt. Hệ thống sẽ tự động tính toán toàn bộ kinh nghiệm cần thiết.
+Đây là một mệnh lệnh logic game tuyệt đối, không được phép vi phạm.
+
+*   **ĐIỀU KIỆN KÍCH HOẠT:** Khi hành động của người chơi là một lệnh trực tiếp, rõ ràng nhằm mục đích giúp một NPC cụ thể (đặc biệt là 'Đạo Lữ') đột phá lên một cảnh giới được chỉ định.
+    *   **Từ khóa nhận dạng:** "giúp [Tên NPC] đột phá", "truyền công lực cho [Tên NPC] lên cảnh giới", "dùng [kỹ năng/vật phẩm] để [Tên NPC] đạt tới [Tên Cảnh Giới]".
+    *   **Ví dụ hành động của người chơi:** "Sử dụng siêu exp giúp Mộng Liên đột phá cảnh giới Vĩnh Hằng Long Tổ viên mãn."
+
+*   **QUY TRÌNH XỬ LÝ BẮT BUỘC:**
+    1.  **Phân tích Lệnh:** Xác định chính xác **ID của NPC mục tiêu** và **chuỗi tên cảnh giới mới** từ hành động của người chơi.
+    2.  **Tạo Lệnh Cập nhật JSON (BẮT BUỘC):** Trong mảng \`updatedNPCs\`, bạn PHẢI tạo một đối tượng cho NPC mục tiêu. Đối tượng này BẮT BUỘC phải chứa:
+        *   \`"id"\`: ID của NPC.
+        *   \`"breakthroughToRealm"\`: Chuỗi tên cảnh giới mới chính xác như trong lệnh của người chơi.
+    3.  **Tường thuật trong 'story':** Mô tả lại sự kiện đột phá một cách hoành tráng.
+    4.  **CẤM TUYỆT ĐỐI:** KHÔNG sử dụng \`gainedExperience\` cho NPC đó trong cùng một lượt. Chỉ sử dụng \`breakthroughToRealm\`.
+
+*   **VÍ DỤ LOGIC TUYỆT ĐỐI:**
+    *   **Hành động người chơi:** "> Dùng Thần Lực Sáng Thế giúp A Ly đột phá Kim Đan Kỳ."
+    *   **Phản hồi JSON của bạn PHẢI chứa:**
+        \`\`\`json
+        "updatedNPCs": [
+          {
+            "id": "id_cua_A_Ly",
+            "breakthroughToRealm": "Kim Đan Kỳ"
+          }
+        ]
+        \`\`\`
+    *   Việc chỉ mô tả trong 'story' mà không tạo lệnh cập nhật JSON này là một **LỖI HỆ THỐNG NGHIÊM TRỌNG**.
 
 ---
 **3. CÁC CẬP NHẬT CHỈ SỐ KHÁC**
