@@ -17,7 +17,7 @@ const getJsonSchemaDescription = (forWorldGen: boolean): string => {
             - "durationInMinutes": (number) Estimated time in minutes.
         "updatedStats": (optional object) Contains updated character stats. ONLY include changed stats.
             - "health", "mana", "currencyAmount", "gainedExperience": (numbers)
-            - "updatedLevel": (optional number) The character's NEW level if a direct realm breakthrough is described. Omit gainedExperience if used.
+            - "breakthroughToRealm": (optional string) The NEW realm name the character breaks through to. The system will auto-calculate XP. Omit gainedExperience if used.
             - "newStatusEffects": (optional array of objects) Each object: {"name": string, "description": string, "duration": string}.
             - "removedStatusEffects": (optional array of strings) Names of effects to remove.
         "updatedGender": (optional string 'male' or 'female') The player's new gender if it changed.
@@ -27,7 +27,7 @@ const getJsonSchemaDescription = (forWorldGen: boolean): string => {
         "updatedLocations": (optional array of Location objects) For existing locations that have changed.
         "updatedPlayerLocationId": (optional string or null) The player's new location ID.
         "newNPCs": (optional array of NewNPCFromAI objects) For newly encountered NPCs. Each 'npcRelationships' object can optionally have a "relationshipType" ('FAMILY' | 'ROMANTIC' | 'FRIENDLY' | 'RIVAL').
-        "updatedNPCs": (optional array of NPCUpdate objects) For existing NPCs that have changed. Can include "isDead": (boolean), "gender": ('male' | 'female'), "aptitude": (string). Each 'updatedNpcRelationships' object can optionally have a "relationshipType".
+        "updatedNPCs": (optional array of NPCUpdate objects) For existing NPCs that have changed. Can include "isDead": (boolean), "gender": ('male' | 'female'), "aptitude": (string), "breakthroughToRealm": (string). Each 'updatedNpcRelationships' object can optionally have a "relationshipType".
         "newItems": (optional array of Item objects) for newly acquired items. If the item type is 'Dược Phẩm', you MUST provide an 'effectsDescription' field detailing its effect.
         "updatedItems": (optional array of {name: string, quantity: number}) for updating item quantities.
         "removedItemIds": (optional array of strings) IDs of items to remove.
