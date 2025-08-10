@@ -291,3 +291,28 @@ export const processNpcLevelUps = <T extends NPC>(
 
     return updatedNpc;
 };
+
+export const calculateExperienceForBreakthrough = (
+    currentLevel: number,
+    currentExperience: number,
+    targetLevel: number
+): number => {
+    if (targetLevel <= currentLevel) {
+        log('progressionService.ts', `Target level ${targetLevel} is not higher than current level ${currentLevel}. No XP calculated.`, 'INFO');
+        return 0;
+    }
+
+    let totalExperienceNeeded = 0;
+
+    // First, add XP needed to level up from the current level
+    const xpForCurrentLevel = getExperienceForNextLevel(currentLevel);
+    totalExperienceNeeded += (xpForCurrentLevel - currentExperience);
+
+    // Then, add XP for all intermediate levels
+    for (let level = currentLevel + 1; level < targetLevel; level++) {
+        totalExperienceNeeded += getExperienceForNextLevel(level);
+    }
+
+    log('progressionService.ts', `Calculated ${totalExperienceNeeded} EXP needed to go from Lvl ${currentLevel} to ${targetLevel}.`, 'FUNCTION');
+    return totalExperienceNeeded > 0 ? Math.ceil(totalExperienceNeeded) : 0; // Ensure non-negative and integer
+};
