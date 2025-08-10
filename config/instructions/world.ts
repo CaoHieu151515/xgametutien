@@ -1,4 +1,3 @@
-
 import { WorldSettings } from '../../types';
 
 const worldDetailsInstruction = (worldSettings: WorldSettings | null): string => {
@@ -13,16 +12,29 @@ const worldDetailsInstruction = (worldSettings: WorldSettings | null): string =>
         - Có một loại tiền tệ không chính thức cho phàm nhân gọi là "Tiền Đồng".
         - **QUAN TRỌNG:** "Tiền Đồng" KHÔNG phải là một chỉ số. Nó là một **Vật Phẩm** (Item) có \`type: 'Khác'\`. Bạn phải quản lý nó thông qua túi đồ (\`newItems\`, \`updatedItems\`).
         - **Tỷ giá quy đổi:** 1 đơn vị tiền tệ chính = 100 Tiền Đồng.
-    - **Hạn chế Lạm phát (MỆNH LỆNH):** TUYỆT ĐỐI KHÔNG được tạo ra các tình huống kinh tế phi lý. Một gia tộc nhỏ hoặc một môn phái nhỏ KHÔNG THỂ có hàng triệu, hàng tỷ, hay hàng triệu tỷ Linh Thạch. Sự giàu có phải có quy mô hợp lý:
-        - Một gia đình phàm nhân có thể có vài chục Tiền Đồng.
-        - Một gia tộc tu luyện nhỏ có thể có vài trăm đến vài nghìn Linh Thạch.
-        - Chỉ những thế lực CỰC LỚN hoặc các kho báu cổ đại mới có thể chứa hàng triệu Linh Thạch.
+    - **Hạn chế Lạm phát (MỆNH LỆNH):** TUYỆT ĐỐI KHÔNG được tạo ra các tình huống kinh tế phi lý. Một gia tộc nhỏ hoặc một môn phái nhỏ KHÔNG THỂ có hàng triệu, hàng tỷ, hay hàng triệu tỷ Linh Thạch. Sự giàu có phải có quy mô hợp lý.
 
-**Phân Bổ Tài Sản Hợp Lý (MỆNH LỆNH TUYỆT ĐỐI):**
-- **Tài sản của Nhân vật Quần chúng:** Một nhân vật quần chúng như ăn mày, nông dân, tiểu thương TUYỆT ĐỐI KHÔNG được sở hữu Linh Thạch, trừ khi có một lý do cốt truyện cực kỳ đặc biệt (ví dụ: cao nhân ẩn thế) và phải được giải thích rõ. Tài sản của họ chỉ nên giới hạn ở một lượng nhỏ Tiền Đồng.
-- **Tài sản của Thế lực:** Tài sản và khả năng chi tiêu của các thế lực phải tương xứng với quy mô của họ.
-    - Một gia tộc nhỏ hoặc tông môn cấp thấp KHÔNG THỂ có sẵn hàng tỷ Linh Thạch. Việc chi tiêu những khoản tiền lớn (vài nghìn Linh Thạch trở lên) phải được mô tả là một quyết định trọng đại, có thể làm lung lay nền tảng kinh tế của họ.
-    - Để có được số tiền lớn, họ phải trải qua quá trình thu thập, tích lũy cực khổ, chứ không phải có sẵn ngay lập tức.
+**Phân Tầng Tài Sản và Nhận Thức Kinh Tế (MỆNH LỆNH TUYỆT ĐỐI):**
+Mỗi loại NPC có mức tài sản và cách nhìn nhận giá trị khác nhau. Điều này PHẢI được phản ánh trong hành vi, lời nói, và khả năng tham gia giao dịch của họ.
+
+*   **Phàm nhân nghèo (Nông dân, ăn mày, tiểu thương nhỏ):**
+    *   **Tài sản:** 5 - 50 Tiền Đồng.
+    *   **Nhận thức:** Coi 1 Linh Thạch là cả một gia tài. Sẽ vô cùng kinh ngạc hoặc không tin khi thấy một món Linh Phẩm. Giao dịch của họ chỉ xoay quanh nhu yếu phẩm.
+*   **Phàm nhân giàu (Thương nhân lớn, chủ tửu lâu, quan viên nhỏ):**
+    *   **Tài sản:** 50 - 500 Tiền Đồng.
+    *   **Nhận thức:** Rất coi trọng vàng bạc. Hiếm khi nắm giữ Linh Thạch, và nếu có sẽ giữ kín như báu vật.
+*   **Tu sĩ cấp thấp (Luyện Khí - Trúc Cơ):**
+    *   **Tài sản:** 5 - 50 Linh Thạch.
+    *   **Nhận thức:** Quý trọng từng viên Linh Thạch. Mơ ước có được Tiên Phẩm, coi Thánh Phẩm là thứ ngoài tầm với.
+*   **Tu sĩ trung cấp (Kim Đan - Nguyên Anh):**
+    *   **Tài sản:** 50 - 500 Linh Thạch.
+    *   **Nhận thức:** Giao dịch chủ yếu bằng Linh Thạch. Coi Tiên Phẩm là tài sản lớn và Thánh Phẩm là cực kỳ hiếm có.
+*   **Tu sĩ cao cấp (Hóa Thần trở lên, trưởng lão tông môn lớn):**
+    *   **Tài sản:** 500 - 5.000 Linh Thạch.
+    *   **Nhận thức:** Không mấy để tâm đến Phàm hoặc Linh Phẩm. Chỉ chú ý đến các vật phẩm từ Tiên Phẩm, Thánh Phẩm, hoặc Thần Phẩm.
+*   **Thế lực lớn (Tông môn thượng phẩm, hoàng thất, cổ tộc):**
+    *   **Tài sản:** Hàng chục nghìn Linh Thạch trở lên.
+    *   **Nhận thức:** Đủ khả năng mua Thần Phẩm, có thể sưu tầm Hỗn Độn Phẩm. Sẵn sàng tham gia đấu giá với số tiền khổng lồ cho các vật phẩm chiến lược.
 
 **Ví dụ về Mức giá Tham khảo:**
 Bạn PHẢI sử dụng các mức giá sau làm cơ sở để định giá mọi thứ trong thế giới một cách hợp lý.
@@ -50,14 +62,7 @@ Bạn PHẢI sử dụng các mức giá sau làm cơ sở để định giá m�
     *   **Bất Động Sản (Nhà cửa & Động phủ):**
         *   Một căn nhà nhỏ trong thành trì của người tu luyện: Vài trăm đến vài nghìn Linh Thạch.
         *   Sở hữu một động phủ tu luyện cấp thấp (có linh mạch nhỏ): Vài nghìn đến hàng chục nghìn Linh Thạch.
-        *   Sở hữu một cửa hàng trong thành: Hàng chục nghìn Linh Thạch trở lên.
-
-**Nhận thức của NPC về Giá trị (QUAN TRỌNG):**
--   NPC PHẢI nhận thức được giá trị của tiền tệ và sự chênh lệch giàu nghèo.
-    -   Một phàm nhân sẽ coi 1 Linh Thạch là một gia tài khổng lồ và sẽ có phản ứng kinh ngạc hoặc kính nể.
-    -   Một tu sĩ Trúc Cơ có thể coi 10 Linh Thạch là một khoản tiền đáng kể.
-    -   Một trưởng lão Kim Đan sẽ không để tâm đến vài chục Linh Thạch, nhưng sẽ quan tâm đến các giao dịch hàng nghìn Linh Thạch.
--   Lời thoại và hành động của NPC khi giao dịch PHẢI phản ánh điều này. Một chủ cửa hàng sẽ vui vẻ khi nhận được một khoản tiền lớn và có thể trở nên khó chịu nếu người chơi mặc cả quá đáng cho một món đồ rẻ tiền.`;
+        *   Sở hữu một cửa hàng trong thành: Hàng chục nghìn Linh Thạch trở lên.`;
     
     if (worldSettings) {
          let detailsAdded = false;
