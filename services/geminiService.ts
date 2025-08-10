@@ -33,7 +33,7 @@ const updatedStatsSchema = {
         mana: { type: Type.NUMBER, description: "Linh lực/Năng lượng hiện tại của nhân vật (ví dụ: sau khi dùng phép)." },
         currencyAmount: { type: Type.NUMBER, description: "Số lượng tiền tệ hiện tại của nhân vật." },
         gainedExperience: { type: Type.NUMBER, description: "Điểm kinh nghiệm nhân vật NHẬN ĐƯỢỢC từ hành động này (không phải tổng kinh nghiệm). Hệ thống sẽ tự cộng dồn." },
-        updatedLevel: { type: Type.NUMBER, description: "Cấp độ MỚI của nhân vật nếu có một sự đột phá cảnh giới trực tiếp được mô tả trong truyện. Hệ thống sẽ tự cập nhật cảnh giới và chỉ số. Bỏ qua gainedExperience khi dùng trường này.", nullable: true },
+        breakthroughToRealm: { type: Type.STRING, description: "Tên cảnh giới MỚI mà nhân vật đột phá đến (ví dụ: 'Kim Đan Viên Mãn'). Hệ thống sẽ tự tính toán và cộng dồn toàn bộ kinh nghiệm cần thiết để đạt được cảnh giới này. Bỏ qua gainedExperience khi dùng trường này.", nullable: true },
         newStatusEffects: {
             type: Type.ARRAY,
             description: "Một mảng các trạng thái mới được thêm cho nhân vật do sự kiện trong truyện. Bỏ qua nếu không có.",
@@ -450,6 +450,7 @@ const updatedNpcSchema = {
     properties: {
         id: { type: Type.STRING, description: "ID của NPC cần cập nhật." },
         gainedExperience: { type: Type.NUMBER, description: "Kinh nghiệm NPC nhận được. Hệ thống sẽ tự xử lý việc lên cấp.", nullable: true },
+        breakthroughToRealm: { type: Type.STRING, description: "Tên cảnh giới MỚI mà NPC đột phá đến. Hệ thống sẽ tự tính toán và cộng dồn toàn bộ kinh nghiệm. Bỏ qua gainedExperience khi dùng trường này.", nullable: true },
         relationship: { type: Type.NUMBER, description: "Giá trị quan hệ mới với người chơi. Chỉ cung cấp nếu có thay đổi.", nullable: true },
         memories: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Toàn bộ danh sách ký ức MỚI của NPC (bao gồm cả cũ và mới).", nullable: true },
         health: { type: Type.NUMBER, description: "Sinh lực hiện tại của NPC.", nullable: true },
