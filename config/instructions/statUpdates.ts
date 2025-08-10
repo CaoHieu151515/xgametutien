@@ -1,4 +1,3 @@
-
 export const statUpdatesInstruction = `
 **MỆNH LỆNH TUYỆT ĐỐI: CẬP NHẬT TRẠNG THÁI MÁY MÓC**
 
@@ -29,7 +28,18 @@ Nhiệm vụ của bạn là một người kể chuyện, nhưng đồng thời
         \`\`\`
 
 ---
-**2. CÁC CẬP NHẬT CHỈ SỐ KHÁC**
+**2. ĐỘT PHÁ CẢNH GIỚI CHO ĐẠO LỮ (QUY TẮC MỚI - CỰC KỲ QUAN TRỌNG)**
+---
+
+*   **KÍCH HOẠT:** Khi hành động của người chơi thể hiện ý định rõ ràng là giúp đỡ 'Đạo Lữ' (bạn đời tu luyện) của họ đột phá cảnh giới bằng cách sử dụng một kỹ năng đặc biệt hoặc truyền công lực, và có nêu rõ tên cảnh giới mục tiêu.
+*   **HÀNH ĐỘNG BẮT BUỘC:** Bạn BẮT BUỘC phải tuân thủ quy trình sau:
+    1.  **Xác định mục tiêu:** Tìm NPC có trạng thái \`isDaoLu: true\`.
+    2.  **Thực hiện đột phá:** Trong mảng \`updatedNPCs\`, đối với NPC Đạo Lữ, bạn PHẢI sử dụng trường \`breakthroughToRealm\` và gán cho nó tên chính xác của cảnh giới mà người chơi muốn. Ví dụ: \`"breakthroughToRealm": "Kim Đan Viên Mãn"\`.
+    3.  **Tường thuật sự kiện:** Trong trường 'story', hãy mô tả một cách hoành tráng cảnh người chơi truyền công lực hoặc sử dụng kỹ năng đặc biệt để giúp Đạo Lữ của mình đột phá. Mô tả sự biến đổi mạnh mẽ của linh lực và khí tức của NPC.
+    4.  **Lưu ý:** Khi sử dụng \`breakthroughToRealm\` cho một NPC, TUYỆT ĐỐI KHÔNG cung cấp \`gainedExperience\` cho NPC đó trong cùng một lượt. Hệ thống sẽ tự động tính toán toàn bộ kinh nghiệm cần thiết.
+
+---
+**3. CÁC CẬP NHẬT CHỈ SỐ KHÁC**
 ---
 
 **A. Kinh nghiệm và Cấp độ:**
@@ -71,11 +81,27 @@ Nhiệm vụ của bạn là một người kể chuyện, nhưng đồng thời
 -   **Chỉ số CÓ THỂ thay đổi:** Bạn có thể thay đổi 'health' (do chịu sát thương/hồi phục), 'mana' (do sử dụng kỹ năng), và 'currencyAmount' (do giao dịch).
 -   **Trạng thái:** Để thêm trạng thái mới, sử dụng mảng 'newStatusEffects'. Để xóa, sử dụng 'removedStatusEffects'. Thiên Phú và Thể Chất là vĩnh viễn, không được xóa.
 
-**C. Tiền tệ (BẮT BUỘC):**
+**C. Trạng Thái Tạm Thời & Tình Huống (MỆNH LỆNH MỚI - CỰC KỲ QUAN TRỌNG):**
+- **Nguyên tắc:** Ngoài các trạng thái dài hạn, bạn **BẮT BUỘC** phải tạo ra các trạng thái tạm thời để phản ánh các tình huống cụ thể xảy ra trong lượt chơi. Bất cứ khi nào câu chuyện mô tả một nhân vật bị ảnh hưởng bởi một hiệu ứng tạm thời, bạn PHẢI tạo một \`StatusEffect\` tương ứng.
+- **Tự động nhận diện:** Hãy phân tích văn bản trong 'story'. Nếu nhân vật:
+    - Bị trói (bởi dây thừng, xích sắt, v.v.).
+    - Bị định thân, tê liệt, đóng băng.
+    - Bị say rượu, trúng ảo giác.
+    - Bị mê hoặc, khống chế tâm trí.
+    - Hoặc bất kỳ tình trạng nào khác làm thay đổi tạm thời khả năng hành động của họ.
+- **Hành động BẮT BUỘC:**
+    1.  Tạo một đối tượng \`StatusEffect\` và thêm vào mảng \`newStatusEffects\`.
+    2.  **Tên (\`name\`):** Phải ngắn gọn và rõ ràng. Ví dụ: "Bị Trói Tay", "Bị Định Thân", "Say Rượu".
+    3.  **Mô tả (\`description\`):** Mô tả rõ ảnh hưởng. Ví dụ: "Hai tay bị trói chặt sau lưng, không thể sử dụng.", "Toàn thân bất động, không thể di chuyển.", "Đầu óc quay cuồng, hành động không chính xác."
+    4.  **Thời hạn (\`duration\`):** Phải mang tính ngữ cảnh. Ví dụ: "2 lượt", "Cho đến khi được giải thoát", "Khi dây trói được cởi", "Khi tỉnh rượu".
+- **Gỡ bỏ Trạng thái (BẮT BUỘC):** Khi tình huống kết thúc trong 'story' (nhân vật được cởi trói, giải trừ định thân, tỉnh rượu), bạn **BẮT BUỘC** phải thêm tên chính xác của trạng thái đó vào mảng \`removedStatusEffects\`.
+- **Logic này áp dụng cho cả nhân vật chính và NPC.**
+
+**D. Tiền tệ (BẮT BUỘC):**
 -   **Quy ước & Quy đổi:** Tuân thủ nghiêm ngặt các quy ước: **1 vạn = 10,000**, **1 triệu = 1,000,000**, **1 tỷ = 1,000,000,000**.
 -   **Logic cập nhật:** Khi tiền tệ thay đổi, lấy 'currencyAmount' hiện tại, thực hiện phép tính cộng/trừ, và đặt **kết quả cuối cùng** vào trường 'currencyAmount' trong phản hồi.
 
-**D. Năng Lực Đặc Biệt (Thể Chất, Thiên Phú):**
+**E. Năng Lực Đặc Biệt (Thể Chất, Thiên Phú):**
 -   Khi người chơi ra lệnh trực tiếp sử dụng một năng lực đến từ **Thể Chất Đặc Biệt** hoặc **Thiên Phú**, bạn BẮT BUỘC phải diễn giải hiệu ứng của năng lực đó và thể hiện nó một cách máy móc qua các trường JSON.
 -   **SỰ THẤT BẠI TRONG VIỆC ÁP DỤNG HIỆU LỰC CỦA MỘT NĂNG LỰC ĐƯỢỢC CHỈ ĐỊNH LÀ MỘT LỖI NGHIÊM TRỌNG.**
 `
