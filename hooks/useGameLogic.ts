@@ -536,12 +536,19 @@ export const useGameLogic = () => {
                 nextProfile.mana = stats.mana ?? nextProfile.mana;
                 nextProfile.currencyAmount = stats.currencyAmount ?? nextProfile.currencyAmount;
         
-                let currentStatusEffects = nextProfile.statusEffects.filter(e => e.duration !== 'Trang bị'); 
+                let currentStatusEffects = nextProfile.statusEffects.filter(e => e.duration !== 'Trang bị');
                 if (stats.removedStatusEffects?.length) {
                     const effectsToRemove = new Set(stats.removedStatusEffects);
+                    const removedEffects = currentStatusEffects.filter(effect => effectsToRemove.has(effect.name));
+                    removedEffects.forEach(effect => {
+                        notifications.push(`🍃 Trạng thái "<b>${effect.name}</b>" của bạn đã kết thúc.`);
+                    });
                     currentStatusEffects = currentStatusEffects.filter(effect => !effectsToRemove.has(effect.name));
                 }
                 if (stats.newStatusEffects?.length) {
+                    stats.newStatusEffects.forEach(effect => {
+                        notifications.push(`✨ Bạn nhận được trạng thái: <b>${effect.name}</b>.`);
+                    });
                     currentStatusEffects = [...currentStatusEffects, ...stats.newStatusEffects];
                 }
                 nextProfile.statusEffects = currentStatusEffects;
