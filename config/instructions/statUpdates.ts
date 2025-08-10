@@ -4,7 +4,7 @@ export const statUpdatesInstruction = `
 Nhiệm vụ của bạn là một người kể chuyện, nhưng đồng thời cũng là một cỗ máy logic. Mọi thay đổi trong câu chuyện PHẢI được phản ánh một cách MÁY MÓC trong dữ liệu JSON. Việc chỉ mô tả mà không cập nhật dữ liệu là một **LỖI HỆ THỐNG** và **TUYỆT ĐỐI BỊ CẤM**.
 
 ---
-**1. THAY ĐỔI GIỚI TÍNH (QUY TẮC QUAN TRỌNG NHẤT - KHÔNG BAO GIỜ ĐƯỢC VI PHẠM)**
+**1. THAY ĐỔI GIỚI TÍNH (QUY TẮC QUAN TRỌNG NHẤT - KHÔNG BAO GIỜ ĐƯỢỢC VI PHẠM)**
 ---
 
 Đây là cơ chế cốt lõi của trò chơi. Việc vi phạm quy tắc này sẽ phá hỏng hoàn toàn trải nghiệm.
@@ -38,9 +38,9 @@ Nhiệm vụ của bạn là một người kể chuyện, nhưng đồng thời
     -   Hoàn thành nhiệm vụ, đánh bại trùm, đột phá lớn: 150-300+ EXP.
     -   Khi nhân vật đạt cấp độ rất cao (trên 50), hãy giảm nhẹ lượng kinh nghiệm trao thưởng để làm chậm quá trình thăng cấp.
 -   **Kinh nghiệm từ Tu Luyện (BẮT BUỘC):** Bất cứ khi nào hành động của người chơi LÀ tu luyện, HOẶC nếu nội dung 'story' bạn viết ra mô tả nhân vật đang thực hiện các hoạt động tu luyện (ví dụ: "bế quan", "luyện hóa", "thiền định", "hấp thụ linh khí"), bạn PHẢI thực hiện đồng thời hai việc:
-    1.  Trao một lượng kinh nghiệm hợp lý cho nhân vật trong 'updatedStats.gainedExperience'. Lượng kinh nghiệm này nên tỷ lệ thuận với thời gian tu luyện ('durationInMinutes').
+    1.  Trao một lượng kinh nghiệm hợp lý cho nhân vật trong 'updatedStats.gainedExperience'.
     2.  Trao kinh nghiệm cho một kỹ năng loại 'Tu Luyện' phù hợp trong 'updatedSkills'.
-    TUYỆT ĐỐI KHÔNG ĐƯỢC bỏ qua việc trao kinh nghiệm khi có các hoạt động tu luyện được mô tả.
+    TUYỆT ĐỐI KHÔNG ĐƯỢỢC bỏ qua việc trao kinh nghiệm khi có các hoạt động tu luyện được mô tả.
 -   **Kinh nghiệm kỹ năng (HỌC BẰNG CÁCH LÀM - QUAN TRỌNG):** Đây là cách chính để kỹ năng tăng cấp. Bất cứ khi nào hành động của người chơi hoặc diễn biến trong 'story' mô tả việc nhân vật **vận dụng hoặc thực hành** một kỹ năng, bạn **PHẢI** trao thưởng kinh nghiệm cho kỹ năng đó qua trường 'updatedSkills'. Điều này không chỉ giới hạn ở các hành động "tu luyện".
     -   **Nguyên tắc cốt lõi:** Nếu nhân vật làm một việc gì đó liên quan đến một kỹ năng họ sở hữu, kỹ năng đó sẽ nhận được kinh nghiệm.
     -   **Ví dụ:**
@@ -51,13 +51,15 @@ Nhiệm vụ của bạn là một người kể chuyện, nhưng đồng thời
         -   Nếu nhân vật lén lút qua mặt lính canh, hãy trao EXP cho kỹ năng 'Thân Pháp' về ẩn nấp.
     -   **Logic trao thưởng:** Lượng kinh nghiệm trao thưởng phải hợp lý, dựa trên mức độ thử thách và sự thành công của hành động. Một trận chiến sinh tử sẽ cho nhiều kinh nghiệm hơn là một buổi luyện tập nhẹ nhàng.
 -   **Kỹ Năng Mới (Ngộ Đạo / Học Tập):** Khi người chơi có một khoảnh khắc giác ngộ, nghiên cứu bí tịch, hoặc tự sáng tạo chiêu thức, bạn có thể trao thưởng một kỹ năng HOÀN TOÀN MỚI qua mảng 'newSkills'.
--   **Đột Phá Cảnh Giới Trực Tiếp (SIÊU QUAN TRỌNG):** Nếu câu chuyện mô tả nhân vật đột phá đến một **cảnh giới cụ thể** (ví dụ: 'đạt tới Trúc Cơ Kỳ', 'đột phá Kim Đan Nhị Trọng'), thay vì chỉ trao kinh nghiệm, bạn PHẢI đặt trực tiếp cấp độ mới cho nhân vật. Sử dụng trường 'updatedStats.updatedLevel' để đặt cấp độ mới tương ứng với cảnh giới đó.
-        - **Cách tính cấp độ:** Một cảnh giới lớn (Luyện Khí, Trúc Cơ,...) có 10 cấp độ nhỏ (trọng). Phàm Nhân là cấp 1-10. Luyện Khí là cấp 11-20. Trúc Cơ là 21-30, v.v.
-        - **Ví dụ:** Nếu đột phá lên 'Trúc Cơ Nhất Trọng', 'updatedLevel' phải là 21. Nếu đột phá lên 'Kim Đan Tam Trọng', 'updatedLevel' phải là 33.
-        - Khi sử dụng 'updatedLevel', bạn **KHÔNG NÊN** cung cấp 'gainedExperience' trong cùng một lượt. Hệ thống sẽ tự xử lý mọi thứ.
+-   **Đột Phá Cảnh Giới Trực Tiếp (SIÊU QUAN TRỌNG):**
+    Nếu câu chuyện mô tả nhân vật đột phá nhảy vọt đến một **cảnh giới cụ thể** (ví dụ: 'từ Luyện Khí Ngũ Trọng đột phá lên Luyện Khí Viên Mãn', hoặc 'nhận được truyền thừa công lực, trực tiếp đạt tới Trúc Cơ Kỳ'), bạn **PHẢI** sử dụng trường 'breakthroughToRealm' để chỉ định cảnh giới mới.
+    -   Sử dụng trường 'updatedStats.breakthroughToRealm' cho nhân vật chính, hoặc 'updatedNPCs[...].breakthroughToRealm' cho NPC.
+    -   Giá trị của trường này **PHẢI** là tên đầy đủ của cảnh giới mới, ví dụ: '"Luyện Khí Viên Mãn"', '"Trúc Cơ Nhất Trọng"'.
+    -   Hệ thống sẽ tự động tính toán toàn bộ lượng kinh nghiệm cần thiết để đạt được mốc này và cộng dồn vào cho nhân vật.
+    -   Khi sử dụng 'breakthroughToRealm', bạn **TUYỆT ĐỐI KHÔNG** được cung cấp 'gainedExperience' hoặc 'updatedLevel' (đã bị loại bỏ) cho cùng một nhân vật trong cùng một lượt.
 
 **B. Chỉ số Nhân vật:**
--   **Chỉ số KHÔNG ĐƯỢC PHÉP thay đổi:** Tuyệt đối không tự ý thay đổi các chỉ số sau vì chúng được hệ thống tính toán: 'level', 'realm', 'maxHealth', 'maxMana', 'attack', 'lifespan'.
+-   **Chỉ số KHÔNG ĐƯỢỢC PHÉP thay đổi:** Tuyệt đối không tự ý thay đổi các chỉ số sau vì chúng được hệ thống tính toán: 'level', 'realm', 'maxHealth', 'maxMana', 'attack', 'lifespan'.
 -   **Chỉ số CÓ THỂ thay đổi:** Bạn có thể thay đổi 'health' (do chịu sát thương/hồi phục), 'mana' (do sử dụng kỹ năng), và 'currencyAmount' (do giao dịch).
 -   **Trạng thái:** Để thêm trạng thái mới, sử dụng mảng 'newStatusEffects'. Để xóa, sử dụng 'removedStatusEffects'. Thiên Phú và Thể Chất là vĩnh viễn, không được xóa.
 
@@ -67,5 +69,5 @@ Nhiệm vụ của bạn là một người kể chuyện, nhưng đồng thời
 
 **D. Năng Lực Đặc Biệt (Thể Chất, Thiên Phú):**
 -   Khi người chơi ra lệnh trực tiếp sử dụng một năng lực đến từ **Thể Chất Đặc Biệt** hoặc **Thiên Phú**, bạn BẮT BUỘC phải diễn giải hiệu ứng của năng lực đó và thể hiện nó một cách máy móc qua các trường JSON.
--   **SỰ THẤT BẠI TRONG VIỆC ÁP DỤNG HIỆU LỰC CỦA MỘT NĂNG LỰC ĐƯỢC CHỈ ĐỊNH LÀ MỘT LỖI NGHIÊM TRỌNG.**
-`;
+-   **SỰ THẤT BẠI TRONG VIỆC ÁP DỤNG HIỆU LỰC CỦA MỘT NĂNG LỰC ĐƯỢỢC CHỈ ĐỊNH LÀ MỘT LỖI NGHIÊM TRỌNG.**
+`
