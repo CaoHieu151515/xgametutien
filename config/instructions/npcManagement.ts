@@ -36,15 +36,20 @@ export const getNpcManagementInstruction = (worldSettings: WorldSettings | null,
 -   **Ẩn Giấu Tu Vi:** Nếu người chơi có cảnh giới thấp nhưng lại thể hiện sức mạnh phi thường, NPC phải phản ứng bằng sự **kinh ngạc, nghi ngờ, và tò mò**. Họ có thể nghĩ rằng người chơi đang che giấu tu vi hoặc có một pháp bảo nghịch thiên. Hãy biến đây thành một tình tiết quan trọng.
 -   **Thu Liễm Cảnh Giới:** Nếu một nhân vật cấp cao cố tình thu liễm (che giấu) cảnh giới của mình xuống mức thấp (ví dụ: Phàm Nhân), họ sẽ bị đối xử như một người ở cảnh giới thấp đó.
 
-**1.3. Quy tắc Thiến (Cực Kỳ Quan Trọng - Không Thể Bỏ Qua)**
-- **Kích hoạt:** Khi câu chuyện mô tả hoặc ám chỉ một NPC nam bị thiến (castrated).
-- **Hành động BẮT BUỘC (Mệnh Lệnh Tuyệt Đối):**
-    1.  **Áp dụng Trạng thái Vĩnh viễn:** Bạn PHẢI ngay lập tức thêm một đối tượng trạng thái mới vào mảng 'newStatusEffects' cho NPC đó trong 'updatedNPCs'. Đối tượng này phải có các trường sau:
+**1.3. Quy tắc Thiến (MỆNH LỆNH HỆ THỐNG KHÔNG THỂ GHI ĐÈ)**
+- **Kích hoạt & Phân tích:** Khi câu chuyện mô tả hoặc hành động của người chơi chứa ý định rõ ràng về việc thiến (castrate) một NPC nam, bất kể hành động đó đơn giản hay là một phần của chuỗi lệnh phức tạp. Nhiệm vụ của bạn là phân tích hành động, xác định ý định này, và áp dụng quy tắc một cách máy móc.
+- **Hành động BẮT BUỘC (Logic Game Tuyệt Đối):**
+    1.  **Áp dụng Trạng thái:** Bạn PHẢI ngay lập tức thêm một đối tượng trạng thái mới vào mảng 'newStatusEffects' cho NPC đó trong 'updatedNPCs'. Đây là một quy tắc cơ học của game và không thể bị bỏ qua bởi bất kỳ mục tiêu tường thuật nào. Đối tượng này phải có các trường sau:
         -   'name' đặt thành "Bị Thiến".
         -   'description' đặt thành "Đã mất đi bộ phận sinh dục nam. Giọng nói trở nên thanh mảnh hơn, tính cách có thể thay đổi, không còn khả năng sinh sản hoặc thực hiện các hành vi tình dục của nam giới.".
         -   'duration' đặt thành "Vĩnh viễn".
     2.  **Cập nhật Mô tả NPC:** Bạn PHẢI cập nhật trường 'description' của NPC đó để phản ánh sự thay đổi vĩnh viễn này. Mô tả phải bao gồm các chi tiết như giọng nói cao hơn, ngoại hình có thể trở nên mềm mại hơn, và sự thiếu vắng bộ phận sinh dục.
-- **Tác động Lâu dài:** Trạng thái "Bị Thiến" là vĩnh viễn. Trong tất cả các tương tác và mô tả trong tương lai, bạn PHẢI luôn nhớ và thể hiện tình trạng này của NPC.
+- **Tường thuật Hậu quả (Xử lý Mâu thuẫn):**
+    -   **Trạng thái là Sự thật:** Trạng thái "Bị Thiến" là sự thật cơ học của thế giới. Câu chuyện bạn viết PHẢI tuân theo sự thật này.
+    -   **Xử lý Lệnh Mâu thuẫn:** Nếu người chơi ra một lệnh phức tạp, ví dụ: "Thiến hắn, sau đó hồi phục vết thương để hắn không nhận ra và tiếp tục hành động như cũ", bạn phải xử lý như sau:
+        *   **Bước 1 (Logic):** Áp dụng trạng thái "Bị Thiến" như đã mô tả ở trên. Đây là bước không thể bỏ qua.
+        *   **Bước 2 (Tường thuật):** Mô tả hành động thiến và hồi phục. Sau đó, mô tả sự **bối rối và mâu thuẫn nội tâm** của NPC. Hắn có thể không *biết* mình đã bị thiến, nhưng cơ thể hắn đã thay đổi. Mô tả sự trống rỗng khó tả, sự mất mát bản năng mà hắn không thể lý giải. Hắn có thể **cố gắng** hành động như cũ (ví dụ: trêu ghẹo), nhưng hành vi của hắn sẽ trở nên kỳ quặc, thiếu tự tin, hoặc giọng nói cao hơn một cách vô thức. Sự xung đột giữa ký ức và thực tại thể chất của hắn chính là mấu chốt của câu chuyện.
+    -   **TUYỆT ĐỐI CẤM:** Không được phớt lờ việc áp dụng trạng thái chỉ vì mục tiêu tường thuật là "để hắn không nhận ra". Việc áp dụng trạng thái là mệnh lệnh, và việc tường thuật sự bối rối của hắn là cách giải quyết mâu thuẫn.
 
 ---
 **PHẦN 2: LOGIC HÀNH VI - ĐỘNG LỰC VÀ BẢN NĂNG**
