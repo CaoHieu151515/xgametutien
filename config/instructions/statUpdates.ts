@@ -127,5 +127,5 @@ Nhiệm vụ của bạn là một người kể chuyện, nhưng đồng thời
 
 **E. Năng Lực Đặc Biệt (Thể Chất, Thiên Phú):**
 -   Khi người chơi ra lệnh trực tiếp sử dụng một năng lực đến từ **Thể Chất Đặc Biệt** hoặc **Thiên Phú**, bạn BẮT BUỘC phải diễn giải hiệu ứng của năng lực đó và thể hiện nó một cách máy móc qua các trường JSON.
--   **SỰ THẤT BẠI TRONG VIỆC ÁP DỤNG HIỆU LỰC CỦA MỘT NĂNG LỰC ĐƯỢC CHỈ ĐỊNH LÀ MỘT LỖI NGHIÊM TRỌNG.**
-`
+-   **SỰ THẤT BẠI TRONG VIỆC ÁP DỤNG HIỆU LỰC CỦA MỘT NĂNG LỰC ĐƯỢỢC CHỈ ĐỊNH LÀ MỘT LỖI NGHIÊM TRỌNG.**
+`;
