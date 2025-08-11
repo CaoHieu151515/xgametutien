@@ -80,6 +80,45 @@ const getDefaultAvatar = (gender: CharacterGender) => {
         : 'https://i.imgur.com/K8Z3w4q.png';
 };
 
+type StatusEffectType = 'positive' | 'negative' | 'special';
+
+const getStatusEffectType = (effect: StatusEffect): StatusEffectType => {
+    const name = effect.name.toLowerCase();
+
+    // Special keywords are very specific and take precedence
+    const specialKeywords = ['trang bị:', 'huyết mạch', 'long phượng', 'khuyển nô', 'thân thể', 'sáng thế', 'bị khóa', 'bị thiến', 'mang thai'];
+    if (specialKeywords.some(kw => name.includes(kw))) {
+        return 'special';
+    }
+
+    // Negative keywords suggest a debuff
+    const negativeKeywords = ['độc', 'suy yếu', 'giảm', 'trúng', 'thương', 'bỏng', 'tê liệt', 'choáng', 'hỗn loạn', 'mất', 'trừ', 'nguyền', 'trói', 'phế', 'trọng thương', 'suy nhược'];
+    if (negativeKeywords.some(kw => name.includes(kw))) {
+        return 'negative';
+    }
+    
+    // If it's not special or negative, it's likely positive.
+    return 'positive';
+};
+
+const statusStyles: Record<StatusEffectType, { border: string; bg: string; text: string; }> = {
+    positive: {
+        border: 'border-green-500/30',
+        bg: 'bg-green-900/30',
+        text: 'text-green-300',
+    },
+    negative: {
+        border: 'border-red-500/30',
+        bg: 'bg-red-900/30',
+        text: 'text-red-400',
+    },
+    special: {
+        border: 'border-purple-500/30',
+        bg: 'bg-purple-900/30',
+        text: 'text-purple-300',
+    }
+};
+
 export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpdateNpc, worldSettings, characterProfile }) => {
     const [selectedNpcId, setSelectedNpcId] = useState<string | null>(null);
     const [raceFilter, setRaceFilter] = useState('all');
@@ -287,15 +326,18 @@ export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpd
                                         <Section title="Trạng Thái Hiện Tại">
                                             {selectedNpc.statusEffects.length > 0 ? (
                                                 <div className="space-y-2">
-                                                    {selectedNpc.statusEffects.map((effect, index) => (
-                                                        <div key={index} className="p-3 bg-green-900/30 border border-green-500/30 rounded-lg">
-                                                            <div className="flex justify-between items-center font-bold text-green-300">
-                                                                <span>{effect.name}</span>
-                                                                <span className="text-xs font-normal text-slate-400">{effect.duration}</span>
+                                                    {selectedNpc.statusEffects.map((effect, index) => {
+                                                        const style = statusStyles[getStatusEffectType(effect)];
+                                                        return (
+                                                            <div key={index} className={`p-3 ${style.bg} border ${style.border} rounded-lg`}>
+                                                                <div className={`flex justify-between items-center font-bold ${style.text}`}>
+                                                                    <span>{effect.name}</span>
+                                                                    <span className="text-xs font-normal text-slate-400">{effect.duration}</span>
+                                                                </div>
+                                                                <p className="text-xs text-slate-300 mt-1">{effect.description}</p>
                                                             </div>
-                                                            <p className="text-xs text-slate-300 mt-1">{effect.description}</p>
-                                                        </div>
-                                                    ))}
+                                                        );
+                                                    })}
                                                 </div>
                                             ) : <p className="text-slate-500 text-center py-4">Không có trạng thái nào.</p>}
                                         </Section>

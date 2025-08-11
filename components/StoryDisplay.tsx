@@ -262,8 +262,8 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
     const renderStoryPart = (part: StoryPart) => {
       if (!characterProfile) return null;
   
-      const dialogueCaptureRegex = /(\s*\[[^\]]+\]:\s*".*?"\s*)/g;
-      const dialogueExtractRegex = /^\s*\[([^\]]+)\]:\s*"(.*)"\s*$/;
+      const dialogueCaptureRegex = /(\s*\[[^\]]+\][:：]\s*["“].*?["”]\s*)/g;
+      const dialogueExtractRegex = /^\s*\[([^\]]+)\][:：]\s*["“](.*?)["”]\s*$/;
   
       // Split the entire text into lines first to process them individually.
       const lines = part.text.split('\n').filter(line => line.trim() !== '');

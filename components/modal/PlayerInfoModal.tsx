@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { CharacterProfile, StatusEffect, Skill, NPC, WorldSettings, CharacterGender, Location, Choice, ItemType } from '../../types';
 import { getExperienceForNextLevel, getSkillExperienceForNextLevel } from '../../services/progressionService';
@@ -118,6 +119,44 @@ const SkillExperienceBar = ({ value, level, quality, qualityTiersString }: { val
     );
 };
 
+type StatusEffectType = 'positive' | 'negative' | 'special';
+
+const getStatusEffectType = (effect: StatusEffect): StatusEffectType => {
+    const name = effect.name.toLowerCase();
+
+    // Special keywords are very specific and take precedence
+    const specialKeywords = ['trang bị:', 'huyết mạch', 'long phượng', 'khuyển nô', 'thân thể', 'sáng thế', 'bị khóa', 'bị thiến', 'mang thai'];
+    if (specialKeywords.some(kw => name.includes(kw))) {
+        return 'special';
+    }
+
+    // Negative keywords suggest a debuff
+    const negativeKeywords = ['độc', 'suy yếu', 'giảm', 'trúng', 'thương', 'bỏng', 'tê liệt', 'choáng', 'hỗn loạn', 'mất', 'trừ', 'nguyền', 'trói', 'phế', 'trọng thương', 'suy nhược'];
+    if (negativeKeywords.some(kw => name.includes(kw))) {
+        return 'negative';
+    }
+    
+    // If it's not special or negative, it's likely positive.
+    return 'positive';
+};
+
+const statusStyles: Record<StatusEffectType, { border: string; bg: string; text: string; }> = {
+    positive: {
+        border: 'border-green-500/30',
+        bg: 'bg-green-900/30',
+        text: 'text-green-300',
+    },
+    negative: {
+        border: 'border-red-500/30',
+        bg: 'bg-red-900/30',
+        text: 'text-red-400',
+    },
+    special: {
+        border: 'border-purple-500/30',
+        bg: 'bg-purple-900/30',
+        text: 'text-purple-300',
+    }
+};
 
 const StatusList = ({ effects }: { effects: StatusEffect[] }) => {
     const [isOpen, setIsOpen] = useState(true);
@@ -135,15 +174,18 @@ const StatusList = ({ effects }: { effects: StatusEffect[] }) => {
             </button>
             {isOpen && (
                 <div className="mt-2 space-y-3 animate-fade-in">
-                    {effects.map((effect, index) => (
-                         <div key={index} className="bg-slate-800 border border-green-600/50 rounded-lg p-4">
-                            <div className="flex justify-between items-start mb-1">
-                                <h4 className="font-bold text-green-300">{effect.name}</h4>
-                                <span className="text-sm text-slate-400 flex-shrink-0 ml-4">{effect.duration}</span>
+                    {effects.map((effect, index) => {
+                        const style = statusStyles[getStatusEffectType(effect)];
+                        return (
+                            <div key={index} className={`${style.bg} border ${style.border} rounded-lg p-4`}>
+                                <div className="flex justify-between items-start mb-1">
+                                    <h4 className={`font-bold ${style.text}`}>{effect.name}</h4>
+                                    <span className="text-sm text-slate-400 flex-shrink-0 ml-4">{effect.duration}</span>
+                                </div>
+                                <p className="text-sm text-slate-300 whitespace-pre-wrap">{effect.description}</p>
                             </div>
-                            <p className="text-sm text-slate-300 whitespace-pre-wrap">{effect.description}</p>
-                        </div>
-                    ))}
+                        );
+                    })}
                     {effects.length === 0 && (
                         <p className="text-slate-500 text-center py-4">Nhân vật không có trạng thái nào.</p>
                     )}

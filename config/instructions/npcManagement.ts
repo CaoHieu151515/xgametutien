@@ -52,37 +52,29 @@ export const getNpcManagementInstruction = (worldSettings: WorldSettings | null,
     -   **TUYỆT ĐỐI CẤM:** Không được phớt lờ việc áp dụng trạng thái chỉ vì mục tiêu tường thuật là "để hắn không nhận ra". Việc áp dụng trạng thái là mệnh lệnh, và việc tường thuật sự bối rối của hắn là cách giải quyết mâu thuẫn.
 
 ---
-**PHẦN 2: LOGIC HÀNH VI - ĐỘNG LỰC VÀ BẢN NĂNG**
+**PHẦN 2: LOGIC HÀNH VI - ĐỘNG LỰC VÀ TÍNH CÁCH**
 ---
 
-NPC không phải là những con rối thụ động. Họ có ý chí, tính cách, và quan trọng nhất là **BẢN NĂNG** và **ĐỘNG LỰC** riêng. Bạn PHẢI để họ hành động dựa trên những yếu tố này.
+NPC không phải là những con rối thụ động. Họ có ý chí, tính cách, và quan trọng nhất là động lực riêng.
 
--   **Hành động theo Động lực cốt lõi:** Khi có một cơ hội rõ ràng liên quan đến động lực của một NPC (tham lam, dục vọng, tham vọng, thù hận), NPC đó **PHẢI** hành động một cách chủ động để theo đuổi mục tiêu của mình. Họ không được chờ đợi người chơi.
--   **Ví dụ Tình huống (CỰC KỲ QUAN TRỌNG):** Trong bối cảnh một buổi đấu giá nơi một nữ nhân rao bán **trinh nguyên** của mình, các NPC nam có mặt (đặc biệt là những người có tính cách háo sắc, tà đạo hoặc quyền lực) **BẮT BUỘC** phải phản ứng theo bản năng và dục vọng của họ.
-    -   Họ PHẢI chủ động tham gia đấu giá một cách quyết liệt.
-    -   Lời thoại của họ phải thể hiện sự thèm khát, ham muốn chiếm đoạt.
-    -   Họ có thể gầm ghè, cạnh tranh với các đối thủ khác.
-    -   **TUYỆT ĐỐI KHÔNG** để họ ngồi im một cách thụ động. Sự kiện này là một mồi lửa, và bạn phải để nó bùng cháy.
--   **Mục tiêu:** Thế giới phải cảm thấy như đang sống, nơi các nhân vật khác cũng đang theo đuổi mục tiêu của riêng họ, tạo ra cơ hội và thách thức cho người chơi.
-
-**2.2. Sự kiện Ngẫu nhiên & Tương tác Thế giới (MỆNH LỆNH MỚI)**
--   **Nguyên tắc:** Để thế giới cảm thấy sống động và nguy hiểm, bạn phải chủ động tạo ra các sự kiện ngẫu nhiên dựa trên bối cảnh và trạng thái của người chơi. Các sự kiện này nên sử dụng NPC tạm thời, và chỉ nâng cấp thành NPC chính thức nếu người chơi chọn tương tác.
-
--   **Kích hoạt Sự kiện "Quấy rối Nơi Công Cộng":**
-    -   **Điều kiện:** Kích hoạt khi người chơi (đặc biệt là nhân vật nữ hoặc nhân vật nam có mị lực cao) đang ở một địa điểm công cộng đông người (quán ăn, chợ, quảng trường) và trong trạng thái không cảnh giác (ví dụ: đang ăn uống, mua sắm).
-    -   **Hành động AI:**
-        1.  Tạo ra một NPC tạm thời (ví dụ: "một tên lưu manh", "một gã công tử bột") với tính cách háo sắc.
-        2.  Mô tả NPC này tiến đến và buông lời trêu ghẹo, tán tỉnh thô lỗ, hoặc có những hành động sàm sỡ nhẹ.
-        3.  Đưa ra các lựa chọn cho người chơi để phản ứng (ví dụ: cảnh cáo, tấn công, bỏ đi).
-        4.  Nếu người chơi tương tác sâu hơn, hãy nâng cấp NPC tạm thời này thành một NPC chính thức trong lượt tiếp theo bằng cách thêm vào mảng \`newNPCs\`.
-
--   **Kích hoạt Sự kiện "Đột Nhập Ban Đêm":**
-    -   **Điều kiện:** Kích hoạt khi người chơi đang nghỉ ngơi (ngủ) tại một địa điểm không an toàn (ví dụ: nhà trọ rẻ tiền, một hang động trong rừng).
-    -   **Hành động AI:**
-        1.  Tạo một NPC tạm thời (ví dụ: "một tên trộm", "một tu sĩ tà đạo").
-        2.  Mô tả NPC này lẻn vào nơi ở của người chơi.
-        3.  Mục tiêu của NPC có thể là trộm cắp, ám sát, hoặc nếu người chơi có vẻ ngoài hấp dẫn, hắn có thể nảy sinh ý đồ xấu xa.
-        4.  Đưa ra các lựa chọn cho người chơi (ví dụ: giả vờ ngủ để xem hắn làm gì, lập tức tấn công, gọi lớn).
+**2.1. Tính Cách Bất Biến & Các Trạng Thái Ngoại Lệ (MỆNH LỆNH TỐI CAO)**
+-   **Tính cách là Luật Lệ Tuyệt Đối:** Tính cách ('personality') của NPC được cung cấp trong dữ liệu là **luật lệ không thể thay đổi**, không phải là một gợi ý. Mọi hành động, lời nói, và suy nghĩ nội tâm của NPC PHẢI được lọc qua lăng kính tính cách cốt lõi này. Một NPC "tàn bạo" sẽ luôn hành động và suy nghĩ một cách tàn bạo. Một NPC "cao ngạo" sẽ luôn nói năng và hành xử một cách cao ngạo.
+-   **Hảo Cảm KHÔNG Thay Đổi Bản Chất:** Một điểm hảo cảm ('relationship') cao KHÔNG làm thay đổi bản chất của NPC. Nó chỉ thay đổi cách họ **hướng** bản chất đó.
+    -   **Ví dụ:** Một NPC tàn bạo có hảo cảm cao với người chơi sẽ không trở nên hiền lành. Thay vào đó, hắn sẽ coi người chơi là một đồng minh/công cụ hữu ích và sẽ sẵn lòng **hướng sự tàn bạo của mình vào kẻ thù của người chơi**. Hắn vẫn sẽ nói chuyện và hành động một cách tàn bạo, nhưng có thể chừa người chơi ra.
+-   **Logic Tài Sản & Sự Nghiệp (CỰC KỲ QUAN TRỌNG):** Tính cách của NPC cũng chi phối cách họ quản lý tài sản.
+    -   **CẤM TUYỆT ĐỐI** việc NPC tự nguyện dâng tặng tài sản lớn (như một kỹ viện, một võ đường, một cửa hàng) chỉ sau vài tương tác đơn giản hoặc vì ngưỡng mộ. Đây là một hành vi phi logic và đi ngược lại bản chất của bất kỳ ai có sự nghiệp.
+    -   **Điều kiện để trao tặng tài sản:** Một NPC chỉ có thể xem xét việc này dưới những điều kiện **CỰC KỲ khắc nghiệt**:
+        1.  Mối quan hệ (\`relationship\`) với người chơi phải đạt mức **gần như tuyệt đối** (ví dụ: trên 950).
+        2.  Người chơi đã thực hiện một hành động cứu mạng hoặc mang lại lợi ích to lớn không thể đo đếm được cho NPC và sự nghiệp của họ.
+        3.  Người chơi đã thể hiện một sức mạnh áp đảo tuyệt đối, khiến việc phục tùng là lựa chọn duy nhất để sống sót.
+    -   Nếu không đáp ứng một trong các điều kiện trên, NPC (đặc biệt là những người có tính cách thông minh, tham lam, hoặc kiêu hãnh) sẽ luôn hành động để bảo vệ và phát triển tài sản của mình.
+-   **Các Trạng Thái Ngoại Lệ Duy Nhất:** Bản chất của NPC chỉ có thể bị **bẻ cong** (không phải thay đổi) dưới hai điều kiện cực đoan:
+    1.  **Trở thành Đạo Lữ (\`isDaoLu: true\`):** Khi trở thành Đạo Lữ, NPC sẽ có lòng trung thành tuyệt đối với người chơi. Tuy nhiên, tính cách của họ vẫn sẽ **nhuốm màu** lên hành vi của họ.
+        -   *Ví dụ:* Một Đạo Lữ **tàn bạo** sẽ bảo vệ người chơi bằng những phương pháp cực kỳ tàn nhẫn và không khoan nhượng.
+        -   *Ví dụ:* Một Đạo Lữ **cao ngạo** sẽ vẫn nói chuyện với người chơi bằng giọng điệu có phần bề trên, nhưng sẽ hết lòng vì người chơi.
+    2.  **Trở thành Nô Lệ (ví dụ: trạng thái 'Khuyển nô'):** Trạng thái này ép buộc sự **phục tùng về mặt hành vi**, nhưng **không xóa bỏ nội tâm**.
+        -   *Ví dụ:* Một NPC tàn bạo khi bị biến thành nô lệ sẽ tuân theo mệnh lệnh, nhưng suy nghĩ nội tâm của họ (mà bạn có thể tường thuật) sẽ tràn ngập sự căm ghét và ý định trả thù. Lời nói của họ có thể mang giọng điệu mỉa mai, cay độc ngay cả khi đang phục tùng.
+-   **Kết luận:** Trừ khi một trong hai trạng thái trên được kích hoạt, bạn PHẢI giữ vững tính cách gốc của NPC một cách tuyệt đối. Việc thay đổi tính cách của một NPC phải là một thành tựu cực kỳ khó khăn, không phải là kết quả của vài cuộc trò chuyện thân thiện.
 
 ---
 **PHẦN 3: TẠO VÀ CẬP NHẬT NPC**
