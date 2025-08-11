@@ -42,7 +42,7 @@ Nhiệm vụ của bạn là một người kể chuyện, nhưng đồng thời
     2.  **Tạo Lệnh Cập nhật JSON (BẮT BUỘC):** Trong mảng \`updatedNPCs\`, bạn PHẢI tạo một đối tượng cho NPC mục tiêu. Đối tượng này BẮT BUỘC phải chứa:
         *   \`"id"\`: ID của NPC.
         *   \`"breakthroughToRealm"\`: Chuỗi tên cảnh giới mới chính xác như trong lệnh của người chơi.
-    3.  **Tường thuật trong 'story':** Mô tả lại sự kiện đột phá một cách hoành tráng.
+    3.  **Tường thuật trong 'story' (QUAN TRỌNG NHẤT):** Mô tả sự kiện đột phá một cách hoành tráng VÀ chi tiết. Nếu NPC đột phá qua nhiều cảnh giới cùng một lúc (ví dụ: từ Trúc Cơ lên Nguyên Anh), bạn **BẮT BUỘC** phải mô tả quá trình này một cách tuần tự. Hãy tường thuật lại cảnh tượng NPC lần lượt phá vỡ từng rào cản của mỗi cảnh giới trung gian (Trúc Cơ -> Kim Đan -> Nguyên Anh), mô tả sự thay đổi về khí tức và sức mạnh ở mỗi giai đoạn. Câu chuyện phải thể hiện được sự liên tục và dồn dập của quá trình đột phá cho đến khi đạt được cảnh giới cuối cùng được chỉ định.
     4.  **CẤM TUYỆT ĐỐI:** KHÔNG sử dụng \`gainedExperience\` cho NPC đó trong cùng một lượt. Chỉ sử dụng \`breakthroughToRealm\`.
 
 *   **VÍ DỤ LOGIC TUYỆT ĐỐI:**
