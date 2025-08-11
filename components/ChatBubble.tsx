@@ -2,7 +2,7 @@ import React from 'react';
 import { CharacterGender } from '../types';
 
 interface ChatBubbleProps {
-    speakerName: string;
+    speakerName: React.ReactNode;
     speakerAvatar?: string;
     message: React.ReactNode;
     isPlayer: boolean;
@@ -31,7 +31,7 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({ speakerName, speakerAvat
     const alignmentClass = isPlayer ? 'justify-end' : 'justify-start';
     const nameAlignmentClass = isPlayer ? 'text-right' : 'text-left';
 
-    const avatar = <img src={speakerAvatar || getDefaultAvatar(gender)} alt={speakerName} className="w-8 h-8 rounded-full object-cover flex-shrink-0" onError={(e) => { e.currentTarget.src = getDefaultAvatar(gender); }} />;
+    const avatar = <img src={speakerAvatar || getDefaultAvatar(gender)} alt={typeof speakerName === 'string' ? speakerName : 'avatar'} className="w-8 h-8 rounded-full object-cover flex-shrink-0" onError={(e) => { e.currentTarget.src = getDefaultAvatar(gender); }} />;
 
     return (
         <div className={`flex items-end gap-2 my-4 ${alignmentClass} animate-fade-in`}>

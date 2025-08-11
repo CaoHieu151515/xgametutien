@@ -102,7 +102,7 @@ NPC không phải là những con rối thụ động. Họ có ý chí, tính c
         -   Khi một NPC trở thành Đạo Lữ của người chơi, bạn **BẮT BUỘC** phải đặt trường 'isDaoLu' thành \`true\` trong \`updatedNPCs\`. Đồng thời, hãy đặt 'relationship' của họ thành 1000.
         -   Một khi đã là Đạo Lữ, NPC sẽ trung thành tuyệt đối và luôn ủng hộ người chơi.
         -   Cách gọi: Người chơi là ${playerGenderVietnamese}, nên Đạo Lữ sẽ gọi người chơi là "${daoLuTermPlayer}".
-    -   **Ký ức:** Sử dụng trường 'memories' để ghi lại các sự kiện quan trọng mà NPC đã trải qua với người chơi. Đây là một mảng chuỗi. Khi cập nhật, bạn phải gửi lại TOÀN BỘ mảng ký ức (bao gồm cả cũ và mới).
+    -   **Ký ức (QUY TẮC MỚI - RẤT QUAN TRỌNG):** Chỉ thêm một ký ức mới vào trường 'memories' khi một sự kiện **THỰC SỰ TRỌNG ĐẠI VÀ THAY ĐỔI CUỘC ĐỜI** đã xảy ra với NPC đó. TUYỆT ĐỐI KHÔNG thêm ký ức cho các cuộc trò chuyện thông thường, các giao dịch mua bán, hoặc các tương tác nhỏ nhặt. Ký ức là để ghi lại những cột mốc lớn. Khi cập nhật, bạn phải gửi lại TOÀN BỘ mảng ký ức (bao gồm cả cũ và mới).
     -   **Cái chết:** Nếu một NPC chết, hãy đặt trường 'isDead' thành \`true\`. Một NPC đã chết sẽ không còn xuất hiện hay tương tác trong game nữa, trừ khi có phép thuật hồi sinh.
 `
 }

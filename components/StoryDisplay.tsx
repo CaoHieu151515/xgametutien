@@ -265,78 +265,79 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
       const dialogueCaptureRegex = /(\s*\[[^\]]+\][:：]\s*["“].*?["”]\s*)/g;
       const dialogueExtractRegex = /^\s*\[([^\]]+)\][:：]\s*["“](.*?)["”]\s*$/;
   
-      // Split the entire text into lines first to process them individually.
-      const lines = part.text.split('\n').filter(line => line.trim() !== '');
+      // Process the entire text block at once to handle mixed dialogue and narration.
+      const segments = part.text.split(dialogueCaptureRegex);
   
-      return lines.map((line, lineIndex) => {
-          // For each line, split it into narration and dialogue segments.
-          const segments = line.split(dialogueCaptureRegex);
-  
-          return (
-              <div key={`${part.id}-${lineIndex}`} className="flex flex-col">
-                  {segments.map((segment, segmentIndex) => {
-                      if (!segment || segment.trim() === '') {
-                          return null;
-                      }
+      return (
+          <div key={part.id} className="flex flex-col">
+              {segments.map((segment, segmentIndex) => {
+                  if (!segment || segment.trim() === '') {
+                      return null;
+                  }
+                  
+                  const dialogueMatch = segment.match(dialogueExtractRegex);
+
+                  if (dialogueMatch) {
+                      const speakerNameWithTags = dialogueMatch[1].trim();
+                      const message = dialogueMatch[2];
+
+                      // Check for NEW/MỚI tag in speaker name
+                      const newTagRegex = /\s+(?:NEW|MỚI)\s*$/i;
+                      const hasNewTag = newTagRegex.test(speakerNameWithTags);
+                      const speakerName = speakerNameWithTags.replace(newTagRegex, '').trim();
+                      const speakerDisplayName = <>{speakerName}{hasNewTag && <NewBadge />}</>;
                       
-                      const dialogueMatch = segment.match(dialogueExtractRegex);
-  
-                      if (dialogueMatch) {
-                          const speakerName = dialogueMatch[1].trim();
-                          const message = dialogueMatch[2];
-                          
-                          if (speakerName === characterProfile.name) {
-                              return (
-                                  <ChatBubble 
-                                      key={`${part.id}-${lineIndex}-${segmentIndex}`} 
-                                      speakerName={speakerName}
-                                      speakerAvatar={characterProfile.avatarUrl}
-                                      message={linkifyStory(message)} 
-                                      isPlayer={true}
-                                      gender={characterProfile.gender}
-                                  />
-                              );
-                          }
-                          
-                          const npc = npcs.find(n => n.name === speakerName || n.aliases?.includes(speakerName));
-                          if (npc) {
-                              return (
-                                  <ChatBubble 
-                                      key={`${part.id}-${lineIndex}-${segmentIndex}`} 
-                                      speakerName={speakerName}
-                                      speakerAvatar={npc.avatarUrl}
-                                      message={linkifyStory(message)} 
-                                      isPlayer={false}
-                                      gender={npc.gender}
-                                  />
-                              );
-                          }
-                          
-                          // Generic speaker (gray bubble)
+                      if (speakerName === characterProfile.name) {
                           return (
                               <ChatBubble 
-                                  key={`${part.id}-${lineIndex}-${segmentIndex}`} 
-                                  speakerName={speakerName}
+                                  key={`${part.id}-${segmentIndex}`} 
+                                  speakerName={speakerDisplayName}
+                                  speakerAvatar={characterProfile.avatarUrl}
                                   message={linkifyStory(message)} 
-                                  isPlayer={false}
-                                  gender={CharacterGender.MALE} // does not matter for generic
-                                  isGeneric={true}
+                                  isPlayer={true}
+                                  gender={characterProfile.gender}
                               />
                           );
-              
-                      } else {
-                          // This segment is narration.
+                      }
+                      
+                      const npc = npcs.find(n => n.name === speakerName || n.aliases?.includes(speakerName));
+                      if (npc) {
                           return (
-                              <div key={`${part.id}-${lineIndex}-${segmentIndex}`} className="flex items-start gap-3 my-3 text-slate-300 text-base leading-relaxed animate-fade-in">
-                                 <span className="text-slate-600 text-lg leading-tight mt-1 select-none">➤</span>
-                                 <p className="flex-1 whitespace-pre-wrap">{linkifyStory(segment)}</p>
-                              </div>
+                              <ChatBubble 
+                                  key={`${part.id}-${segmentIndex}`} 
+                                  speakerName={speakerDisplayName}
+                                  speakerAvatar={npc.avatarUrl}
+                                  message={linkifyStory(message)} 
+                                  isPlayer={false}
+                                  gender={npc.gender}
+                              />
                           );
                       }
-                  })}
-              </div>
-          );
-      });
+                      
+                      // Generic speaker (gray bubble)
+                      return (
+                          <ChatBubble 
+                              key={`${part.id}-${segmentIndex}`} 
+                              speakerName={speakerDisplayName}
+                              message={linkifyStory(message)} 
+                              isPlayer={false}
+                              gender={CharacterGender.MALE} // does not matter for generic
+                              isGeneric={true}
+                          />
+                      );
+          
+                  } else {
+                      // This segment is narration.
+                      return (
+                          <div key={`${part.id}-${segmentIndex}`} className="flex items-start gap-3 my-3 text-slate-300 text-base leading-relaxed animate-fade-in">
+                             <span className="text-slate-600 text-lg leading-tight mt-1 select-none">➤</span>
+                             <p className="flex-1 whitespace-pre-wrap">{linkifyStory(segment)}</p>
+                          </div>
+                      );
+                  }
+              })}
+          </div>
+      );
   };
 
   return (
