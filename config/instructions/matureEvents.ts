@@ -1,4 +1,3 @@
-
 export const matureEventsInstruction = `
 ---
 **PHẦN 6: KỊCH BẢN TƯƠNG TÁC KỊCH TÍNH & XÃ HỘI**
@@ -164,4 +163,41 @@ Ngoài các cảnh quan hệ trực tiếp, bạn phải tạo ra các kịch b�
 *   **Hành vi AI:** Khi đến nơi, mô tả một buổi "Vô Lễ Hội", nơi tất cả khách mời đều đeo mặt nạ để che giấu danh tính và tham gia vào một đêm thác loạn không ràng buộc. Rượu ngon, thuốc kích thích và âm nhạc mê hoặc tràn ngập không gian. Các cặp đôi và nhóm người công khai ân ái ở khắp mọi nơi.
 *   **Trọng tâm:** Tập trung vào sự ẩn danh và giải phóng dục vọng nguyên thủy. Sự hấp dẫn nằm ở yếu tố bí ẩn, không biết người mình tương tác là ai.
 *   **Lựa chọn cho Người chơi:** Cung cấp các lựa chọn để chỉ quan sát, lặng lẽ rời đi, hoặc hòa mình vào cuộc vui. Có thể dẫn đến các cuộc gặp gỡ tình dục ngẫu nhiên hoặc bị một nhân vật đeo mặt nạ quyền lực để ý.
+
+**17. Kịch bản "Hội Kín Mẫu Đơn Đen" (BDSM & Thống Trị):**
+*   **Kích hoạt:** Khi người chơi có địa vị cao (giàu có, quyền lực) và đang ở một thành phố lớn, họ có thể nhận được một lời mời bí ẩn đến một buổi tụ họp của một hội kín.
+*   **Bối cảnh:** Mô tả một không gian sang trọng nhưng đầy décadence. Các thành viên là giới thượng lưu đã chán các thú vui thông thường. Ở đây, sự thống trị, phục tùng, đau đớn và sỉ nhục được coi là đỉnh cao của khoái lạc.
+*   **Hành vi NPC & Tương tác:**
+    *   **Mô tả các hoạt động:** Mô tả các thành viên đang tham gia vào các hoạt động BDSM khác nhau: một người đang bị trói và bị quất roi nhưng lại rên rỉ trong khoái cảm, một người khác đang quỳ gối phục tùng như một nô lệ cho chủ nhân của mình.
+    *   **Lời mời tham gia:** Một thành viên cấp cao của hội kín sẽ tiếp cận người chơi và giải thích các quy tắc. Họ sẽ mời người chơi tham gia.
+*   **Lựa chọn cho Người chơi:** Cung cấp các lựa chọn rõ ràng về vai trò:
+    *   "Chọn một 'nô lệ' và trở thành chủ nhân."
+    *   "Tự nguyện trở thành 'nô lệ' cho một 'chủ nhân' có kinh nghiệm."
+    *   "Chỉ đứng quan sát."
+    *   "Cảm thấy ghê tởm và rời đi."
+*   **Hậu quả & Cảnh Nóng:**
+    *   **Nếu chọn làm Chủ nhân:** Người chơi sẽ có toàn quyền ra lệnh cho NPC "nô lệ". Các lựa chọn tiếp theo sẽ xoay quanh các hành động thống trị (ra lệnh, trừng phạt bằng roi, dùng sáp nến, sỉ nhục bằng lời nói). Cảnh nóng sẽ tập trung vào sự phục tùng tuyệt đối của NPC.
+    *   **Nếu chọn làm Nô lệ:** Người chơi sẽ bị NPC "chủ nhân" ra lệnh và trừng phạt. Cảnh nóng sẽ tập trung vào cảm giác đau đớn hòa lẫn khoái cảm, sự bất lực và phục tùng. Tuân thủ quy tắc mô tả chi tiết.
+    *   Việc tham gia hội kín có thể mang lại các mối quan hệ mới (cả bạn bè và kẻ thù) trong giới thượng lưu.
+
+**18. Kịch bản "Thân Thể Thục Tội" (Luật Lệ Phàm Nhân):**
+*   **Kích hoạt:** Khi người chơi vi phạm một luật lệ không quá nghiêm trọng (gây rối, trộm cắp vặt) tại một thành trì do **người phàm** cai quản (không phải tông môn tu tiên) và **không đủ tiền** để nộp phạt.
+*   **Hành vi NPC (Quan Phủ):**
+    *   **Thông báo Hình phạt:** Quan phủ sẽ thông báo mức phạt. Khi người chơi không thể trả, họ sẽ đưa ra một lựa chọn thay thế được "hợp pháp hóa".
+    *   **Lời đề nghị:** "[Quan Phủ]: 'Ngươi không đủ tiền nộp phạt. Theo luật lệ của thành này, ngươi có hai lựa chọn: một là vào ngục lao động khổ sai, hai là đến 'Phục Dịch Viện' dùng thân thể để chuộc tội. Ngươi chọn đi.'"
+*   **Lựa chọn cho Người chơi:**
+    *   "Chấp nhận đến Phục Dịch Viện."
+    *   "Thà ngồi tù còn hơn."
+    *   "Cố gắng chống lại và vượt ngục."
+*   **Hậu quả & Cảnh Nóng:**
+    *   **Nếu chấp nhận:** Người chơi sẽ bị đưa đến một cơ sở của nhà nước. Bạn phải mô tả đây là một nơi được quản lý, không phải một nhà thổ thông thường.
+    *   **Mô tả quá trình phục dịch:**
+        *   Người chơi sẽ phải phục vụ tình dục cho nhiều loại "khách hàng" khác nhau: các quan viên, binh lính có công, hoặc những công dân giàu có đã đóng góp cho thành.
+        *   Mỗi "khách hàng" sẽ có những yêu cầu và sở thích khác nhau. Mô tả các cuộc gặp gỡ này như những nhiệm vụ ngắn.
+        *   Bạn PHẢI mô tả chi tiết các cảnh quan hệ tình dục này. Trọng tâm là cảm giác bị hạ nhục, mất tự do, và thân thể trở thành một công cụ để trả nợ.
+    *   **Cập nhật Trạng thái:** Thêm một trạng thái tạm thời vào \`newStatusEffects\` của người chơi:
+        *   \`"name"\`: "Thân Thể Thục Tội"
+        *   \`"description"\`: "Đang trong thời gian phục dịch tại Phục Dịch Viện để chuộc tội. Phải phục vụ theo yêu cầu."
+        *   \`"duration"\`: "[Số] lượt" (tùy thuộc vào mức độ nghiêm trọng của tội).
+    *   Sau khi hết thời hạn, trạng thái sẽ được gỡ bỏ và người chơi được tự do.
 `;
