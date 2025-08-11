@@ -55,38 +55,46 @@ export const getRealmDisplayName = (level: number, powerSystemName: string, worl
 };
 
 export const getLevelFromRealmName = (realmInput: string, powerSystemName: string, worldSettings: WorldSettings | null): number => {
-    if (!realmInput.trim() || !worldSettings || !worldSettings.powerSystems || worldSettings.powerSystems.length === 0) return 1;
+    if (!realmInput.trim() || !worldSettings || !worldSettings.powerSystems || !worldSettings.powerSystems.length) return 1;
 
     const powerSystem = worldSettings.powerSystems.find(ps => ps && ps.name === powerSystemName);
     if (!powerSystem || !powerSystem.realms.trim()) return 1;
 
     const realms = powerSystem.realms.split(' - ').map(r => r.trim());
+    const normalizedInput = realmInput.trim();
 
+    // Iterate backwards to match higher realms first
     for (let i = realms.length - 1; i >= 0; i--) {
-        const realm = realms[i];
-        if (realmInput.startsWith(realm)) {
-            const remaining = realmInput.substring(realm.length).trim();
+        const realmName = realms[i];
+        // Check for exact realm name followed by a space or end of string. Case-insensitive.
+        if (normalizedInput.toLowerCase().startsWith(realmName.toLowerCase())) {
+            const baseLevel = i * 10;
+            const afterRealm = normalizedInput.substring(realmName.length).trim();
             
-            if (!remaining) {
-                 return i * 10 + 1;
+            if (afterRealm === '') {
+                return baseLevel + 1; // e.g., "Kim Đan"
             }
 
-            const parts = remaining.split(' ');
+            // Check for "Viên Mãn" which can stand alone
+            if (afterRealm.toLowerCase() === 'viên mãn') {
+                return baseLevel + 10;
+            }
+
+            // Check for sub-levels like "Nhất Trọng"
+            const parts = afterRealm.split(' ');
             if (parts.length > 0) {
                 const subLevelName = parts[0];
-                const subLevelIndex = ROMAN_NUMERALS_VI.indexOf(subLevelName);
+                const subLevelIndex = ROMAN_NUMERALS_VI.findIndex(r => r.toLowerCase() === subLevelName.toLowerCase());
+
                 if (subLevelIndex !== -1) {
-                    return i * 10 + subLevelIndex + 1;
+                    // This covers "Viên Mãn" (index 9) and other sub-levels
+                    return baseLevel + subLevelIndex + 1;
                 }
             }
         }
     }
     
-    const directRealmIndex = realms.indexOf(realmInput.trim());
-    if (directRealmIndex !== -1) {
-        return directRealmIndex * 10 + 1;
-    }
-
+    log('progressionService.ts', `Could not parse realm name "${realmInput}" for power system "${powerSystemName}". Defaulting to level 1.`, 'ERROR');
     return 1;
 };
 
