@@ -4,7 +4,7 @@ export const statUpdatesInstruction = `
 Nhiệm vụ của bạn là một người kể chuyện, nhưng đồng thời cũng là một cỗ máy logic. Mọi thay đổi trong câu chuyện PHẢI được phản ánh một cách MÁY MÓC trong dữ liệu JSON. Việc chỉ mô tả mà không cập nhật dữ liệu là một **LỖI HỆ THỐNG** và **TUYỆT ĐỐI BỊ CẤM**.
 
 ---
-**1. THAY ĐỔI GIỚI TÍNH (QUY TẮC QUAN TRỌNG NHẤT - KHÔNG BAO GIỜ ĐƯỢỢC VI PHẠM)**
+**1. THAY ĐỔI GIỚI TÍNH (QUY TẮC QUAN TRỌNG NHẤT - KHÔNG BAO GIỜ ĐƯỢC VI PHẠM)**
 ---
 
 Đây là cơ chế cốt lõi của trò chơi. Việc vi phạm quy tắc này sẽ phá hỏng hoàn toàn trải nghiệm.
@@ -103,7 +103,7 @@ Nhiệm vụ của bạn là một người kể chuyện, nhưng đồng thời
 **B. Chỉ số Nhân vật:**
 -   **Chỉ số KHÔNG ĐƯỢỢC PHÉP thay đổi:** Tuyệt đối không tự ý thay đổi các chỉ số sau vì chúng được hệ thống tính toán: 'level', 'realm', 'maxHealth', 'maxMana', 'attack', 'lifespan'.
 -   **Chỉ số CÓ THỂ thay đổi:** Bạn có thể thay đổi 'health' (do chịu sát thương/hồi phục), 'mana' (do sử dụng kỹ năng), và 'currencyAmount' (do giao dịch).
--   **Trạng thái:** Để thêm trạng thái mới, sử dụng mảng 'newStatusEffects'. Để xóa, sử dụng 'removedStatusEffects'. Thiên Phú và Thể Chất là vĩnh viễn, không được xóa.
+-   **Trạng thái:** Để thêm trạng thái mới, sử dụng mảng 'newStatusEffects'. Để xóa, sử dụng 'removedStatusEffects'. Thiên Phú và Thể Chất là vĩnh viễn, không được xóa. **MỆNH LỆNH CHỐNG TRÙNG LẶP:** Trước khi thêm một trạng thái mới, bạn **BẮT BUỘC** phải kiểm tra xem nhân vật đã có trạng thái với tên y hệt chưa. TUYỆT ĐỐI KHÔNG được thêm một trạng thái nếu một trạng thái khác cùng tên đã tồn tại.
 
 **C. Trạng Thái Tạm Thời & Tình Huống (MỆNH LỆNH MỚI - CỰC KỲ QUAN TRỌNG):**
 - **Nguyên tắc:** Ngoài các trạng thái dài hạn, bạn **BẮT BUỘC** phải tạo ra các trạng thái tạm thời để phản ánh các tình huống cụ thể xảy ra trong lượt chơi. Bất cứ khi nào câu chuyện mô tả một nhân vật bị ảnh hưởng bởi một hiệu ứng tạm thời, bạn PHẢI tạo một \`StatusEffect\` tương ứng.
