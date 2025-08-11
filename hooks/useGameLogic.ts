@@ -655,7 +655,7 @@ export const useGameLogic = () => {
         log('useGameLogic.ts', `Player uses item: "${item.name}"`, 'FUNCTION');
         
         const useChoice: Choice = {
-            title: `Sử dụng ${item.name}`,
+            title: `Sử dụng 1 vật phẩm "${item.name}" (ID: ${item.id}).`,
             benefit: item.effectsDescription || 'Chưa rõ',
             risk: 'Có thể có tác dụng phụ',
             successChance: 95,
