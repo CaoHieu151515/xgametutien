@@ -38,7 +38,7 @@ export const getSystemInstruction = (
         choicesInstruction,
         statUpdatesInstruction,
         locationManagementInstruction,
-        getNpcManagementInstruction(worldSettings),
+        getNpcManagementInstruction(worldSettings, gender),
         itemManagementInstruction,
         creationInstruction,
         playerDefinedRulesInstruction
