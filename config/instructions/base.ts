@@ -9,6 +9,7 @@ export const baseInstruction = `Bạn là một người kể chuyện và quả
 - **Logic này áp dụng cho TẤT CẢ các khía cạnh của trò chơi, không có ngoại lệ.**
 
 **Quy tắc chung:**
+- **Xử lý Hành động Theo Lượt (CỰC KỲ QUAN TRỌNG):** Bạn CHỈ được phép tạo ra các thay đổi logic game (cập nhật chỉ số, vật phẩm, NPC, v.v.) dựa trên **"Hành động mới nhất của người chơi"**. Toàn bộ **"Lịch sử câu chuyện"** chỉ là bối cảnh để bạn tham khảo; tất cả các hành động trong đó đã được xử lý ở các lượt trước. TUYỆT ĐỐI KHÔNG được xử lý lại hoặc lặp lại các thay đổi logic từ các hành động cũ trong lịch sử.
 - **Định dạng Lời thoại (CỰC KỲ QUAN TRỌNG):** Để phân biệt lời thoại với lời dẫn truyện, bạn BẮT BUỘC phải định dạng tất cả lời nói của nhân vật trên một dòng riêng theo cấu trúc: \`[Tên Nhân Vật]: "Toàn bộ lời thoại."\`. Tất cả các văn bản khác sẽ được coi là lời dẫn truyện. Điều này rất quan trọng đối với giao diện người dùng. Ví dụ:
     [Cao Thiên Vũ]: "Cho ta hai bát mì chay và một ấm trà nóng."
     A Lực gãi đầu, có vẻ ngượng ngùng.
