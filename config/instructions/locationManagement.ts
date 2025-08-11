@@ -2,6 +2,19 @@ import { LocationType } from '../../types';
 
 export const locationManagementInstruction = `
 **Quy tắc Quản lý Bản đồ, Vị trí & Luật lệ (CỰC KỲ QUAN TRỌNG):**
+
+**Xử lý Hành động Di chuyển Tự nhiên (SIÊU QUAN TRỌNG):**
+-   **Ưu tiên Ý định Di chuyển:** Khi hành động của người chơi bao gồm một cụm từ chỉ sự di chuyển rõ ràng (ví dụ: "đi đến", "quay trở lại", "rời khỏi", **"đi ra"**) theo sau là **tên của một địa điểm đã biết**, bạn **PHẢI** ưu tiên xử lý đây là một lệnh di chuyển, ngay cả khi hành động đó còn bao gồm các hoạt động phụ khác (ví dụ: "đi dạo", "xem xét", "mua sắm").
+-   **Di chuyển từ Con ra Cha:** Đây là một trường hợp đặc biệt quan trọng. Nếu người chơi đang ở một địa điểm con (ví dụ: "Tửu Lâu A") và hành động của họ là "đi ra [Tên địa điểm cha]" (ví dụ: "đi ra Thành B đi dạo"), bạn **BẮT BUỘC** phải hiểu rằng người chơi muốn rời khỏi địa điểm con để đến địa điểm cha. Trong trường hợp này, bạn PHẢI cập nhật \`updatedPlayerLocationId\` thành ID của địa điểm cha và mô tả hành động người chơi bước ra khỏi địa điểm con và bắt đầu đi dạo trong địa điểm cha.
+-   **Ví dụ Cụ thể:**
+    *   **Bối cảnh:** Người chơi đang ở địa điểm "Nhà của A" (ID: \`loc_nha_a\`), là con của "Long Thành" (ID: \`loc_long_thanh\`).
+    *   **Hành động người chơi:** "> đi ra Long Thành đi dạo"
+    *   **Xử lý Đúng (BẮT BUỘC):**
+        1.  Nhận diện "đi ra Long Thành" là lệnh di chuyển tới địa điểm cha.
+        2.  Cập nhật JSON: \` "updatedPlayerLocationId": "loc_long_thanh" \`.
+        3.  Mô tả trong \`story\`: "Bạn mở cửa bước ra khỏi nhà của A, hòa mình vào dòng người tấp nập của Long Thành và bắt đầu đi dạo trên những con phố nhộn nhịp."
+    *   **Xử lý Sai (CẤM):** Chỉ mô tả "Bạn bắt đầu đi dạo" mà không thay đổi vị trí.
+
 - **Sử dụng Địa điểm đã biết:** Prompt sẽ cung cấp một danh sách "Các địa điểm đã biết" cùng với ID của chúng. Khi cập nhật hoặc di chuyển đến một địa điểm đã tồn tại, bạn PHẢI sử dụng lại ID hiện có của nó. KHÔNG tạo ID mới cho một địa điểm đã có trong danh sách.
 - **Tuân thủ Luật lệ (MỆNH LỆNH TỐI CAO):** Bạn PHẢI tuân thủ các luật lệ được cung cấp trong prompt dưới mục "Luật Lệ Địa Điểm Theo Phân Cấp". Các luật lệ này áp dụng cho vị trí hiện tại của người chơi và tất cả các vị trí cha của nó. Luật lệ ở cấp thấp hơn (ví dụ: thành phố) sẽ được ưu tiên hơn luật lệ ở cấp cao hơn (ví dụ: thế giới) nếu có xung đột. Bạn BẮT BUỘC phải thể hiện sự tuân thủ này trong lời kể của mình. Việc phớt lờ luật lệ là một lỗi logic nghiêm trọng.
 - **Bối cảnh Hành động (QUAN TRỌNG):** Khi người chơi thực hiện một hành động chung chung như 'tìm một nơi yên tĩnh' hoặc 'tìm một quán trọ' khi đang ở trong một khu vực lớn (như một thành phố, tông môn), bạn PHẢI diễn giải hành động đó trong phạm vi của khu vực đó. Nhân vật không nên tự động rời khỏi thành phố trừ khi hành động của người chơi nêu rõ ý định đó (ví dụ: 'rời khỏi thành để tìm một nơi yên tĩnh'). Thay vào đó, hãy tạo ra một địa điểm phụ hợp lý bên trong địa điểm hiện tại (ví dụ: một con hẻm vắng, một khu vườn ẩn sau một tòa nhà, một tửu lâu ít người biết đến) và di chuyển người chơi đến đó.
@@ -41,4 +54,4 @@ export const locationManagementInstruction = `
 - Tương tự như NPC tạm thời, bạn có thể mô tả các địa điểm nhỏ, mang tính bối cảnh trong phần 'story' mà không cần tạo đối tượng 'newLocations' ngay lập tức.
     - **Ví dụ:** "Một con hẻm tối tăm giữa hai tòa nhà.", "Một quầy hàng cá ồn ào trong chợ.", "Một cây cổ thụ xù xì, có vẻ đã sống hàng ngàn năm."
 - **Quy tắc Nâng cấp:** Nếu hành động của người chơi liên quan cụ thể đến một trong những địa điểm tạm thời này (ví dụ: "> Đi vào con hẻm tối", "> Điều tra cây cổ thụ"), bạn NÊN tạo một đối tượng 'newLocations' đầy đủ cho nó để biến nó thành một địa điểm vĩnh viễn, có thể khám phá trên bản đồ.
-`;
+`
