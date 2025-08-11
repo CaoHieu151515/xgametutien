@@ -880,13 +880,16 @@ export const useGameLogic = () => {
         const finalProfile = processLevelUps(newProfile, 0, newWorldSettings);
     
         const initialNpcs: NPC[] = (finalProfile.initialNpcs || []).map((newNpcData: NewNPCFromAI) => {
+             const isValidPowerSystem = newWorldSettings.powerSystems.some(ps => ps.name === newNpcData.powerSystem);
+             const npcPowerSystem = isValidPowerSystem ? newNpcData.powerSystem : (newWorldSettings.powerSystems[0]?.name || '');
              const stats = calculateBaseStatsForLevel(newNpcData.level);
              return {
                 ...newNpcData,
+                powerSystem: npcPowerSystem,
                 experience: 0,
                 health: stats.maxHealth,
                 mana: stats.maxMana,
-                realm: getRealmDisplayName(newNpcData.level, newNpcData.powerSystem, newWorldSettings),
+                realm: getRealmDisplayName(newNpcData.level, npcPowerSystem, newWorldSettings),
                 relationship: 0,
                 memories: [],
                 npcRelationships: newNpcData.npcRelationships || [],
