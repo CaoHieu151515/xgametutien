@@ -212,22 +212,38 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
     }
 
     const linkifyStory = (text: string): React.ReactNode => {
-        if (keywords.length === 0) {
-            return text;
-        }
-
+        if (!text) return text;
+    
         const sortedKeywords = keywords
             .filter(k => k.keyword && k.keyword.trim() !== "")
             .sort((a, b) => b.keyword.length - a.keyword.length);
+    
+        // Regex for new proper nouns: [[Some Name]] and for known keywords.
+        // It captures either a new noun pattern OR a known keyword.
+        const keywordRegexPart = sortedKeywords.length > 0
+            ? sortedKeywords.map(k => escapeRegExp(k.keyword)).join('|')
+            : '';
+        
+        // We create a regex that finds either a [[new noun]] or a known_keyword
+        const combinedRegex = new RegExp(`(\\[\\[[^\\]]+\\]\\])|(${keywordRegexPart})`, 'g');
 
-        if (sortedKeywords.length === 0) {
+        // If there are no keywords and no new noun markers, just return the text
+        if (!keywordRegexPart && !text.includes('[[')) {
             return text;
         }
 
-        const regex = new RegExp(`(${sortedKeywords.map(k => escapeRegExp(k.keyword)).join('|')})`, 'g');
-        const parts = text.split(regex);
+        const parts = text.split(combinedRegex);
         
         return parts.map((part, index) => {
+            if (!part) return null;
+    
+            // Check if it's a new noun, e.g., [[Lý Hàn Thiên]]
+            if (part.startsWith('[[') && part.endsWith(']]')) {
+                const content = part.substring(2, part.length - 2);
+                return <span key={index} className="text-cyan-400 font-semibold">{content}</span>;
+            }
+    
+            // Check if it's a known keyword
             const keywordData = sortedKeywords.find(k => k.keyword === part);
             if (keywordData) {
                 let showNewBadge = false;
@@ -237,6 +253,8 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
                 }
                 return <KeywordTooltip key={index} keyword={keywordData.keyword} description={keywordData.description} isNew={showNewBadge} />;
             }
+            
+            // It's plain text
             return <React.Fragment key={index}>{part}</React.Fragment>;
         });
     };
