@@ -1,8 +1,10 @@
-import { WorldSettings } from '../../types';
+import { WorldSettings, CharacterGender } from '../../types';
 
-export const getNpcManagementInstruction = (worldSettings: WorldSettings | null): string => {
+export const getNpcManagementInstruction = (worldSettings: WorldSettings | null, playerGender: CharacterGender): string => {
     const powerSystemsList = worldSettings?.powerSystems?.map(ps => `- "${ps.name}"`).join('\n') || '- Không có hệ thống nào được định nghĩa.';
     const aptitudeTiersList = worldSettings?.aptitudeTiers?.split(' - ').map(tier => `- "${tier.trim()}"`).join('\n') || '- Không có tư chất nào được định nghĩa.';
+    const daoLuTermPlayer = playerGender === CharacterGender.MALE ? 'Phu quân' : 'Thê tử';
+    const playerGenderVietnamese = playerGender === CharacterGender.MALE ? 'Nam' : 'Nữ';
     
     return `
 **QUY TẮC QUẢN LÝ NHÂN VẬT PHỤ (NPC) - SIÊU QUAN TRỌNG**
@@ -95,7 +97,10 @@ NPC không phải là những con rối thụ động. Họ có ý chí, tính c
     *   **Phong thái:** Gần gũi, thân thiết, tình cảm.
     *   **Xưng hô ngôi thứ nhất:** “Ta”, hoặc gọi thân mật “Chàng”, “Nàng”.
     *   **Giọng điệu:** Ấm áp, gần gũi, đôi khi bông đùa hoặc ghen tuông.
-    *   **Ví dụ:** “Chàng lại bận tâm đến kẻ khác nữa rồi sao?”
+    *   **Ví dụ lời thoại:** “Chàng lại bận tâm đến kẻ khác nữa rồi sao?”
+    *   **QUY TẮC XƯNG HÔ CỦA ĐẠO LỮ (MỆNH LỆNH TỐI CAO):** Khi một NPC có trạng thái \`isDaoLu: true\`, cách họ gọi nhân vật chính PHẢI thay đổi vĩnh viễn, ghi đè lên mọi quy tắc khác.
+        - **Vì nhân vật chính là ${playerGenderVietnamese}, NPC Đạo Lữ BẮT BUỘC phải gọi nhân vật chính là "${daoLuTermPlayer}".**
+        - Ví dụ: \`[Tên NPC Đạo Lữ]: "${daoLuTermPlayer}, người có mệt không?"\`
 
 8.  **Phụ mẫu / Phụ thân / Con cái**
     *   **Phong thái:** Quan tâm, bảo vệ, đôi khi nghiêm khắc hoặc dạy bảo. Tình cảm sâu đậm, có thể ẩn dưới vẻ nghiêm nghị.
