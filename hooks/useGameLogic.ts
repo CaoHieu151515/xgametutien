@@ -1,6 +1,3 @@
-
-
-
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import * as geminiService from '../services/geminiService';
 import * as openaiService from '../services/openaiService';
@@ -314,6 +311,18 @@ export const useGameLogic = () => {
                         : (finalWorldSettings.powerSystems[0]?.name || '');
 
                     const stats = calculateBaseStatsForLevel(npcLevel);
+                    
+                    const uniqueInitialEffects: StatusEffect[] = [];
+                    if (newNpcData.statusEffects) {
+                        const seenNames = new Set<string>();
+                        newNpcData.statusEffects.forEach(effect => {
+                            if (!seenNames.has(effect.name)) {
+                                uniqueInitialEffects.push(effect);
+                                seenNames.add(effect.name);
+                            }
+                        });
+                    }
+
                     return {
                         ...newNpcData,
                         level: npcLevel,
@@ -325,6 +334,7 @@ export const useGameLogic = () => {
                         relationship: 0,
                         memories: [],
                         npcRelationships: newNpcData.npcRelationships || [],
+                        statusEffects: uniqueInitialEffects,
                         isDaoLu: newNpcData.isDaoLu || false,
                         isNew: true,
                     };
@@ -352,7 +362,6 @@ export const useGameLogic = () => {
                         }
                         
                         if (!modifiedNpc.isDead) {
-                            // **REFACTORED BREAKTHROUGH LOGIC**
                             if (update.breakthroughToRealm) {
                                 const oldRealm = modifiedNpc.realm;
                                 const targetLevel = getLevelFromRealmName(update.breakthroughToRealm, modifiedNpc.powerSystem, finalWorldSettings);
@@ -361,14 +370,13 @@ export const useGameLogic = () => {
                                     modifiedNpc.experience = 0;
                                     
                                     const newStats = calculateBaseStatsForLevel(targetLevel);
-                                    modifiedNpc.health = newStats.maxHealth; // Full heal on breakthrough
-                                    modifiedNpc.mana = newStats.maxMana;   // Full mana on breakthrough
+                                    modifiedNpc.health = newStats.maxHealth;
+                                    modifiedNpc.mana = newStats.maxMana;
                                     modifiedNpc.realm = getRealmDisplayName(targetLevel, modifiedNpc.powerSystem, finalWorldSettings);
                                     
                                     notifications.push(`⚡️ **ĐỘT PHÁ!** <b>${modifiedNpc.name}</b> đã đột phá từ <b>${oldRealm}</b> lên cảnh giới <b>${modifiedNpc.realm}</b>.`);
                                 }
                             } else if (update.gainedExperience) {
-                                // Original experience logic
                                 const oldLevel = modifiedNpc.level;
                                 const oldRealm = modifiedNpc.realm;
                                 modifiedNpc = processNpcLevelUps(modifiedNpc, update.gainedExperience, finalWorldSettings);
@@ -426,10 +434,16 @@ export const useGameLogic = () => {
                                 currentStatusEffects = currentStatusEffects.filter(effect => !effectsToRemove.has(effect.name));
                             }
                             if (update.newStatusEffects?.length) {
+                                const existingEffectNames = new Set(currentStatusEffects.map(effect => effect.name));
                                 update.newStatusEffects.forEach(effect => {
-                                    notifications.push(`✨ <b>${modifiedNpc.name}</b> nhận được trạng thái: <b>${effect.name}</b>.`);
+                                    if (!existingEffectNames.has(effect.name)) {
+                                        notifications.push(`✨ <b>${modifiedNpc.name}</b> nhận được trạng thái: <b>${effect.name}</b>.`);
+                                        currentStatusEffects.push(effect);
+                                        existingEffectNames.add(effect.name);
+                                    } else {
+                                        notifications.push(`ℹ️ <b>${modifiedNpc.name}</b> đã có trạng thái "<b>${effect.name}</b>", không thể nhận thêm.`);
+                                    }
                                 });
-                                currentStatusEffects = [...currentStatusEffects, ...update.newStatusEffects];
                             }
                             modifiedNpc.statusEffects = currentStatusEffects;
                         }
@@ -548,10 +562,16 @@ export const useGameLogic = () => {
                     currentStatusEffects = currentStatusEffects.filter(effect => !effectsToRemove.has(effect.name));
                 }
                 if (stats.newStatusEffects?.length) {
+                    const existingEffectNames = new Set(currentStatusEffects.map(effect => effect.name));
                     stats.newStatusEffects.forEach(effect => {
-                        notifications.push(`✨ Bạn nhận được trạng thái: <b>${effect.name}</b>.`);
+                        if (!existingEffectNames.has(effect.name)) {
+                            notifications.push(`✨ Bạn nhận được trạng thái: <b>${effect.name}</b>.`);
+                            currentStatusEffects.push(effect);
+                            existingEffectNames.add(effect.name);
+                        } else {
+                            notifications.push(`ℹ️ Bạn đã có trạng thái "<b>${effect.name}</b>", không thể nhận thêm.`);
+                        }
                     });
-                    currentStatusEffects = [...currentStatusEffects, ...stats.newStatusEffects];
                 }
                 nextProfile.statusEffects = currentStatusEffects;
             }
@@ -594,7 +614,6 @@ export const useGameLogic = () => {
                 notifications.push(`🚻 Giới tính của bạn đã thay đổi thành <b>${response.updatedGender === 'male' ? 'Nam' : 'Nữ'}</b>!`);
             }
 
-            // Critical fix: Apply location update AFTER all other profile modifications to prevent overwrites.
             if (response.updatedPlayerLocationId !== undefined) {
                 nextProfile.currentLocationId = response.updatedPlayerLocationId;
             }
@@ -611,7 +630,6 @@ export const useGameLogic = () => {
                 nextProfile.gameTime = newDate.toISOString();
             }
 
-            // Apply turn-based status effect reduction
             nextProfile = updateStatusEffectDurations(nextProfile);
             nextNpcs = nextNpcs.map(npc => updateStatusEffectDurations(npc));
 
