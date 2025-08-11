@@ -1,5 +1,6 @@
 
 
+
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import * as geminiService from '../services/geminiService';
 import * as openaiService from '../services/openaiService';
@@ -169,7 +170,7 @@ export const useGameLogic = () => {
                 items: characterProfile.items.map(i => ({ ...i, isNew: false })),
                 skills: characterProfile.skills.map(s => ({ ...s, isNew: false })),
                 discoveredLocations: characterProfile.discoveredLocations.map(loc => ({ ...loc, isNew: false })),
-                discoveredMonsters: characterProfile.discoveredMonsters.map(m => ({...m, isNew: false })),
+                discoveredMonsters: characterProfile.discoveredMonsters.map(m => ({...m, isNew: false})),
                 discoveredItems: (characterProfile.discoveredItems || []).map(i => ({...i, isNew: false})),
             };
             let nextNpcs: NPC[] = npcs.map(npc => ({ ...npc, isNew: false }));
@@ -351,25 +352,26 @@ export const useGameLogic = () => {
                         }
                         
                         if (!modifiedNpc.isDead) {
-                            let gainedNpcXp = update.gainedExperience ?? 0;
-
+                            // **REFACTORED BREAKTHROUGH LOGIC**
                             if (update.breakthroughToRealm) {
+                                const oldRealm = modifiedNpc.realm;
                                 const targetLevel = getLevelFromRealmName(update.breakthroughToRealm, modifiedNpc.powerSystem, finalWorldSettings);
                                 if (targetLevel > modifiedNpc.level) {
-                                    const xpForBreakthrough = calculateExperienceForBreakthrough(
-                                        modifiedNpc.level,
-                                        modifiedNpc.experience,
-                                        targetLevel
-                                    );
-                                    gainedNpcXp += xpForBreakthrough;
-                                    notifications.push(`✨ **TRỢ GIÚP ĐỘT PHÁ!** <b>${modifiedNpc.name}</b> nhận được một lượng lớn kinh nghiệm để đạt đến <b>${update.breakthroughToRealm}</b>.`);
+                                    modifiedNpc.level = targetLevel;
+                                    modifiedNpc.experience = 0;
+                                    
+                                    const newStats = calculateBaseStatsForLevel(targetLevel);
+                                    modifiedNpc.health = newStats.maxHealth; // Full heal on breakthrough
+                                    modifiedNpc.mana = newStats.maxMana;   // Full mana on breakthrough
+                                    modifiedNpc.realm = getRealmDisplayName(targetLevel, modifiedNpc.powerSystem, finalWorldSettings);
+                                    
+                                    notifications.push(`⚡️ **ĐỘT PHÁ!** <b>${modifiedNpc.name}</b> đã đột phá từ <b>${oldRealm}</b> lên cảnh giới <b>${modifiedNpc.realm}</b>.`);
                                 }
-                            }
-
-                            if (gainedNpcXp > 0) {
+                            } else if (update.gainedExperience) {
+                                // Original experience logic
                                 const oldLevel = modifiedNpc.level;
                                 const oldRealm = modifiedNpc.realm;
-                                modifiedNpc = processNpcLevelUps(modifiedNpc, gainedNpcXp, finalWorldSettings);
+                                modifiedNpc = processNpcLevelUps(modifiedNpc, update.gainedExperience, finalWorldSettings);
                                 if (modifiedNpc.level > oldLevel) {
                                     notifications.push(`✨ <b>${modifiedNpc.name}</b> đã đạt đến <b>cấp độ ${modifiedNpc.level}</b>!`);
                                     if (modifiedNpc.realm !== oldRealm) {
