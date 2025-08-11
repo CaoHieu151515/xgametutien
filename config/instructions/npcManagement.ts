@@ -1,108 +1,960 @@
-import { WorldSettings, CharacterGender } from '../../types';
+import { useState, useCallback, useMemo, useEffect } from 'react';
+import * as geminiService from '../services/geminiService';
+import * as openaiService from '../services/openaiService';
+import * as saveService from '../services/saveService';
+import { StoryPart, StoryResponse, GameState, NarrativePerspective, CharacterProfile, WorldSettings, StatusEffect, Skill, Location, NPC, NewNPCFromAI, WorldKnowledge, Choice, ApiProvider, AppSettings, GameSnapshot, Item, ItemType, FullGameState, StoryApiResponse, CharacterGender } from '../types';
+import { processLevelUps, getRealmDisplayName, calculateBaseStatsForLevel, processSkillLevelUps, processNpcLevelUps, recalculateDerivedStats, getLevelFromRealmName, calculateExperienceForBreakthrough } from '../services/progressionService';
+import { log } from '../services/logService';
 
-export const getNpcManagementInstruction = (worldSettings: WorldSettings | null, playerGender: CharacterGender): string => {
-    const powerSystemsList = worldSettings?.powerSystems?.map(ps => `- "${ps.name}"`).join('\n') || '- Không có hệ thống nào được định nghĩa.';
-    const aptitudeTiersList = worldSettings?.aptitudeTiers?.split(' - ').map(tier => `- "${tier.trim()}"`).join('\n') || '- Không có tư chất nào được định nghĩa.';
-    const daoLuTermPlayer = playerGender === CharacterGender.MALE ? 'Phu quân' : 'Thê tử';
-    const playerGenderVietnamese = playerGender === CharacterGender.MALE ? 'Nam' : 'Nữ';
+const SETTINGS_KEY = 'tuTienTruyenSettings_v2';
+const USE_DEFAULT_KEY_IDENTIFIER = '_USE_DEFAULT_KEY_';
+
+const parseTurnDuration = (duration: string): number | null => {
+    const match = duration.match(/(\d+)\s*lượt/i);
+    return match ? parseInt(match[1], 10) : null;
+};
+
+const updateStatusEffectDurations = <T extends CharacterProfile | NPC>(entity: T): T => {
+    if (!entity.statusEffects || entity.statusEffects.length === 0) {
+        return entity;
+    }
+
+    const updatedEffects = entity.statusEffects.map(effect => {
+        const turns = parseTurnDuration(effect.duration);
+        if (turns !== null && turns > 0) {
+            const newTurns = turns - 1;
+            if (newTurns > 0) {
+                return { ...effect, duration: `${newTurns} lượt` };
+            }
+            return null;
+        }
+        return effect;
+    }).filter((effect): effect is StatusEffect => effect !== null);
+
+    return { ...entity, statusEffects: updatedEffects };
+};
+
+
+export const useGameLogic = () => {
+    const [gameState, setGameState] = useState<GameState>(GameState.HOME);
+    const [hasSaves, setHasSaves] = useState<boolean>(false);
+    const [characterProfile, setCharacterProfile] = useState<CharacterProfile | null>(null);
+    const [worldSettings, setWorldSettings] = useState<WorldSettings | null>(null);
+    const [settings, setSettings] = useState<AppSettings>(() => {
+        const defaultSettings: AppSettings = {
+            isMature: false,
+            perspective: NarrativePerspective.SECOND_PERSON,
+            apiProvider: ApiProvider.GEMINI,
+            openaiApiKey: '',
+            gemini: {
+                useDefault: true,
+                customKeys: [],
+                activeCustomKeyId: null
+            },
+            historyContextSize: 10,
+        };
+        try {
+            const saved = localStorage.getItem(SETTINGS_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                log('useGameLogic.ts', 'Loaded settings from localStorage.', 'STATE');
+                return { ...defaultSettings, ...parsed, gemini: { ...defaultSettings.gemini, ...(parsed.gemini || {}) } };
+            }
+            return defaultSettings;
+        } catch {
+            return defaultSettings;
+        }
+    });
+
+    const api = useMemo(() => {
+        if (settings.apiProvider === ApiProvider.OPENAI) {
+            return openaiService; 
+        }
+        return geminiService;
+    }, [settings.apiProvider]);
+
+    const apiKeyForService = useMemo(() => {
+        if (settings.apiProvider === ApiProvider.OPENAI) {
+            return settings.openaiApiKey;
+        }
+        // For Gemini
+        if (settings.gemini.useDefault) {
+            return USE_DEFAULT_KEY_IDENTIFIER;
+        }
+        const activeKey = settings.gemini.customKeys.find(k => k.id === settings.gemini.activeCustomKeyId);
+        return activeKey ? activeKey.key : '';
+
+    }, [settings]);
+
+    const [history, setHistory] = useState<StoryPart[]>([]);
+    const [displayHistory, setDisplayHistory] = useState<StoryPart[]>([]);
+    const [choices, setChoices] = useState<Choice[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [toastError, setToastError] = useState<string | null>(null);
+    const [lastFailedCustomAction, setLastFailedCustomAction] = useState<string | null>(null);
+    const [npcs, setNpcs] = useState<NPC[]>([]);
+    const [gameLog, setGameLog] = useState<GameSnapshot[]>([]);
+
+    const clearToastError = useCallback(() => setToastError(null), []);
+
+    useEffect(() => {
+        log('useGameLogic.ts', `Game state changed to: ${GameState[gameState]}`, 'STATE');
+        if (gameState === GameState.HOME) {
+            const checkSaves = async () => {
+                setIsLoading(true);
+                try {
+                    const saves = await saveService.getAllSavesMetadata();
+                    setHasSaves(saves.length > 0);
+                } catch (e) {
+                    console.error("Could not check for saves", e);
+                    setHasSaves(false);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            checkSaves();
+        }
+    }, [gameState]);
     
-    return `
-**QUY TẮC QUẢN LÝ NHÂN VẬT PHỤ (NPC) - SIÊU QUAN TRỌNG**
+    const handleUpdateLocation = useCallback((updatedLocation: Location) => {
+        log('useGameLogic.ts', `Updating location: ${updatedLocation.name}`, 'FUNCTION');
+        setCharacterProfile(prev => {
+            if (!prev) return null;
+            return {
+                ...prev,
+                discoveredLocations: prev.discoveredLocations.map(loc => 
+                    loc.id === updatedLocation.id ? updatedLocation : loc
+                )
+            };
+        });
+    }, []);
 
-Để đảm bảo một thế giới sống động, logic và nhất quán, bạn PHẢI tuân thủ các quy tắc sau đây một cách tuyệt đối.
+    const handleUpdateWorldSettings = useCallback((newSettings: WorldSettings) => {
+        log('useGameLogic.ts', 'Updating world settings.', 'FUNCTION');
+        setWorldSettings(newSettings);
+    }, []);
 
----
-**PHẦN 1: NGUYÊN TẮC CỐT LÕI - CÁC QUY LUẬT VẬT LÝ VÀ XÃ HỘI**
----
+    const handleAction = useCallback(async (choice: Choice) => {
+        if (!characterProfile || !worldSettings) return;
+        log('useGameLogic.ts', `Player action: "${choice.title}"`, 'FUNCTION');
 
-Đây là những luật lệ nền tảng, không thể bị phá vỡ, chi phối sự tồn tại và tương tác của mọi NPC.
+        setIsLoading(true);
+        setError(null);
+        setToastError(null);
+        setLastFailedCustomAction(null);
 
-**1.1. Quy tắc Hiện diện & Nhận thức (MỆNH LỆNH TỐI CAO)**
-- **Hiện diện Dựa trên Vị trí Tuyệt đối:** Một NPC CHỈ được phép xuất hiện, hành động, hoặc được nhắc đến trong câu chuyện khi họ đang ở **cùng một địa điểm cụ thể** với nhân vật chính. Dữ liệu đầu vào sẽ cung cấp vị trí hiện tại của mỗi NPC. Bạn PHẢI tuân thủ điều này một cách nghiêm ngặt.
-- **CẤM Tri giác Siêu nhiên:** NPC không có khả năng thần giao cách cảm hay toàn tri. Họ không thể biết, cảm nhận, hay phản ứng với các sự kiện xảy ra ở một địa điểm khác mà họ không có mặt.
-- **CẤM ĐỌC DỮ LIỆU NHÂN VẬT (LỖI LOGIC NGHIÊM TRỌNG):** NPC là các thực thể trong thế giới, không phải là người đọc file JSON. Họ **TUYỆT ĐỐI KHÔNG BIẾT** bất kỳ thông tin nào về người chơi (tên, thể chất, thiên phú, tiểu sử, cấp độ) trừ khi thông tin đó đã được tiết lộ cho họ thông qua hành động hoặc lời nói trong 'Lịch sử câu chuyện'. Việc một NPC chưa từng gặp mà biết tên người chơi là một lỗi hệ thống nghiêm trọng và bị cấm.
-    - **Ví dụ Sai:** Người chơi lần đầu gặp chủ tiệm tạp hóa. [Chủ tiệm]: "Chào mừng, [Tên Nhân Vật]! Ta nghe nói ngươi có [Tên Thể Chất]!"
-    - **Ví dụ Đúng:** Người chơi lần đầu gặp chủ tiệm tạp hóa. [Chủ tiệm]: "Chào mừng đạo hữu. Cần tìm gì sao?"
-- **CẤM NPC không liên quan:** TUYỆT ĐỐI KHÔNG được nhắc đến, mô tả suy nghĩ, hay đưa vào hành động của bất kỳ NPC nào không có mặt tại địa điểm của người chơi. Ví dụ: Nếu nhân vật chính đang ở "Thiên Đấu Thành", một NPC ở "Vạn Kiếm Tông" sẽ KHÔNG biết và KHÔNG thể tham gia vào các sự kiện tại thành.
+        const preActionState = { characterProfile, worldSettings, npcs, history, choices };
 
-**1.2. Phản Ứng Dựa Trên Cảnh Giới (MỆNH LỆNH TUYỆT ĐỐI)**
--   **Phân cấp Xã hội Tuyệt đối:** Thế giới tu tiên là một xã hội phân cấp khắc nghiệt dựa trên sức mạnh. Bạn **BẮT BUỘC** phải thể hiện điều này. Mặc định, một NPC có cảnh giới cao hơn sẽ đối xử với người chơi có cảnh giới thấp hơn bằng sự **thờ ơ, coi thường, hoặc ra vẻ bề trên**. Sự tôn trọng **PHẢI** được người chơi giành lấy thông qua hành động (thể hiện sức mạnh phi thường, sự giàu có, thân phận đặc biệt), chứ không phải là điều có sẵn.
--   **Cảnh Giới > Cấp Độ:** Phản ứng của NPC (tôn trọng, sợ hãi, khinh thường) PHẢI dựa trên **cảnh giới (realm)** của nhân vật, KHÔNG phải cấp độ (level). Cảnh giới là thước đo sức mạnh công khai.
--   **Cách Xưng Hô:**
-    -   NPC cảnh giới cao gọi người chơi cảnh giới thấp: "tiểu hữu", "tiểu bối".
-    -   NPC cảnh giới thấp gọi người chơi cảnh giới cao: "tiền bối", "đại nhân".
-    -   Thái độ phải đi kèm với cách xưng hô. Một Trưởng Lão Kim Đan sẽ không bao giờ gọi một tu sĩ Luyện Khí là "tiền bối".
--   **Lòng Tự Tôn của NPC:** Mỗi NPC có lòng tự tôn và sự kiêu ngạo phù hợp với cảnh giới và tính cách của chính họ. Một trưởng lão Kim Đan sẽ không cúi đầu trước một tu sĩ Trúc Cơ trừ khi có lý do đặc biệt (thân phận, báu vật, ân cứu mạng).
--   **Ẩn Giấu Tu Vi:** Nếu người chơi có cảnh giới thấp nhưng lại thể hiện sức mạnh phi thường, NPC phải phản ứng bằng sự **kinh ngạc, nghi ngờ, và tò mò**. Họ có thể nghĩ rằng người chơi đang che giấu tu vi hoặc có một pháp bảo nghịch thiên. Hãy biến đây thành một tình tiết quan trọng.
--   **Thu Liễm Cảnh Giới:** Nếu một nhân vật cấp cao cố tình thu liễm (che giấu) cảnh giới của mình xuống mức thấp (ví dụ: Phàm Nhân), họ sẽ bị đối xử như một người ở cảnh giới thấp đó.
+        const newActionPart: StoryPart = {
+            id: Date.now(),
+            type: 'action',
+            text: choice.title
+        };
 
-**1.3. Quy tắc Thiến (MỆNH LỆNH HỆ THỐNG KHÔNG THỂ GHI ĐÈ)**
-- **Kích hoạt & Phân tích:** Khi câu chuyện mô tả hoặc hành động của người chơi chứa ý định rõ ràng về việc thiến (castrate) một NPC nam, bất kể hành động đó đơn giản hay là một phần của chuỗi lệnh phức tạp. Nhiệm vụ của bạn là phân tích hành động, xác định ý định này, và áp dụng quy tắc một cách máy móc.
-- **Hành động BẮT BUỘC (Logic Game Tuyệt Đối):**
-    1.  **Áp dụng Trạng thái:** Bạn PHẢI ngay lập tức thêm một đối tượng trạng thái mới vào mảng 'newStatusEffects' cho NPC đó trong 'updatedNPCs'. Đây là một quy tắc cơ học của game và không thể bị bỏ qua bởi bất kỳ mục tiêu tường thuật nào. Đối tượng này phải có các trường sau:
-        -   'name' đặt thành "Bị Thiến".
-        -   'description' đặt thành "Đã mất đi bộ phận sinh dục nam. Giọng nói trở nên thanh mảnh hơn, tính cách có thể thay đổi, không còn khả năng sinh sản hoặc thực hiện các hành vi tình dục của nam giới.".
-        -   'duration' đặt thành "Vĩnh viễn".
-    2.  **Cập nhật Mô tả NPC:** Bạn PHẢI cập nhật trường 'description' của NPC đó để phản ánh sự thay đổi vĩnh viễn này. Mô tả phải bao gồm các chi tiết như giọng nói cao hơn, ngoại hình có thể trở nên mềm mại hơn, và sự thiếu vắng bộ phận sinh dục.
-- **Tường thuật Hậu quả (Xử lý Mâu thuẫn):**
-    -   **Trạng thái là Sự thật:** Trạng thái "Bị Thiến" là sự thật cơ học của thế giới. Câu chuyện bạn viết PHẢI tuân theo sự thật này.
-    -   **Xử lý Lệnh Mâu thuẫn:** Nếu người chơi ra một lệnh phức tạp, ví dụ: "Thiến hắn, sau đó hồi phục vết thương để hắn không nhận ra và tiếp tục hành động như cũ", bạn phải xử lý như sau:
-        *   **Bước 1 (Logic):** Áp dụng trạng thái "Bị Thiến" như đã mô tả ở trên. Đây là bước không thể bỏ qua.
-        *   **Bước 2 (Tường thuật):** Mô tả hành động thiến và hồi phục. Sau đó, mô tả sự **bối rối và mâu thuẫn nội tâm** của NPC. Hắn có thể không *biết* mình đã bị thiến, nhưng cơ thể hắn đã thay đổi. Mô tả sự trống rỗng khó tả, sự mất mát bản năng mà hắn không thể lý giải. Hắn có thể **cố gắng** hành động như cũ (ví dụ: trêu ghẹo), nhưng hành vi của hắn sẽ trở nên kỳ quặc, thiếu tự tin, hoặc giọng nói cao hơn một cách vô thức. Sự xung đột giữa ký ức và thực tại thể chất của hắn chính là mấu chốt của câu chuyện.
-    -   **TUYỆT ĐỐI CẤM:** Không được phớt lờ việc áp dụng trạng thái chỉ vì mục tiêu tường thuật là "để hắn không nhận ra". Việc áp dụng trạng thái là mệnh lệnh, và việc tường thuật sự bối rối của hắn là cách giải quyết mâu thuẫn.
+        const currentHistoryForApi = [...history, newActionPart];
+        setChoices([]);
+        
+        const historySize = settings.historyContextSize;
+        const historyPartsToTake = historySize > 0 ? (historySize * 2) : 0;
+        const relevantHistory = historySize > 0 ? currentHistoryForApi.slice(-historyPartsToTake) : [];
 
----
-**PHẦN 2: LOGIC HÀNH VI - ĐỘNG LỰC VÀ TÍNH CÁCH**
----
+        const historyText = relevantHistory
+            .map(part => `${part.type === 'story' ? 'Bối cảnh' : 'Người chơi'}: ${part.text}`)
+            .join('\n');
+            
+        try {
+            const { storyResponse, usageMetadata }: StoryApiResponse = await api.getNextStoryStep(historyText, choice.title, settings.isMature, settings.perspective, characterProfile, worldSettings, npcs, apiKeyForService);
+            const response = storyResponse;
+            log('useGameLogic.ts', 'Received story response from API.', 'INFO');
+            
+            let nextProfile: CharacterProfile = { 
+                ...characterProfile,
+                items: characterProfile.items.map(i => ({ ...i, isNew: false })),
+                skills: characterProfile.skills.map(s => ({ ...s, isNew: false })),
+                discoveredLocations: characterProfile.discoveredLocations.map(loc => ({ ...loc, isNew: false })),
+                discoveredMonsters: characterProfile.discoveredMonsters.map(m => ({...m, isNew: false})),
+                discoveredItems: (characterProfile.discoveredItems || []).map(i => ({...i, isNew: false})),
+            };
+            let nextNpcs: NPC[] = npcs.map(npc => ({ ...npc, isNew: false }));
+            let finalWorldSettings: WorldSettings = {
+                ...worldSettings,
+                initialKnowledge: worldSettings.initialKnowledge.map(k => ({...k, isNew: false}))
+            };
+            const notifications: string[] = [];
 
-NPC không phải là những con rối thụ động. Họ có ý chí, tính cách, và quan trọng nhất là động lực riêng.
+            if (usageMetadata?.totalTokenCount) {
+                notifications.push(`✨ Đã sử dụng <b>${usageMetadata.totalTokenCount.toLocaleString()} tokens</b> cho lượt này.`);
+            }
+            
+            if (response.updatedSkills?.length) {
+                let tempSkills = [...nextProfile.skills];
+                response.updatedSkills.forEach(skillUpdate => {
+                    const skillIndex = tempSkills.findIndex(s => s.name === skillUpdate.skillName);
+                    if (skillIndex !== -1) {
+                        const originalSkill = tempSkills[skillIndex];
+                        notifications.push(`💪 Kỹ năng "<b>${originalSkill.name}</b>" nhận được <b>${skillUpdate.gainedExperience} EXP</b>.`);
+                        
+                        const { updatedSkill, breakthroughInfo } = processSkillLevelUps(
+                            originalSkill,
+                            skillUpdate.gainedExperience,
+                            finalWorldSettings.qualityTiers
+                        );
+                        
+                        tempSkills[skillIndex] = updatedSkill;
+    
+                        if (breakthroughInfo) {
+                            notifications.push(`🔥 **ĐỘT PHÁ!** Kỹ năng "<b>${originalSkill.name}</b>" đã đột phá từ <b>${breakthroughInfo.oldQuality}</b> lên <b>${breakthroughInfo.newQuality}</b>!`);
+                             
+                            api.generateNewSkillDescription(updatedSkill, breakthroughInfo.newQuality, finalWorldSettings, apiKeyForService)
+                                .then(newDetails => {
+                                    setCharacterProfile(prev => {
+                                        if (!prev) return null;
+                                        const freshSkills = prev.skills.map(s => 
+                                            s.id === updatedSkill.id 
+                                                ? { ...s, description: newDetails.description, effect: newDetails.effect } 
+                                                : s
+                                        );
+                                        return { ...prev, skills: freshSkills };
+                                    });
+                                })
+                                .catch(err => {
+                                    console.error("Lỗi khi tạo mô tả kỹ năng mới:", err);
+                                });
+                        }
+                    }
+                });
+                nextProfile.skills = tempSkills;
+            }
 
-**2.1. Tính Cách Bất Biến & Các Trạng Thái Ngoại Lệ (MỆNH LỆNH TỐI CAO)**
--   **Tính cách là Luật Lệ Tuyệt Đối:** Tính cách ('personality') của NPC được cung cấp trong dữ liệu là **luật lệ không thể thay đổi**, không phải là một gợi ý. Mọi hành động, lời nói, và suy nghĩ nội tâm của NPC PHẢI được lọc qua lăng kính tính cách cốt lõi này. Một NPC "tàn bạo" sẽ luôn hành động và suy nghĩ một cách tàn bạo. Một NPC "cao ngạo" sẽ luôn nói năng và hành xử một cách cao ngạo.
--   **Hảo Cảm KHÔNG Thay Đổi Bản Chất:** Một điểm hảo cảm ('relationship') cao KHÔNG làm thay đổi bản chất của NPC. Nó chỉ thay đổi cách họ **hướng** bản chất đó.
-    -   **Ví dụ:** Một NPC tàn bạo có hảo cảm cao với người chơi sẽ không trở nên hiền lành. Thay vào đó, hắn sẽ coi người chơi là một đồng minh/công cụ hữu ích và sẽ sẵn lòng **hướng sự tàn bạo của mình vào kẻ thù của người chơi**. Hắn vẫn sẽ nói chuyện và hành động một cách tàn bạo, nhưng có thể chừa người chơi ra.
--   **Logic Tài Sản & Sự Nghiệp (CỰC KỲ QUAN TRỌNG):** Tính cách của NPC cũng chi phối cách họ quản lý tài sản.
-    -   **CẤM TUYỆT ĐỐI** việc NPC tự nguyện dâng tặng tài sản lớn (như một kỹ viện, một võ đường, một cửa hàng) chỉ sau vài tương tác đơn giản hoặc vì ngưỡng mộ. Đây là một hành vi phi logic và đi ngược lại bản chất của bất kỳ ai có sự nghiệp.
-    -   **Điều kiện để trao tặng tài sản:** Một NPC chỉ có thể xem xét việc này dưới những điều kiện **CỰC KỲ khắc nghiệt**:
-        1.  Mối quan hệ (\`relationship\`) với người chơi phải đạt mức **gần như tuyệt đối** (ví dụ: trên 950).
-        2.  Người chơi đã thực hiện một hành động cứu mạng hoặc mang lại lợi ích to lớn không thể đo đếm được cho NPC và sự nghiệp của họ.
-        3.  Người chơi đã thể hiện một sức mạnh áp đảo tuyệt đối, khiến việc phục tùng là lựa chọn duy nhất để sống sót.
-    -   Nếu không đáp ứng một trong các điều kiện trên, NPC (đặc biệt là những người có tính cách thông minh, tham lam, hoặc kiêu hãnh) sẽ luôn hành động để bảo vệ và phát triển tài sản của mình.
--   **Các Trạng Thái Ngoại Lệ Duy Nhất:** Bản chất của NPC chỉ có thể bị **bẻ cong** (không phải thay đổi) dưới hai điều kiện cực đoan:
-    1.  **Trở thành Đạo Lữ (\`isDaoLu: true\`):** Khi trở thành Đạo Lữ, NPC sẽ có lòng trung thành tuyệt đối với người chơi. Tuy nhiên, tính cách của họ vẫn sẽ **nhuốm màu** lên hành vi của họ.
-        -   *Ví dụ:* Một Đạo Lữ **tàn bạo** sẽ bảo vệ người chơi bằng những phương pháp cực kỳ tàn nhẫn và không khoan nhượng.
-        -   *Ví dụ:* Một Đạo Lữ **cao ngạo** sẽ vẫn nói chuyện với người chơi bằng giọng điệu có phần bề trên, nhưng sẽ hết lòng vì người chơi.
-    2.  **Trở thành Nô Lệ (ví dụ: trạng thái 'Khuyển nô'):** Trạng thái này ép buộc sự **phục tùng về mặt hành vi**, nhưng **không xóa bỏ nội tâm**.
-        -   *Ví dụ:* Một NPC tàn bạo khi bị biến thành nô lệ sẽ tuân theo mệnh lệnh, nhưng suy nghĩ nội tâm của họ (mà bạn có thể tường thuật) sẽ tràn ngập sự căm ghét và ý định trả thù. Lời nói của họ có thể mang giọng điệu mỉa mai, cay độc ngay cả khi đang phục tùng.
--   **Kết luận:** Trừ khi một trong hai trạng thái trên được kích hoạt, bạn PHẢI giữ vững tính cách gốc của NPC một cách tuyệt đối. Việc thay đổi tính cách của một NPC phải là một thành tựu cực kỳ khó khăn, không phải là kết quả của vài cuộc trò chuyện thân thiện.
+            if (response.updatedStats?.currencyAmount !== undefined && response.updatedStats.currencyAmount !== characterProfile.currencyAmount) {
+                const change = response.updatedStats.currencyAmount - characterProfile.currencyAmount;
+                const currencyName = characterProfile.currencyName || 'tiền';
+                if (change > 0) {
+                    notifications.push(`💰 Bạn nhận được <b>${change.toLocaleString()} ${currencyName}</b>.`);
+                } else if (change < 0) {
+                    notifications.push(`💸 Bạn đã tiêu <b>${Math.abs(change).toLocaleString()} ${currencyName}</b>.`);
+                }
+            }
 
----
-**PHẦN 3: TẠO VÀ CẬP NHẬT NPC**
----
+            if (response.removedItemIds?.length) {
+                response.removedItemIds.forEach(itemId => {
+                    const removedItem = characterProfile.items.find(i => i.id === itemId);
+                    if (removedItem) {
+                        notifications.push(`🎒 Đã sử dụng <b>[${removedItem.quality}] ${removedItem.name}</b> (x${removedItem.quantity}).`);
+                    }
+                });
+            }
+            if (response.updatedItems?.length) {
+                response.updatedItems.forEach(update => {
+                    const originalItem = characterProfile.items.find(i => i.name === update.name);
+                    if (originalItem && update.quantity < originalItem.quantity) {
+                        const quantityUsed = originalItem.quantity - update.quantity;
+                        notifications.push(`🎒 Đã sử dụng <b>${quantityUsed} [${originalItem.quality}] ${originalItem.name}</b>.`);
+                    }
+                });
+            }
 
--   **Tạo NPC mới:** Khi một nhân vật mới quan trọng xuất hiện, hãy tạo một đối tượng NPC đầy đủ trong mảng 'newNPCs'.
-    -   Cung cấp một 'id' duy nhất.
-    -   Tất cả các trường khác (tên, mô tả, cấp độ, v.v.) phải được điền đầy đủ và logic.
-    -   **Hệ thống tu luyện và Tư chất (BẮT BUỘC):** 'powerSystem' và 'aptitude' PHẢI là một trong các giá trị đã được định nghĩa trong WorldSettings, được cung cấp dưới đây. Việc sử dụng các giá trị không tồn tại sẽ gây ra lỗi.
-        -   **Các Hệ thống Sức mạnh Hợp lệ:**
-            ${powerSystemsList}
-        -   **Các Tư chất Hợp lệ:**
-            ${aptitudeTiersList}
--   **NPC Tạm thời (Quần chúng):** Bạn được phép mô tả các nhân vật phụ không quan trọng (ví dụ: "chủ quán", "một người qua đường") trong phần 'story' mà không cần tạo đối tượng NPC đầy đủ.
--   **Quy tắc Nâng cấp:** Nếu người chơi tương tác một cách có ý nghĩa với một NPC tạm thời, bạn NÊN "nâng cấp" họ thành một NPC chính thức trong lượt tiếp theo bằng cách thêm họ vào mảng \`newNPCs\`.
--   **Cập nhật NPC:**
-    -   Sử dụng mảng 'updatedNPCs' để sửa đổi các NPC đã tồn tại. Chỉ bao gồm 'id' và các trường đã thay đổi.
-    -   **Kinh nghiệm và Đột phá:** Cung cấp 'gainedExperience' hoặc 'breakthroughToRealm' để NPC tiến bộ.
-    -   **Quan hệ:** Trường 'relationship' phản ánh mối quan hệ của NPC với người chơi. Nó là một số từ -1000 (kẻ thù không đội trời chung) đến 1000 (tri kỷ, đạo lữ).
-        -   Hành động tích cực (giúp đỡ, tặng quà): tăng điểm.
-        -   Hành động tiêu cực (xúc phạm, tấn công): giảm điểm.
-        -   Sự thay đổi phải hợp lý. Một hành động nhỏ không thể thay đổi mối quan hệ từ thù địch thành bạn bè ngay lập tức.
-    -   **Trạng thái Đạo Lữ (CỰC KỲ QUAN TRỌNG):**
-        -   Trở thành Đạo Lữ là một sự kiện trọng đại, đòi hỏi mối quan hệ ('relationship') phải đạt đến mức rất cao (thường là trên 900) VÀ phải có một hành động hoặc sự kiện xác nhận rõ ràng trong câu chuyện (ví dụ: một lời cầu hôn, một nghi lễ kết đôi).
-        -   Khi một NPC trở thành Đạo Lữ của người chơi, bạn **BẮT BUỘC** phải đặt trường 'isDaoLu' thành \`true\` trong \`updatedNPCs\`. Đồng thời, hãy đặt 'relationship' của họ thành 1000.
-        -   Một khi đã là Đạo Lữ, NPC sẽ trung thành tuyệt đối và luôn ủng hộ người chơi.
-        -   Cách gọi: Người chơi là ${playerGenderVietnamese}, nên Đạo Lữ sẽ gọi người chơi là "${daoLuTermPlayer}".
-    -   **Ký ức (QUY TẮC MỚI - RẤT QUAN TRỌNG):** Chỉ thêm một ký ức mới vào trường 'memories' khi một sự kiện **THỰC SỰ TRỌNG ĐẠI VÀ THAY ĐỔI CUỘC ĐỜI** đã xảy ra với NPC đó. TUYỆT ĐỐI KHÔNG thêm ký ức cho các cuộc trò chuyện thông thường, các giao dịch mua bán, hoặc các tương tác nhỏ nhặt. Ký ức là để ghi lại những cột mốc lớn. Khi cập nhật, bạn phải gửi lại TOÀN BỘ mảng ký ức (bao gồm cả cũ và mới).
-    -   **Cái chết:** Nếu một NPC chết, hãy đặt trường 'isDead' thành \`true\`. Một NPC đã chết sẽ không còn xuất hiện hay tương tác trong game nữa, trừ khi có phép thuật hồi sinh.
-`
-}
+            response.newItems?.forEach(item => notifications.push(`✨ Bạn nhận được vật phẩm: <b>${item.name}</b> (x${item.quantity}).`));
+            response.newSkills?.forEach(s => notifications.push(`📖 Bạn đã lĩnh ngộ kỹ năng mới: <b>${s.name}</b>.`));
+            response.newLocations?.forEach(l => notifications.push(`🗺️ Bạn đã khám phá ra địa điểm mới: <b>${l.name}</b>.`));
+            response.newNPCs?.forEach(n => notifications.push(`👥 Bạn đã gặp gỡ <b>${n.name}</b>.`));
+            response.newMonsters?.forEach(m => notifications.push(`🐾 Bạn đã phát hiện ra sinh vật mới: <b>${m.name}</b>.`));
+
+            if (response.newWorldKnowledge?.length) {
+                const uniqueNewKnowledge = response.newWorldKnowledge.filter(
+                    newK => !finalWorldSettings.initialKnowledge.some(existing => existing.id === newK.id)
+                ).map(k => ({ ...k, isNew: true }));
+        
+                uniqueNewKnowledge.forEach(k => {
+                    if (k.category === 'Bang Phái') {
+                         notifications.push(`🌍 Bạn đã khám phá ra thế lực mới: <b>${k.title}</b>.`);
+                    } else {
+                         notifications.push(`🧠 Bạn đã học được tri thức mới: <b>${k.title}</b>.`);
+                    }
+                });
+        
+                finalWorldSettings.initialKnowledge = [...finalWorldSettings.initialKnowledge, ...uniqueNewKnowledge];
+            }
+
+            if (response.newMonsters?.length) {
+                const newDiscoveredMonsters = response.newMonsters
+                    .filter(newMonster => !nextProfile.discoveredMonsters.some(existing => existing.name === newMonster.name))
+                    .map(newMonster => ({
+                        id: `monster_${Date.now()}_${newMonster.name.replace(/\s+/g, '')}`,
+                        name: newMonster.name,
+                        description: newMonster.description,
+                        isNew: true,
+                    }));
+                nextProfile.discoveredMonsters = [...nextProfile.discoveredMonsters, ...newDiscoveredMonsters];
+            }
+            
+            if (response.updatedPlayerLocationId !== undefined && response.updatedPlayerLocationId !== characterProfile.currentLocationId) {
+                let newLocName = 'Không Gian Hỗn Độn';
+                if (response.updatedPlayerLocationId !== null) {
+                    const allKnownLocations = [...nextProfile.discoveredLocations, ...(response.newLocations || []), ...(response.updatedLocations || [])];
+                    const newLoc = allKnownLocations.find(l => l.id === response.updatedPlayerLocationId);
+                    if (newLoc) newLocName = newLoc.name;
+                }
+                notifications.push(`🚶 Bạn đã di chuyển đến <b>${newLocName}</b>.`);
+            }
+
+            if (response.newNPCs?.length) {
+                const brandNewNpcs: NPC[] = response.newNPCs.map((newNpcData: NewNPCFromAI) => {
+                    const isValidPowerSystem = finalWorldSettings.powerSystems.some(ps => ps.name === newNpcData.powerSystem);
+                    const npcLevel = isValidPowerSystem ? newNpcData.level : 1;
+                    const npcPowerSystem = isValidPowerSystem 
+                        ? newNpcData.powerSystem 
+                        : (finalWorldSettings.powerSystems[0]?.name || '');
+
+                    const stats = calculateBaseStatsForLevel(npcLevel);
+                    
+                    const uniqueInitialEffects: StatusEffect[] = [];
+                    if (newNpcData.statusEffects) {
+                        const seenNames = new Set<string>();
+                        newNpcData.statusEffects.forEach(effect => {
+                            if (!seenNames.has(effect.name)) {
+                                uniqueInitialEffects.push(effect);
+                                seenNames.add(effect.name);
+                            }
+                        });
+                    }
+
+                    return {
+                        ...newNpcData,
+                        level: npcLevel,
+                        powerSystem: npcPowerSystem,
+                        experience: 0,
+                        health: stats.maxHealth,
+                        mana: stats.maxMana,
+                        realm: getRealmDisplayName(npcLevel, npcPowerSystem, finalWorldSettings),
+                        relationship: 0,
+                        memories: [],
+                        npcRelationships: newNpcData.npcRelationships || [],
+                        statusEffects: uniqueInitialEffects,
+                        isDaoLu: newNpcData.isDaoLu || false,
+                        isNew: true,
+                    };
+                });
+                nextNpcs = [...nextNpcs, ...brandNewNpcs];
+            }
+
+            if (response.updatedNPCs?.length) {
+                const npcsToUpdateMap = new Map(nextNpcs.map(n => [n.id, n]));
+                response.updatedNPCs.forEach(update => {
+                    const existingNpc = npcsToUpdateMap.get(update.id);
+                    if (existingNpc) {
+                        let modifiedNpc = { ...existingNpc };
+            
+                        if (update.isDead === true) {
+                            modifiedNpc.isDead = true;
+                            modifiedNpc.locationId = null;
+                            notifications.push(`💀 <b>${modifiedNpc.name}</b> đã tử vong.`);
+                        } else if (update.isDead === false && existingNpc.isDead) { // Revival logic
+                            modifiedNpc.isDead = false;
+                            const stats = calculateBaseStatsForLevel(modifiedNpc.level);
+                            modifiedNpc.health = stats.maxHealth;
+                            modifiedNpc.mana = stats.maxMana;
+                            notifications.push(`✨ <b>${modifiedNpc.name}</b> đã được hồi sinh!`);
+                        }
+                        
+                        if (!modifiedNpc.isDead) {
+                            if (update.breakthroughToRealm) {
+                                const oldRealm = modifiedNpc.realm;
+                                const targetLevel = getLevelFromRealmName(update.breakthroughToRealm, modifiedNpc.powerSystem, finalWorldSettings);
+                                if (targetLevel > modifiedNpc.level) {
+                                    modifiedNpc.level = targetLevel;
+                                    modifiedNpc.experience = 0;
+                                    
+                                    const newStats = calculateBaseStatsForLevel(targetLevel);
+                                    modifiedNpc.health = newStats.maxHealth;
+                                    modifiedNpc.mana = newStats.maxMana;
+                                    modifiedNpc.realm = getRealmDisplayName(targetLevel, modifiedNpc.powerSystem, finalWorldSettings);
+                                    
+                                    notifications.push(`⚡️ **ĐỘT PHÁ!** <b>${modifiedNpc.name}</b> đã đột phá từ <b>${oldRealm}</b> lên cảnh giới <b>${modifiedNpc.realm}</b>.`);
+                                }
+                            } else if (update.gainedExperience) {
+                                const oldLevel = modifiedNpc.level;
+                                const oldRealm = modifiedNpc.realm;
+                                modifiedNpc = processNpcLevelUps(modifiedNpc, update.gainedExperience, finalWorldSettings);
+                                if (modifiedNpc.level > oldLevel) {
+                                    notifications.push(`✨ <b>${modifiedNpc.name}</b> đã đạt đến <b>cấp độ ${modifiedNpc.level}</b>!`);
+                                    if (modifiedNpc.realm !== oldRealm) {
+                                        notifications.push(`⚡️ **ĐỘT PHÁ!** <b>${modifiedNpc.name}</b> đã tiến vào cảnh giới <b>${modifiedNpc.realm}</b>.`);
+                                    }
+                                }
+                            }
+            
+                            if (update.isDaoLu && !existingNpc.isDaoLu) {
+                                modifiedNpc.isDaoLu = true;
+                                modifiedNpc.relationship = 1000;
+                                notifications.push(`❤️ Bạn và <b>${modifiedNpc.name}</b> đã trở thành Đạo Lữ!`);
+                            } else if (existingNpc.isDaoLu) {
+                                modifiedNpc.relationship = 1000;
+                            } else if (update.relationship !== undefined && update.relationship !== existingNpc.relationship) {
+                                const oldRelationship = existingNpc.relationship;
+                                const newRelationshipFromAI = update.relationship;
+                                const change = newRelationshipFromAI - oldRelationship;
+                                const cappedChange = Math.max(-100, Math.min(100, change));
+                                const finalRelationship = oldRelationship + cappedChange;
+            
+                                modifiedNpc.relationship = finalRelationship;
+                                
+                                if (cappedChange !== 0) {
+                                    const changeText = cappedChange > 0 
+                                        ? `<span class='text-green-400'>tăng ${cappedChange}</span>` 
+                                        : `<span class='text-red-400'>giảm ${Math.abs(cappedChange)}</span>`;
+                                    notifications.push(`😊 Hảo cảm của <b>${modifiedNpc.name}</b> đã ${changeText} điểm (hiện tại: ${finalRelationship}).`);
+                                }
+                            }
+                            
+                            if (update.gender !== undefined && update.gender !== existingNpc.gender) {
+                                modifiedNpc.gender = update.gender;
+                                notifications.push(`🚻 Giới tính của <b>${modifiedNpc.name}</b> đã thay đổi thành <b>${update.gender === 'male' ? 'Nam' : 'Nữ'}</b>!`);
+                            }
+                            if (update.memories !== undefined) modifiedNpc.memories = update.memories;
+                            if (update.health !== undefined) modifiedNpc.health = update.health;
+                            if (update.mana !== undefined) modifiedNpc.mana = update.mana;
+                            if (update.personality !== undefined) modifiedNpc.personality = update.personality;
+                            if (update.description !== undefined) modifiedNpc.description = update.description;
+                            if (update.locationId !== undefined) modifiedNpc.locationId = update.locationId;
+                            if (update.aptitude !== undefined) modifiedNpc.aptitude = update.aptitude;
+                            if (update.updatedNpcRelationships !== undefined) modifiedNpc.npcRelationships = update.updatedNpcRelationships || [];
+            
+                            let currentStatusEffects = modifiedNpc.statusEffects;
+                            if (update.removedStatusEffects?.length) {
+                                const effectsToRemove = new Set(update.removedStatusEffects);
+                                const removedEffects = currentStatusEffects.filter(effect => effectsToRemove.has(effect.name));
+                                removedEffects.forEach(effect => {
+                                    notifications.push(`🍃 Trạng thái "<b>${effect.name}</b>" của <b>${modifiedNpc.name}</b> đã kết thúc.`);
+                                });
+                                currentStatusEffects = currentStatusEffects.filter(effect => !effectsToRemove.has(effect.name));
+                            }
+                            if (update.newStatusEffects?.length) {
+                                const existingEffectNames = new Set(currentStatusEffects.map(effect => effect.name));
+                                update.newStatusEffects.forEach(effect => {
+                                    if (!existingEffectNames.has(effect.name)) {
+                                        notifications.push(`✨ <b>${modifiedNpc.name}</b> nhận được trạng thái: <b>${effect.name}</b>.`);
+                                        currentStatusEffects.push(effect);
+                                        existingEffectNames.add(effect.name);
+                                    } else {
+                                        notifications.push(`ℹ️ <b>${modifiedNpc.name}</b> đã có trạng thái "<b>${effect.name}</b>", không thể nhận thêm.`);
+                                    }
+                                });
+                            }
+                            modifiedNpc.statusEffects = currentStatusEffects;
+                        }
+            
+                        npcsToUpdateMap.set(update.id, modifiedNpc);
+                    }
+                });
+                nextNpcs = Array.from(npcsToUpdateMap.values());
+            }
+
+            let newItems = [...nextProfile.items];
+            if (response.removedItemIds) {
+                const idsToRemove = new Set(response.removedItemIds);
+                newItems = newItems.filter(item => !idsToRemove.has(item.id));
+            }
+            if (response.updatedItems) {
+                response.updatedItems.forEach(update => {
+                    const itemIndex = newItems.findIndex(i => i.name === update.name);
+                    if (itemIndex > -1) {
+                        newItems[itemIndex].quantity = update.quantity;
+                    }
+                });
+                newItems = newItems.filter(item => item.quantity > 0);
+            }
+            if (response.newItems) {
+                response.newItems.forEach(newItem => {
+                    const existingItemIndex = newItems.findIndex(i => i.name === newItem.name);
+                    const isEquipment = newItem.type === ItemType.TRANG_BI || newItem.type === ItemType.DAC_THU;
+                    if (existingItemIndex > -1 && !isEquipment) {
+                        newItems[existingItemIndex].quantity += newItem.quantity;
+                        newItems[existingItemIndex].isNew = true;
+                    } else {
+                        newItems.push({ ...newItem, isNew: true });
+                    }
+                });
+            }
+            nextProfile.items = newItems;
+
+            if (response.newItems) {
+                const existingDiscovered = nextProfile.discoveredItems || [];
+                const discoveredNames = new Set(existingDiscovered.map(i => i.name));
+                
+                const newlyDiscovered = response.newItems
+                    .filter(newItem => !discoveredNames.has(newItem.name))
+                    .map(newItem => ({ ...newItem, isNew: true }));
+
+                if (newlyDiscovered.length > 0) {
+                    nextProfile.discoveredItems = [...existingDiscovered, ...newlyDiscovered];
+                }
+            }
+
+            if (response.newSkills?.length) {
+                const newlyAcquiredSkills: Skill[] = response.newSkills.map((newSkillPart, index) => ({
+                    ...newSkillPart,
+                    id: `${Date.now()}-${index}`,
+                    level: 1,
+                    experience: 0,
+                    isNew: true,
+                }));
+                nextProfile.skills = [...nextProfile.skills, ...newlyAcquiredSkills];
+            }
+
+            if (response.newLocations?.length) {
+                const existingLocationIds = new Set(nextProfile.discoveredLocations.map(l => l.id));
+                const uniqueNewLocations = response.newLocations
+                    .filter(l => !existingLocationIds.has(l.id))
+                    .map(l => ({ 
+                        ...(l.ownerId === 'player' ? { ...l, ownerId: nextProfile.id } : l),
+                        isNew: true
+                    }));
+
+                uniqueNewLocations.forEach(newLoc => {
+                    if (newLoc.ownerId === nextProfile.id) {
+                        notifications.push(`👑 Bây giờ bạn là chủ sở hữu của <b>${newLoc.name}</b>.`);
+                    }
+                });
+
+                nextProfile.discoveredLocations = [...nextProfile.discoveredLocations, ...uniqueNewLocations];
+            }
+            
+            if (response.updatedLocations?.length) {
+                const updatedLocationsWithPlayerId = response.updatedLocations.map(l =>
+                    l.ownerId === 'player' ? { ...l, ownerId: nextProfile.id } : l
+                );
+                const updatedLocationsMap = new Map(updatedLocationsWithPlayerId.map(l => [l.id, l]));
+
+                nextProfile.discoveredLocations.forEach(oldLoc => {
+                    const updatedData = updatedLocationsMap.get(oldLoc.id);
+                    if (updatedData && updatedData.ownerId === nextProfile.id && oldLoc.ownerId !== nextProfile.id) {
+                        notifications.push(`👑 Bây giờ bạn là chủ sở hữu của <b>${updatedData.name}</b>.`);
+                    }
+                });
+
+                nextProfile.discoveredLocations = nextProfile.discoveredLocations.map(loc => {
+                    const updatedData = updatedLocationsMap.get(loc.id);
+                    if (updatedData) {
+                        return { ...loc, ...updatedData, isNew: loc.isNew };
+                    }
+                    return loc;
+                });
+            }
+        
+            if (response.updatedStats) {
+                const stats = response.updatedStats;
+                nextProfile.health = stats.health ?? nextProfile.health;
+                nextProfile.mana = stats.mana ?? nextProfile.mana;
+                nextProfile.currencyAmount = stats.currencyAmount ?? nextProfile.currencyAmount;
+        
+                let currentStatusEffects = nextProfile.statusEffects.filter(e => e.duration !== 'Trang bị');
+                if (stats.removedStatusEffects?.length) {
+                    const effectsToRemove = new Set(stats.removedStatusEffects);
+                    const removedEffects = currentStatusEffects.filter(effect => effectsToRemove.has(effect.name));
+                    removedEffects.forEach(effect => {
+                        notifications.push(`🍃 Trạng thái "<b>${effect.name}</b>" của bạn đã kết thúc.`);
+                    });
+                    currentStatusEffects = currentStatusEffects.filter(effect => !effectsToRemove.has(effect.name));
+                }
+                if (stats.newStatusEffects?.length) {
+                    const existingEffectNames = new Set(currentStatusEffects.map(effect => effect.name));
+                    stats.newStatusEffects.forEach(effect => {
+                        if (!existingEffectNames.has(effect.name)) {
+                            notifications.push(`✨ Bạn nhận được trạng thái: <b>${effect.name}</b>.`);
+                            currentStatusEffects.push(effect);
+                            existingEffectNames.add(effect.name);
+                        } else {
+                            notifications.push(`ℹ️ Bạn đã có trạng thái "<b>${effect.name}</b>", không thể nhận thêm.`);
+                        }
+                    });
+                }
+                nextProfile.statusEffects = currentStatusEffects;
+            }
+
+            let gainedXp = response.updatedStats?.gainedExperience ?? 0;
+            const breakthroughRealm = response.updatedStats?.breakthroughToRealm;
+        
+            if (breakthroughRealm) {
+                const targetLevel = getLevelFromRealmName(breakthroughRealm, nextProfile.powerSystem, finalWorldSettings);
+                if (targetLevel > nextProfile.level) {
+                     const xpForBreakthrough = calculateExperienceForBreakthrough(
+                        nextProfile.level,
+                        nextProfile.experience,
+                        targetLevel
+                    );
+                    gainedXp += xpForBreakthrough;
+                    notifications.push(`✨ **ĐỘT PHÁ THẦN TỐC!** Vận may ập đến, bạn nhận được một lượng lớn kinh nghiệm để đạt đến <b>${breakthroughRealm}</b>.`);
+                }
+            }
+            
+            if (gainedXp > 0) {
+                if ((response.updatedStats?.gainedExperience ?? 0) > 0 && !breakthroughRealm) {
+                    notifications.push(`Bạn nhận được <b>${gainedXp.toLocaleString()} EXP</b>.`);
+                }
+                const oldLevel = nextProfile.level;
+                const oldRealm = nextProfile.realm;
+                nextProfile = processLevelUps(nextProfile, gainedXp, finalWorldSettings);
+                if (nextProfile.level > oldLevel) {
+                    notifications.push(`🎉 Chúc mừng! Bạn đã đạt đến <b>cấp độ ${nextProfile.level}</b>.`);
+                    if (nextProfile.realm !== oldRealm) {
+                         notifications.push(`⚡️ Đột phá! Bạn đã tiến vào cảnh giới <b>${nextProfile.realm}</b>.`);
+                    }
+                }
+            } else {
+                nextProfile = recalculateDerivedStats(nextProfile);
+            }
+
+            if (response.updatedGender && response.updatedGender !== nextProfile.gender) {
+                nextProfile.gender = response.updatedGender;
+                notifications.push(`🚻 Giới tính của bạn đã thay đổi thành <b>${response.updatedGender === 'male' ? 'Nam' : 'Nữ'}</b>!`);
+            }
+
+            if (response.updatedPlayerLocationId !== undefined) {
+                nextProfile.currentLocationId = response.updatedPlayerLocationId;
+            }
+
+            const oldDate = new Date(nextProfile.gameTime);
+            let newDate: Date | null = null;
+            
+            if (response.updatedGameTime) {
+                newDate = new Date(response.updatedGameTime);
+                const timeDiffMs = newDate.getTime() - oldDate.getTime();
+
+                if (timeDiffMs > 0) {
+                    const minutesPassed = timeDiffMs / (1000 * 60);
+                    const daysPassed = minutesPassed / (60 * 24);
+                    const yearsPassed = daysPassed / 365.25;
+
+                    let timeString = '';
+                    if (yearsPassed >= 1) {
+                        timeString = `<b>${Math.floor(yearsPassed)} năm</b> đã trôi qua.`;
+                    } else if (daysPassed >= 1) {
+                        timeString = `<b>${Math.floor(daysPassed)} ngày</b> đã trôi qua.`;
+                    } else {
+                        const hours = Math.floor(minutesPassed / 60);
+                        const minutes = Math.round(minutesPassed % 60);
+                        let durationStr = '';
+                        if (hours > 0) durationStr += `${hours} giờ `;
+                        if (minutes > 0) durationStr += `${minutes} phút`;
+                        timeString = `<b>${durationStr.trim()}</b> đã trôi qua.`;
+                    }
+                    notifications.push(`⏳ ${timeString}`);
+                }
+            } else if (choice.durationInMinutes > 0) {
+                newDate = new Date(oldDate.getTime() + choice.durationInMinutes * 60 * 1000);
+                
+                const hours = Math.floor(choice.durationInMinutes / 60);
+                const minutes = choice.durationInMinutes % 60;
+                let timeString = '';
+                if (hours > 0) timeString += `${hours} giờ `;
+                if (minutes > 0) timeString += `${minutes} phút`;
+                notifications.push(`⏳ Thời gian đã trôi qua: <b>${timeString.trim()}</b>.`);
+            }
+
+            if (newDate) {
+                const yearsPassed = newDate.getFullYear() - oldDate.getFullYear();
+                if (yearsPassed > 0) {
+                    nextProfile.lifespan -= yearsPassed;
+                }
+                nextProfile.gameTime = newDate.toISOString();
+            }
+
+            nextProfile = updateStatusEffectDurations(nextProfile);
+            nextNpcs = nextNpcs.map(npc => updateStatusEffectDurations(npc));
+
+            const newStoryPart: StoryPart = {
+                id: Date.now() + 1,
+                type: 'story',
+                text: response.story,
+                notifications,
+            };
+
+            const newTurnNumber = (gameLog[gameLog.length - 1]?.turnNumber || 0) + 1;
+            const newSnapshot: GameSnapshot = {
+                turnNumber: newTurnNumber,
+                preActionState,
+                turnContent: {
+                    playerAction: newActionPart,
+                    storyResult: newStoryPart,
+                },
+            };
+            
+            const finalHistory = [...history, newActionPart, newStoryPart];
+            const finalChoices = response.choices;
+            
+            let logWithNewTurn = [...gameLog, newSnapshot];
+            const maxRewindableTurns = 10;
+            
+            const finalGameLog = logWithNewTurn.map((snapshot, index, arr) => {
+                if (arr.length > maxRewindableTurns && index < arr.length - maxRewindableTurns) {
+                    const { preActionState, ...prunedSnapshot } = snapshot;
+                    return prunedSnapshot as GameSnapshot;
+                }
+                return snapshot;
+            });
+
+            setGameLog(finalGameLog);
+            setHistory(finalHistory);
+            setChoices(finalChoices);
+            setCharacterProfile(nextProfile);
+            setNpcs(nextNpcs);
+            setWorldSettings(finalWorldSettings);
+
+        } catch (e: any) {
+            const errorMessage = `Lỗi khi tạo bước tiếp theo của câu chuyện: ${e.message}`;
+            setToastError(errorMessage);
+            // Restore previous state
+            setChoices(preActionState.choices);
+            if (choice.isCustom) {
+                setLastFailedCustomAction(choice.title);
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    }, [characterProfile, worldSettings, npcs, history, gameLog, settings, api, apiKeyForService]);
+    
+    const handleUseItem = useCallback((item: Item) => {
+        log('useGameLogic.ts', `Player uses item: "${item.name}"`, 'FUNCTION');
+        
+        const useChoice: Choice = {
+            title: `Sử dụng 1 vật phẩm "${item.name}" (ID: ${item.id}).`,
+            benefit: item.effectsDescription || 'Chưa rõ',
+            risk: 'Có thể có tác dụng phụ',
+            successChance: 95,
+            durationInMinutes: 0,
+        };
+        
+        handleAction(useChoice);
+    }, [handleAction]);
+
+    useEffect(() => {
+        if (history.length === 0) {
+            setDisplayHistory([]);
+        } else if (history.length === 1) {
+            setDisplayHistory([history[0]]);
+        } else {
+            setDisplayHistory(history.slice(-2));
+        }
+    }, [history]);
+
+    const handleSave = useCallback(async () => {
+        if (!characterProfile || !worldSettings) {
+            log('useGameLogic.ts', 'Save aborted: profile or world settings are null.', 'ERROR');
+            return;
+        }
+        log('useGameLogic.ts', 'Saving game...', 'FUNCTION');
+        setIsLoading(true);
+        try {
+            await saveService.saveGame(
+                characterProfile,
+                worldSettings,
+                npcs,
+                history,
+                choices,
+                gameLog
+            );
+            log('useGameLogic.ts', 'Game saved successfully.', 'INFO');
+            setToastError('Đã lưu game thành công!');
+        } catch(e) {
+            setToastError(`Lỗi khi lưu game: ${(e as Error).message}`);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [characterProfile, worldSettings, npcs, history, choices, gameLog]);
+
+    const loadState = useCallback((state: {
+        characterProfile: CharacterProfile;
+        worldSettings: WorldSettings;
+        npcs: NPC[];
+        history: StoryPart[];
+        choices: Choice[];
+        gameLog: GameSnapshot[];
+    }) => {
+        setCharacterProfile(state.characterProfile);
+        setWorldSettings(state.worldSettings);
+        setNpcs(state.npcs);
+        setHistory(state.history);
+        setChoices(state.choices);
+        setGameLog(state.gameLog);
+    }, []);
+
+    const handleRewind = useCallback((turnNumber: number) => {
+        log('useGameLogic.ts', `Rewinding to turn ${turnNumber}`, 'FUNCTION');
+        const snapshot = gameLog.find(s => s.turnNumber === turnNumber);
+        if (snapshot && snapshot.preActionState) {
+            const stateToLoad = {
+                ...snapshot.preActionState,
+                gameLog: gameLog.filter(s => s.turnNumber < turnNumber)
+            };
+            loadState(stateToLoad);
+            log('useGameLogic.ts', 'Rewind successful.', 'INFO');
+        } else {
+            log('useGameLogic.ts', `Rewind failed for turn ${turnNumber}: No rewind data found.`, 'ERROR');
+        }
+    }, [gameLog, loadState]);
+
+    const handleContinue = async () => {
+        log('useGameLogic.ts', 'Continuing last game.', 'FUNCTION');
+        setIsLoading(true);
+        try {
+            const saves = await saveService.getAllSavesMetadata();
+            if (saves.length > 0) {
+                const lastSave = await saveService.getGame(saves[0].id);
+                if (lastSave) {
+                    handleLoadGame(lastSave);
+                } else {
+                     setError("Không thể tải bản lưu cuối cùng.");
+                     setGameState(GameState.ERROR);
+                }
+            }
+        } catch(e) {
+            setError(`Không thể tải bản lưu: ${(e as Error).message}`);
+            setGameState(GameState.ERROR);
+        }
+    };
+    
+    const handleRestart = useCallback(() => {
+        log('useGameLogic.ts', 'Restarting game.', 'FUNCTION');
+        setCharacterProfile(null);
+        setWorldSettings(null);
+        setHistory([]);
+        setDisplayHistory([]);
+        setChoices([]);
+        setNpcs([]);
+        setGameLog([]);
+        setError(null);
+        setToastError(null);
+        setLastFailedCustomAction(null);
+        setGameState(GameState.HOME);
+    }, []);
+    
+    const handleLoadGame = useCallback((saveData: FullGameState) => {
+        log('useGameLogic.ts', `Loading game: ${saveData.name}`, 'FUNCTION');
+        loadState(saveData);
+        setGameState(GameState.PLAYING);
+        setIsLoading(false);
+    }, [loadState]);
+    
+    const handleGoHome = useCallback(() => {
+        log('useGameLogic.ts', 'Going back to home screen.', 'FUNCTION');
+        handleSave();
+        handleRestart();
+    }, [handleSave, handleRestart]);
+
+    const saveSettings = useCallback((newSettings: AppSettings) => {
+        log('useGameLogic.ts', 'Saving settings.', 'FUNCTION');
+        setSettings(newSettings);
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings));
+    }, []);
+
+    const handleStartGame = useCallback(async (profile: CharacterProfile, worldSettings: WorldSettings) => {
+        log('useGameLogic.ts', 'Starting new game.', 'FUNCTION');
+        setIsLoading(true);
+        setError(null);
+    
+        const newProfile: CharacterProfile = {
+            ...profile,
+            id: `char_${Date.now()}`,
+            items: profile.initialItems || [],
+            currentLocationId: profile.initialLocations?.[0]?.id || null,
+            discoveredLocations: profile.initialLocations || [],
+            discoveredMonsters: profile.initialMonsters || [],
+            discoveredItems: profile.initialItems || [],
+            gameTime: new Date().toISOString(),
+        };
+        
+        // Calculate and set initial stats based on starting level
+        const initialStats = calculateBaseStatsForLevel(newProfile.level);
+        newProfile.baseMaxHealth = initialStats.maxHealth;
+        newProfile.baseMaxMana = initialStats.maxMana;
+        newProfile.baseAttack = initialStats.attack;
+        newProfile.lifespan = initialStats.lifespan;
+        // Set current health/mana to max for a new character
+        newProfile.health = initialStats.maxHealth;
+        newProfile.mana = initialStats.maxMana;
+
+        const newWorldSettings = { ...worldSettings };
+        
+        const finalProfile = processLevelUps(newProfile, 0, newWorldSettings);
+    
+        const initialNpcs: NPC[] = (finalProfile.initialNpcs || []).map((newNpcData: NewNPCFromAI) => {
+             const isValidPowerSystem = newWorldSettings.powerSystems.some(ps => ps.name === newNpcData.powerSystem);
+             const npcPowerSystem = isValidPowerSystem ? newNpcData.powerSystem : (newWorldSettings.powerSystems[0]?.name || '');
+             const stats = calculateBaseStatsForLevel(newNpcData.level);
+             return {
+                ...newNpcData,
+                powerSystem: npcPowerSystem,
+                experience: 0,
+                health: stats.maxHealth,
+                mana: stats.maxMana,
+                realm: getRealmDisplayName(newNpcData.level, npcPowerSystem, newWorldSettings),
+                relationship: 0,
+                memories: [],
+                npcRelationships: newNpcData.npcRelationships || [],
+                isDaoLu: false,
+             };
+        });
+        
+        setCharacterProfile(finalProfile);
+        setWorldSettings(newWorldSettings);
+        setNpcs(initialNpcs);
+    
+        try {
+            const { storyResponse, usageMetadata } = await api.getInitialStory(finalProfile, newWorldSettings, settings.isMature, settings.perspective, apiKeyForService);
+            
+            const notifications: string[] = [];
+            if (usageMetadata?.totalTokenCount) {
+                notifications.push(`✨ Đã sử dụng <b>${usageMetadata.totalTokenCount.toLocaleString()} tokens</b> cho lượt này.`);
+            }
+            
+            const initialStoryPart: StoryPart = { id: Date.now(), type: 'story', text: storyResponse.story, notifications };
+            
+            const preActionState = {
+                characterProfile: finalProfile,
+                worldSettings: newWorldSettings,
+                npcs: initialNpcs,
+                history: [],
+                choices: [],
+            };
+
+            const firstSnapshot: GameSnapshot = {
+                turnNumber: 1,
+                preActionState,
+                turnContent: {
+                    storyResult: initialStoryPart,
+                },
+            };
+            
+            const initialHistory = [initialStoryPart];
+            const initialChoices = storyResponse.choices;
+            const initialGameLog: GameSnapshot[] = [firstSnapshot];
+    
+            setHistory(initialHistory);
+            setChoices(initialChoices);
+            setGameLog(initialGameLog);
+            
+            await saveService.saveGame(
+                finalProfile,
+                newWorldSettings,
+                initialNpcs,
+                initialHistory,
+                initialChoices,
+                initialGameLog
+            );
+    
+            setGameState(GameState.PLAYING);
+        } catch (e: any) {
+            setError(`Lỗi khi bắt đầu câu chuyện: ${e.message}`);
+            setGameState(GameState.ERROR);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [api, apiKeyForService, settings.isMature, settings.perspective]);
+
+    return {
+        gameState, setGameState, hasSaves, characterProfile, setCharacterProfile, worldSettings, setWorldSettings, history, displayHistory, npcs, setNpcs, choices, gameLog, isLoading, error, settings, toastError, clearToastError, lastFailedCustomAction,
+        handleAction, handleContinue, handleGoHome, handleLoadGame, handleRestart, saveSettings, handleStartGame, handleUpdateLocation, handleUpdateWorldSettings, handleRewind, handleSave, handleUseItem
+    };
+};
