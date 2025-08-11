@@ -91,8 +91,12 @@ export const useGameLogic = () => {
     const [choices, setChoices] = useState<Choice[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [toastError, setToastError] = useState<string | null>(null);
+    const [lastFailedCustomAction, setLastFailedCustomAction] = useState<string | null>(null);
     const [npcs, setNpcs] = useState<NPC[]>([]);
     const [gameLog, setGameLog] = useState<GameSnapshot[]>([]);
+
+    const clearToastError = useCallback(() => setToastError(null), []);
 
     useEffect(() => {
         log('useGameLogic.ts', `Game state changed to: ${GameState[gameState]}`, 'STATE');
@@ -137,6 +141,8 @@ export const useGameLogic = () => {
 
         setIsLoading(true);
         setError(null);
+        setToastError(null);
+        setLastFailedCustomAction(null);
 
         const preActionState = { characterProfile, worldSettings, npcs, history, choices };
 
@@ -179,15 +185,6 @@ export const useGameLogic = () => {
 
             if (usageMetadata?.totalTokenCount) {
                 notifications.push(`✨ Đã sử dụng <b>${usageMetadata.totalTokenCount.toLocaleString()} tokens</b> cho lượt này.`);
-            }
-            
-            if (choice.durationInMinutes > 0) {
-                 const hours = Math.floor(choice.durationInMinutes / 60);
-                 const minutes = choice.durationInMinutes % 60;
-                 let timeString = '';
-                 if (hours > 0) timeString += `${hours} giờ `;
-                 if (minutes > 0) timeString += `${minutes} phút`;
-                 notifications.push(`⏳ Thời gian đã trôi qua: <b>${timeString.trim()}</b>.`);
             }
             
             if (response.updatedSkills?.length) {
@@ -618,11 +615,45 @@ export const useGameLogic = () => {
                 nextProfile.currentLocationId = response.updatedPlayerLocationId;
             }
 
-            const timePassedInMinutes = choice.durationInMinutes;
-            if (timePassedInMinutes > 0) {
-                const oldDate = new Date(nextProfile.gameTime);
-                const newDate = new Date(oldDate.getTime() + timePassedInMinutes * 60 * 1000);
+            const oldDate = new Date(nextProfile.gameTime);
+            let newDate: Date | null = null;
+            
+            if (response.updatedGameTime) {
+                newDate = new Date(response.updatedGameTime);
+                const timeDiffMs = newDate.getTime() - oldDate.getTime();
+
+                if (timeDiffMs > 0) {
+                    const minutesPassed = timeDiffMs / (1000 * 60);
+                    const daysPassed = minutesPassed / (60 * 24);
+                    const yearsPassed = daysPassed / 365.25;
+
+                    let timeString = '';
+                    if (yearsPassed >= 1) {
+                        timeString = `<b>${Math.floor(yearsPassed)} năm</b> đã trôi qua.`;
+                    } else if (daysPassed >= 1) {
+                        timeString = `<b>${Math.floor(daysPassed)} ngày</b> đã trôi qua.`;
+                    } else {
+                        const hours = Math.floor(minutesPassed / 60);
+                        const minutes = Math.round(minutesPassed % 60);
+                        let durationStr = '';
+                        if (hours > 0) durationStr += `${hours} giờ `;
+                        if (minutes > 0) durationStr += `${minutes} phút`;
+                        timeString = `<b>${durationStr.trim()}</b> đã trôi qua.`;
+                    }
+                    notifications.push(`⏳ ${timeString}`);
+                }
+            } else if (choice.durationInMinutes > 0) {
+                newDate = new Date(oldDate.getTime() + choice.durationInMinutes * 60 * 1000);
                 
+                const hours = Math.floor(choice.durationInMinutes / 60);
+                const minutes = choice.durationInMinutes % 60;
+                let timeString = '';
+                if (hours > 0) timeString += `${hours} giờ `;
+                if (minutes > 0) timeString += `${minutes} phút`;
+                notifications.push(`⏳ Thời gian đã trôi qua: <b>${timeString.trim()}</b>.`);
+            }
+
+            if (newDate) {
                 const yearsPassed = newDate.getFullYear() - oldDate.getFullYear();
                 if (yearsPassed > 0) {
                     nextProfile.lifespan -= yearsPassed;
@@ -652,7 +683,17 @@ export const useGameLogic = () => {
             
             const finalHistory = [...history, newActionPart, newStoryPart];
             const finalChoices = response.choices;
-            const finalGameLog = [...gameLog, newSnapshot];
+            
+            let logWithNewTurn = [...gameLog, newSnapshot];
+            const maxRewindableTurns = 10;
+            
+            const finalGameLog = logWithNewTurn.map((snapshot, index, arr) => {
+                if (arr.length > maxRewindableTurns && index < arr.length - maxRewindableTurns) {
+                    const { preActionState, ...prunedSnapshot } = snapshot;
+                    return prunedSnapshot as GameSnapshot;
+                }
+                return snapshot;
+            });
 
             setGameLog(finalGameLog);
             setHistory(finalHistory);
@@ -662,12 +703,17 @@ export const useGameLogic = () => {
             setWorldSettings(finalWorldSettings);
 
         } catch (e: any) {
-            setError(`Lỗi khi tạo bước tiếp theo của câu chuyện: ${e.message}`);
-            setGameState(GameState.ERROR);
+            const errorMessage = `Lỗi khi tạo bước tiếp theo của câu chuyện: ${e.message}`;
+            setToastError(errorMessage);
+            // Restore previous state
+            setChoices(preActionState.choices);
+            if (choice.isCustom) {
+                setLastFailedCustomAction(choice.title);
+            }
         } finally {
             setIsLoading(false);
         }
-    }, [characterProfile, worldSettings, npcs, history, gameLog, settings, api, apiKeyForService, choices]);
+    }, [characterProfile, worldSettings, npcs, history, gameLog, settings, api, apiKeyForService]);
     
     const handleUseItem = useCallback((item: Item) => {
         log('useGameLogic.ts', `Player uses item: "${item.name}"`, 'FUNCTION');
@@ -710,8 +756,9 @@ export const useGameLogic = () => {
                 gameLog
             );
             log('useGameLogic.ts', 'Game saved successfully.', 'INFO');
+            setToastError('Đã lưu game thành công!');
         } catch(e) {
-            setError(`Lỗi khi lưu game: ${(e as Error).message}`);
+            setToastError(`Lỗi khi lưu game: ${(e as Error).message}`);
         } finally {
             setIsLoading(false);
         }
@@ -736,13 +783,15 @@ export const useGameLogic = () => {
     const handleRewind = useCallback((turnNumber: number) => {
         log('useGameLogic.ts', `Rewinding to turn ${turnNumber}`, 'FUNCTION');
         const snapshot = gameLog.find(s => s.turnNumber === turnNumber);
-        if (snapshot) {
+        if (snapshot && snapshot.preActionState) {
             const stateToLoad = {
                 ...snapshot.preActionState,
                 gameLog: gameLog.filter(s => s.turnNumber < turnNumber)
             };
             loadState(stateToLoad);
             log('useGameLogic.ts', 'Rewind successful.', 'INFO');
+        } else {
+            log('useGameLogic.ts', `Rewind failed for turn ${turnNumber}: No rewind data found.`, 'ERROR');
         }
     }, [gameLog, loadState]);
 
@@ -776,6 +825,8 @@ export const useGameLogic = () => {
         setNpcs([]);
         setGameLog([]);
         setError(null);
+        setToastError(null);
+        setLastFailedCustomAction(null);
         setGameState(GameState.HOME);
     }, []);
     
@@ -813,6 +864,17 @@ export const useGameLogic = () => {
             discoveredItems: profile.initialItems || [],
             gameTime: new Date().toISOString(),
         };
+        
+        // Calculate and set initial stats based on starting level
+        const initialStats = calculateBaseStatsForLevel(newProfile.level);
+        newProfile.baseMaxHealth = initialStats.maxHealth;
+        newProfile.baseMaxMana = initialStats.maxMana;
+        newProfile.baseAttack = initialStats.attack;
+        newProfile.lifespan = initialStats.lifespan;
+        // Set current health/mana to max for a new character
+        newProfile.health = initialStats.maxHealth;
+        newProfile.mana = initialStats.maxMana;
+
         const newWorldSettings = { ...worldSettings };
         
         const finalProfile = processLevelUps(newProfile, 0, newWorldSettings);
@@ -889,7 +951,7 @@ export const useGameLogic = () => {
     }, [api, apiKeyForService, settings.isMature, settings.perspective]);
 
     return {
-        gameState, setGameState, hasSaves, characterProfile, setCharacterProfile, worldSettings, setWorldSettings, history, displayHistory, npcs, setNpcs, choices, gameLog, isLoading, error, settings,
+        gameState, setGameState, hasSaves, characterProfile, setCharacterProfile, worldSettings, setWorldSettings, history, displayHistory, npcs, setNpcs, choices, gameLog, isLoading, error, settings, toastError, clearToastError, lastFailedCustomAction,
         handleAction, handleContinue, handleGoHome, handleLoadGame, handleRestart, saveSettings, handleStartGame, handleUpdateLocation, handleUpdateWorldSettings, handleRewind, handleSave, handleUseItem
     };
 };

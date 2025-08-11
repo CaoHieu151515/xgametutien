@@ -1,5 +1,4 @@
-
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { GameSnapshot } from '../../types';
 import { RewindIcon } from '../ui/Icons';
 
@@ -44,19 +43,12 @@ interface GameLogModalProps {
 }
 
 export const GameLogModal: React.FC<GameLogModalProps> = ({ isOpen, onClose, log, onRewind }) => {
-    const endOfLogRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        if (isOpen) {
-            endOfLogRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }
-    }, [isOpen, log]);
 
     if (!isOpen) {
         return null;
     }
 
-    const lastTurnNumber = log.length > 0 ? log[log.length - 1].turnNumber : 0;
+    const reversedLog = [...log].reverse();
 
     return (
         <div 
@@ -82,16 +74,16 @@ export const GameLogModal: React.FC<GameLogModalProps> = ({ isOpen, onClose, log
                 
                 {/* Content */}
                 <div className="flex-grow p-6 overflow-y-auto custom-scrollbar space-y-4">
-                    {log.length > 0 ? (
-                        log.map((snapshot) => (
+                    {reversedLog.length > 0 ? (
+                        reversedLog.map((snapshot) => (
                             <LogEntry
                                 key={snapshot.turnNumber}
                                 snapshot={snapshot}
-                                onRewind={onRewind}
-                                isRewindable={
-                                    snapshot.turnNumber > 1 &&
-                                    snapshot.turnNumber >= lastTurnNumber - 9
-                                }
+                                onRewind={(turnNumber) => {
+                                    onRewind(turnNumber);
+                                    onClose();
+                                }}
+                                isRewindable={!!snapshot.preActionState && snapshot.turnNumber > 1}
                             />
                         ))
                     ) : (
@@ -100,7 +92,6 @@ export const GameLogModal: React.FC<GameLogModalProps> = ({ isOpen, onClose, log
                             <p>Hãy bắt đầu hành động để viết nên câu chuyện của bạn!</p>
                         </div>
                     )}
-                    <div ref={endOfLogRef} />
                 </div>
             </div>
         </div>

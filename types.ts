@@ -1,4 +1,5 @@
 
+
 export interface StoryPart {
   id: number;
   type: 'story' | 'action';
@@ -13,6 +14,7 @@ export interface Choice {
   risk: string;
   successChance: number;
   durationInMinutes: number;
+  isCustom?: boolean; // Add this line
 }
 
 export interface StatusEffect {
@@ -172,6 +174,7 @@ export interface StoryResponse {
     newStatusEffects?: StatusEffect[];
     removedStatusEffects?: string[]; // Mảng tên các trạng thái cần xóa
   }>;
+  updatedGameTime?: string; // ISO 8601 string for major time skips
   updatedGender?: CharacterGender;
   updatedSkills?: SkillUpdate[];
   newSkills?: Skill[]; // AI sẽ cung cấp dữ liệu một phần, ứng dụng sẽ hoàn thiện nó.
@@ -384,7 +387,7 @@ export interface AppSettings {
 export interface GameSnapshot {
   turnNumber: number;
   // State at the START of this turn (for rewind)
-  preActionState: {
+  preActionState?: {
       characterProfile: CharacterProfile;
       worldSettings: WorldSettings;
       npcs: NPC[];

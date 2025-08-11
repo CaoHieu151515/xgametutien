@@ -18,6 +18,7 @@ interface AppContentProps {
     isLoading: boolean;
     error: string | null;
     settings: AppSettings;
+    lastFailedCustomAction: string | null;
     handleAction: (choice: Choice) => void;
     handleContinue: () => void;
     handleGoHome: () => void;
@@ -59,6 +60,7 @@ export const AppContent: React.FC<AppContentProps> = (props) => {
                             displayHistory={props.displayHistory}
                             npcs={props.npcs}
                             choices={props.choices}
+                            lastFailedCustomAction={props.lastFailedCustomAction}
                             handleAction={props.handleAction}
                             handleGoHome={props.handleGoHome}
                             handleSave={props.handleSave}

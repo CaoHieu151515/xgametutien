@@ -19,6 +19,7 @@ interface GameScreenProps {
     displayHistory: StoryPart[];
     npcs: NPC[];
     choices: Choice[];
+    lastFailedCustomAction: string | null;
     handleAction: (choice: Choice) => void;
     handleGoHome: () => void;
     handleSave: () => void;
@@ -79,6 +80,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     displayHistory,
     npcs,
     choices,
+    lastFailedCustomAction,
     handleAction,
     handleGoHome,
     handleSave,
@@ -168,7 +170,11 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                     ))}
                 </div>
                 <div className="mt-3 pt-3 border-t border-slate-700/50">
-                    <CustomInput onSubmit={(text) => handleAction({ title: text, benefit: 'Không xác định', risk: 'Không xác định', successChance: 50, durationInMinutes: 10 })} disabled={isLoading} />
+                    <CustomInput 
+                        onSubmit={(text) => handleAction({ title: text, benefit: 'Không xác định', risk: 'Không xác định', successChance: 50, durationInMinutes: 10, isCustom: true })} 
+                        disabled={isLoading}
+                        initialValue={lastFailedCustomAction}
+                    />
                 </div>
             </div>
         </div>

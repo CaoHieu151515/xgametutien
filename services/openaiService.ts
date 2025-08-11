@@ -20,6 +20,7 @@ const getJsonSchemaDescription = (forWorldGen: boolean): string => {
             - "breakthroughToRealm": (optional string) The NEW realm name the character breaks through to. The system will auto-calculate XP. Omit gainedExperience if used.
             - "newStatusEffects": (optional array of objects) Each object: {"name": string, "description": string, "duration": string}.
             - "removedStatusEffects": (optional array of strings) Names of effects to remove.
+        "updatedGameTime": (optional string) An ISO 8601 string for the new game time. Use ONLY for significant time skips (e.g., 'cultivate for 100 years', 'wait until the child is born'). This overrides 'durationInMinutes' from the choice. Omit for short actions.
         "updatedGender": (optional string 'male' or 'female') The player's new gender if it changed.
         "newSkills": (optional array of objects) For newly learned skills. Each object: {"name": string, "type": string (from SkillType enum), "quality": string, "description": string, "effect": string}.
         "updatedSkills": (optional array of objects) For existing skills that gained XP. Each object: {"skillName": string, "gainedExperience": number}.

@@ -502,6 +502,11 @@ const responseSchema = {
             items: choiceSchema
         },
         updatedStats: updatedStatsSchema,
+        updatedGameTime: {
+            type: Type.STRING,
+            description: "Một chuỗi ISO 8601 cho thời gian mới trong game, chỉ sử dụng cho các bước nhảy thời gian dài hoặc không xác định (ví dụ: 'tu luyện trăm năm', 'chờ đến khi con sinh ra'). Bỏ qua trường này cho các hành động ngắn. Nếu được cung cấp, nó sẽ ghi đè 'durationInMinutes' từ lựa chọn.",
+            nullable: true,
+        },
         updatedGender: { type: Type.STRING, enum: Object.values(CharacterGender), description: "Giới tính mới của nhân vật chính nếu có sự thay đổi.", nullable: true },
         newSkills: {
             type: Type.ARRAY,

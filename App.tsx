@@ -13,12 +13,13 @@ import { useComponentLog } from './hooks/useComponentLog';
 import { useGameLogic } from './hooks/useGameLogic';
 import { useModalManager } from './hooks/useModalManager';
 import { AppContent } from './components/AppContent';
+import { Toast } from './components/Toast';
 
 const App: React.FC = () => {
     useComponentLog('App.tsx');
     
     const {
-        gameState, setGameState, hasSaves, characterProfile, setCharacterProfile, worldSettings, displayHistory, npcs, setNpcs, choices, gameLog, isLoading, error, settings,
+        gameState, setGameState, hasSaves, characterProfile, setCharacterProfile, worldSettings, displayHistory, npcs, setNpcs, choices, gameLog, isLoading, error, settings, toastError, clearToastError, lastFailedCustomAction,
         handleAction, handleContinue, handleGoHome, handleLoadGame, handleRestart, saveSettings, handleStartGame, handleUpdateLocation, handleUpdateWorldSettings, handleRewind, handleSave, handleUseItem
     } = useGameLogic();
     
@@ -50,6 +51,7 @@ const App: React.FC = () => {
         isLoading,
         error,
         settings,
+        lastFailedCustomAction,
         handleAction,
         handleContinue,
         handleGoHome,
@@ -67,9 +69,11 @@ const App: React.FC = () => {
     };
 
     return (
-        <main className="h-full w-full bg-slate-900 text-slate-200 font-sans overflow-hidden">
+        <main className="h-full w-full bg-slate-900 text-slate-200 font-sans overflow-hidden relative">
             <AppContent {...appContentProps} />
             
+            {toastError && <Toast message={toastError} onClose={clearToastError} />}
+
             {modals.settings && (
                 <SettingsModal 
                     isOpen={modals.settings}

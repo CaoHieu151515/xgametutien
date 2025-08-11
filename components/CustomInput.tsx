@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface CustomInputProps {
   onSubmit: (action: string) => void;
   disabled: boolean;
+  initialValue?: string | null;
 }
 
 const ArrowRightIcon = () => (
@@ -12,8 +13,14 @@ const ArrowRightIcon = () => (
 );
 
 
-export const CustomInput: React.FC<CustomInputProps> = ({ onSubmit, disabled }) => {
+export const CustomInput: React.FC<CustomInputProps> = ({ onSubmit, disabled, initialValue }) => {
   const [value, setValue] = useState('');
+  
+  useEffect(() => {
+    if (initialValue) {
+      setValue(initialValue);
+    }
+  }, [initialValue]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

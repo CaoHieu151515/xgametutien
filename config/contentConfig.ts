@@ -1,5 +1,6 @@
 
 import { NarrativePerspective, CharacterGender, WorldSettings } from '../types';
+import { masterInstruction } from './instructions/master';
 import { baseInstruction } from './instructions/base';
 import { getCharacterInstruction } from './instructions/character';
 import { choicesInstruction } from './instructions/choices';
@@ -33,6 +34,7 @@ export const getSystemInstruction = (
 ): string => {
     
     const instructionParts = [
+        masterInstruction,
         baseInstruction,
         getCharacterInstruction(gender, perspective, race, powerSystem),
         getWorldInstruction(worldSettings),
