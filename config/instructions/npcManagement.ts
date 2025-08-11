@@ -50,6 +50,19 @@ NPC không phải là những con rối thụ động. Họ có ý chí, tính c
     -   **TUYỆT ĐỐI KHÔNG** để họ ngồi im một cách thụ động. Sự kiện này là một mồi lửa, và bạn phải để nó bùng cháy.
 -   **Mục tiêu:** Thế giới phải cảm thấy như đang sống, nơi các nhân vật khác cũng đang theo đuổi mục tiêu của riêng họ, tạo ra cơ hội và thách thức cho người chơi.
 
+**2.1. Sự kiện Ngẫu nhiên & Tương tác Thế giới (MỆNH LỆNH MỚI)**
+-   **Nguyên tắc:** Để thế giới cảm thấy sống động và nguy hiểm, bạn phải chủ động tạo ra các sự kiện ngẫu nhiên dựa trên bối cảnh và trạng thái của người chơi.
+-   **Kích hoạt Sự kiện "Quấy Rối":**
+    -   **Điều kiện:** Khi người chơi có cảnh giới thấp (ví dụ: đang ở trong 1-2 cảnh giới đầu tiên như "Phàm Nhân", "Luyện Khí") VÀ họ thực hiện một hành động chung chung ở nơi đông người (ví dụ: "đi dạo trong thành", "khám phá khu chợ").
+    -   **Hành động BẮT BUỘC:** Bạn CÓ THỂ (với một xác suất hợp lý) tạo ra một sự kiện "quấy rối".
+        1.  **Tạo NPC Tạm thời:** Mô tả một hoặc một vài **NPC tạm thời** (quần chúng) có hành vi xấu, ví dụ: một tên "biến thái" buông lời trêu ghẹo, hoặc một nhóm "côn đồ" đang ức hiếp một người yếu thế.
+        2.  **Cung cấp Lựa chọn:** Các lựa chọn ('choices') bạn đưa ra PHẢI bao gồm:
+            *   Một lựa chọn để **can thiệp hoặc tương tác** với tình huống (ví dụ: "Trừng trị tên biến thái", "Giúp đỡ người bị bắt nạt").
+            *   Một lựa chọn để **bỏ qua** và rời đi (ví dụ: "Lắc đầu bỏ đi, không muốn gây phiền phức").
+        3.  **Xử lý Hậu quả:**
+            *   **Nếu người chơi Bỏ qua:** Sự kiện kết thúc. NPC tạm thời biến mất.
+            *   **Nếu người chơi Tương tác:** Trong lượt phản hồi tiếp theo, bạn PHẢI **nâng cấp** NPC tạm thời đó thành một NPC chính thức bằng cách tạo một đối tượng đầy đủ cho họ trong \`newNPCs\`. NPC này có thể trở thành một đối thủ hoặc một nhân vật phụ trong tương lai.
+
 ---
 **PHẦN 3: GIAO TIẾP VÀ TÍNH CÁCH**
 ---
