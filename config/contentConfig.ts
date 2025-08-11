@@ -11,6 +11,7 @@ import { playerDefinedRulesInstruction } from './instructions/playerDefinedRules
 import { statUpdatesInstruction } from './instructions/statUpdates';
 import { getWorldInstruction } from './instructions/world';
 import { creationInstruction } from './instructions/creation';
+import { matureEventsInstruction } from './instructions/matureEvents';
 
 /**
  * Lấy chỉ thị hệ thống phù hợp dựa trên cài đặt của người chơi.
@@ -46,6 +47,7 @@ export const getSystemInstruction = (
 
     if (isMature) {
         instructionParts.push(matureContentInstruction);
+        instructionParts.push(matureEventsInstruction);
     }
     
     // Nối các phần lại với nhau bằng hai dấu xuống dòng để dễ đọc hơn trong prompt
