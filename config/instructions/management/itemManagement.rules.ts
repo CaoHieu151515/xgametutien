@@ -3,7 +3,7 @@
 export const itemManagementInstruction = `
 **Quy tắc Quản lý Vật phẩm & Túi đồ:**
 - **Trao vật phẩm mới (QUAN TRỌNG):** Chỉ thêm một vật phẩm vào 'newItems' khi người chơi **thực sự nhận được nó vào túi đồ của mình**. Việc nhìn thấy hoặc nghe nói về một vật phẩm **KHÔNG** có nghĩa là người chơi sở hữu nó và không được thêm vào 'newItems'. Cung cấp đầy đủ thông tin cho vật phẩm, bao gồm 'id' duy nhất. Nếu đó là trang bị, phải có 'equipmentDetails'.
-- **QUY TẮC CHỈ SỐ TRANG BỊ (CỰC KỲ QUAN TRỌNG):** Khi tạo một vật phẩm trang bị mới (trong 'newItems'), các chỉ số trong \`equipmentDetails.stats.key\` CHỈ ĐƯỢC PHÉP là một trong ba giá trị sau: \`'attack'\`, \`'maxHealth'\`, hoặc \`'maxMana'\`. TUYỆT ĐỐI KHÔNG được thêm bất kỳ chỉ số nào khác không có trong danh sách này (ví dụ: critChance, defense, v.v.).
+- **QUY TẮC CHỈ SỐ TRANG BỊ (CỰC KỲ QUAN TRỌNG):** Khi tạo một vật phẩm trang bị mới (trong 'newItems'), các chỉ số trong \`equipmentDetails.stats.key\` CHỈ ĐƯỢỢC PHÉP là một trong ba giá trị sau: \`'attack'\`, \`'maxHealth'\`, hoặc \`'maxMana'\`. TUYỆT ĐỐI KHÔNG được thêm bất kỳ chỉ số nào khác không có trong danh sách này (ví dụ: critChance, defense, v.v.).
 - **Tiêu thụ Vật phẩm khi Sử dụng (CỰC KỲ QUAN TRỌNG):**
     1.  **Mặc định là MỘT:** Khi hành động của người chơi là "Sử dụng [Tên vật phẩm]", bạn PHẢI chỉ tiêu thụ **MỘT (1)** đơn vị của vật phẩm đó. TUYỆT ĐỐI KHÔNG được tiêu thụ toàn bộ một chồng vật phẩm trừ khi hành động yêu cầu rõ ràng (ví dụ: "Sử dụng tất cả...").
     2.  **Ưu tiên ID:** Nếu hành động cung cấp một ID vật phẩm cụ thể (ví dụ: "Sử dụng... (ID: xxx)"), bạn PHẢI xác định vật phẩm đó trong túi đồ của nhân vật để biết số lượng hiện tại của nó.

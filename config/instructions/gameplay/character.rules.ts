@@ -1,4 +1,5 @@
-import { NarrativePerspective, CharacterGender } from '../../types';
+
+import { NarrativePerspective, CharacterGender } from '../../../types';
 
 const perspectiveInstructions: Record<NarrativePerspective, string> = {
     [NarrativePerspective.FIRST_PERSON]: `- **Phong cách kể chuyện:** Viết theo ngôi thứ nhất ("Tôi..."). Giọng văn phải nội tâm, cá nhân và phản ánh trực tiếp suy nghĩ và cảm xúc của nhân vật.`,

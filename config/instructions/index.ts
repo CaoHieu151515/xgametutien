@@ -1,18 +1,26 @@
+import { NarrativePerspective, CharacterGender, WorldSettings } from '../../types';
 
-import { NarrativePerspective, CharacterGender, WorldSettings } from '../types';
-import { masterInstruction } from './instructions/master';
-import { baseInstruction } from './instructions/base';
-import { getCharacterInstruction } from './instructions/character';
-import { choicesInstruction } from './instructions/choices';
-import { itemManagementInstruction } from './instructions/itemManagement';
-import { locationManagementInstruction } from './instructions/locationManagement';
-import { matureContentInstruction } from './instructions/matureContent';
-import { getNpcManagementInstruction } from './instructions/npcManagement';
-import { playerDefinedRulesInstruction } from './instructions/playerDefinedRules';
-import { statUpdatesInstruction } from './instructions/statUpdates';
-import { getWorldInstruction } from './instructions/world';
-import { creationInstruction } from './instructions/creation';
-import { matureEventsInstruction } from './instructions/matureEvents';
+// System
+import { masterInstruction } from './system/master.rules';
+import { baseInstruction } from './system/base.rules';
+import { playerDefinedRulesInstruction } from './system/playerDefined.rules';
+
+// Gameplay
+import { getCharacterInstruction } from './gameplay/character.rules';
+import { choicesInstruction } from './gameplay/choices.rules';
+import { statUpdatesInstruction } from './gameplay/statUpdates.rules';
+import { getWorldInstruction } from './gameplay/world.rules';
+import { creationInstruction } from './gameplay/creation.rules';
+
+// Management
+import { itemManagementInstruction } from './management/itemManagement.rules';
+import { locationManagementInstruction } from './management/locationManagement.rules';
+import { getNpcManagementInstruction } from './management/npcManagement.rules';
+
+// Mature
+import { matureContentInstruction } from './mature/matureContent.rules';
+import { matureEventsInstruction } from './mature/matureEvents.rules';
+
 
 /**
  * Lấy chỉ thị hệ thống phù hợp dựa trên cài đặt của người chơi.

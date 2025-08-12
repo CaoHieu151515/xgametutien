@@ -1,4 +1,5 @@
-import { WorldSettings } from '../../types';
+
+import { WorldSettings } from '../../../types';
 
 const worldDetailsInstruction = (worldSettings: WorldSettings | null): string => {
     let instruction = `- **Quy Tắc Tối Thượng về Luật Lệ Thế Giới (Thiên Đạo):** Các quy tắc được định nghĩa trong tệp này là nền tảng của thực tại. Tuy nhiên, các quy tắc do người chơi định nghĩa (được cung cấp trong prompt dưới mục 'Thiên Đạo') có quyền ưu tiên cao nhất. Bạn PHẢI tuân thủ chúng một cách tuyệt đối. Chúng có thể bổ sung hoặc ghi đè lên các quy tắc nền. Bạn phải tích hợp những luật lệ mới này vào câu chuyện một cách logic.

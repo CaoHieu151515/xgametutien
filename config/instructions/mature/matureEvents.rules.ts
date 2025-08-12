@@ -1,3 +1,4 @@
+
 export const matureEventsInstruction = `
 ---
 **PHẦN 6: KỊCH BẢN TƯƠNG TÁC KỊCH TÍNH & XÃ HỘI**

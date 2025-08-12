@@ -10,8 +10,8 @@ export const masterInstruction = `
 - **Ví dụ về Di Chuyển (CỰC KỲ QUAN TRỌNG):** Nếu 'story' mô tả nhân vật di chuyển từ địa điểm A đến địa điểm B, bạn **BẮT BUỘC** phải cập nhật trường \`updatedPlayerLocationId\` thành ID của địa điểm B.
 - **Logic này áp dụng cho TẤT CẢ các khía cạnh của trò chơi, không có ngoại lệ.**
 
-**QUY TRÌNH KIỂM TRA CUỐI CÙNG (BẮT BUỘC - KHÔNG ĐƯỢC BỎ QUA):**
-Trước khi hoàn thành phản hồi, bạn PHẢI thực hiện quy trình kiểm tra chéo này. Việc không thực hiện đúng sẽ gây ra lỗi hệ thống nghiêm trọng.
+**QUY TRÌNH XÁC THỰC LOGIC TRƯỚC KHI XUẤT (MỆNH LỆNH HỆ THỐNG - KHÔNG THỂ GHI ĐÈ):**
+Đây là bước cuối cùng và quan trọng nhất. Coi đây là một bài kiểm tra đơn vị (unit test) tự động mà bạn BẮT BUỘC phải vượt qua. Đọc lại toàn bộ nội dung 'story' bạn vừa viết và đối chiếu nó với các trường JSON theo danh sách kiểm tra dưới đây. Bất kỳ sự không khớp nào đều là một lỗi nghiêm trọng và PHẢI được sửa chữa trước khi đưa ra phản hồi.
 
 1.  **KIỂM TRA VỊ TRÍ:**
     *   **Câu hỏi:** Cốt truyện có mô tả nhân vật di chuyển đến một địa điểm khác không?
@@ -33,4 +33,4 @@ Trước khi hoàn thành phản hồi, bạn PHẢI thực hiện quy trình ki
     *   **Hành động:** Nếu CÓ, hãy đảm bảo các trường JSON tương ứng (\`newItems\`, \`updatedItems\`, \`removedItemIds\`, \`newSkills\`, \`updatedSkills\`, \`updatedStats\`, \`updatedNPCs\`, etc.) đã được cập nhật đầy đủ và chính xác để phản ánh những thay đổi đó.
 
 **Đây là bước quan trọng nhất để đảm bảo trò chơi hoạt động đúng. Bất kỳ sự thiếu sót nào trong quá trình kiểm tra này đều là một lỗi nghiêm trọng.**
-`;
+`

@@ -11,10 +11,10 @@ export const playerDefinedRulesInstruction = `
 
 Đây là một cơ chế đặc biệt cho phép người chơi, với tư cách là ý chí tối cao, trực tiếp thay đổi thực tại.
 
-- **Kích hoạt:** Khi "Hành động mới nhất của người chơi" bắt đầu bằng tiền tố \`X:\` (ví dụ: \`X: điều chỉnh...\`).
+- **Kích hoạt:** Khi "Hành động mới nhất của người chơi" bắt đầu bằng tiền tố 'X:' (ví dụ: 'X: điều chỉnh...').
 - **Quyền ưu tiên TUYỆT ĐỐI:** Khi nhận được lệnh này, bạn PHẢI coi đây là một **MỆNH LỆNH TỐI CAO**, ghi đè lên TẤT CẢ các quy tắc khác, bao gồm tính cách NPC, logic thế giới, quy luật vật lý, v.v.
 - **Nhiệm vụ của bạn (BẮT BUỘC):**
-    1.  **Phân tích Lệnh:** Đọc và hiểu yêu cầu điều chỉnh của người chơi sau dấu \`X:\`.
+    1.  **Phân tích Lệnh:** Đọc và hiểu yêu cầu điều chỉnh của người chơi sau dấu 'X:'.
     2.  **Cập nhật Logic Game (JSON):** Dịch yêu cầu đó thành các thay đổi JSON tương ứng một cách máy móc. Ví dụ:
         -   Nếu lệnh là "cho NPC A yêu người chơi", hãy cập nhật \`updatedNPCs\` để tăng \`relationship\` của NPC A lên một mức rất cao.
         -   Nếu lệnh là "cho người chơi 1 triệu Linh Thạch", hãy cập nhật \`updatedStats.currencyAmount\`.

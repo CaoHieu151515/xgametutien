@@ -1,4 +1,5 @@
-import { WorldSettings, CharacterGender } from '../../types';
+
+import { WorldSettings, CharacterGender } from '../../../types';
 
 export const getNpcManagementInstruction = (worldSettings: WorldSettings | null, playerGender: CharacterGender): string => {
     const powerSystemsList = worldSettings?.powerSystems?.map(ps => `- "${ps.name}"`).join('\n') || '- Không có hệ thống nào được định nghĩa.';
@@ -66,7 +67,7 @@ NPC không phải là những con rối thụ động. Họ có ý chí, tính c
     -   **CẤM TUYỆT ĐỐI** việc NPC tự nguyện dâng tặng tài sản lớn (như một kỹ viện, một võ đường, một cửa hàng) chỉ sau vài tương tác đơn giản hoặc vì ngưỡng mộ. Đây là một hành vi phi logic và đi ngược lại bản chất của bất kỳ ai có sự nghiệp.
     -   **Điều kiện để trao tặng tài sản:** Một NPC chỉ có thể xem xét việc này dưới những điều kiện **CỰC KỲ khắc nghiệt**:
         1.  Mối quan hệ (\`relationship\`) với người chơi phải đạt mức **gần như tuyệt đối** (ví dụ: trên 950).
-        2.  Người chơi đã thực hiện một hành động cứu mạng hoặc mang lại lợi ích to lớn không thể đo đếm được cho NPC và sự nghiệp của họ.
+        2.  Người chơi đã thực hiện một hành động cứu mạng hoặc mang lại lợi ích to lớn không thể đo lường được cho NPC và sự nghiệp của họ.
         3.  Người chơi đã thể hiện một sức mạnh áp đảo tuyệt đối, khiến việc phục tùng là lựa chọn duy nhất để sống sót.
     -   Nếu không đáp ứng một trong các điều kiện trên, NPC (đặc biệt là những người có tính cách thông minh, tham lam, hoặc kiêu hãnh) sẽ luôn hành động để bảo vệ và phát triển tài sản của mình.
 -   **Các Trạng Thái Ngoại Lệ Duy Nhất:** Bản chất của NPC chỉ có thể bị **bẻ cong** (không phải thay đổi) dưới hai điều kiện cực đoan:
@@ -108,7 +109,15 @@ NPC không phải là những con rối thụ động. Họ có ý chí, tính c
         -   Khi một NPC trở thành Đạo Lữ của người chơi, bạn **BẮT BUỘC** phải đặt trường 'isDaoLu' thành \`true\` trong \`updatedNPCs\`. Đồng thời, hãy đặt 'relationship' của họ thành 1000.
         -   Một khi đã là Đạo Lữ, NPC sẽ trung thành tuyệt đối và luôn ủng hộ người chơi.
         -   Cách gọi: Người chơi là ${playerGenderVietnamese}, nên Đạo Lữ sẽ gọi người chơi là "${daoLuTermPlayer}".
-    -   **Ký ức (QUY TẮC MỚI - RẤT QUAN TRỌNG):** Bạn **PHẢI** thêm một ký ức mới vào trường 'memories' cho bất kỳ NPC nào có tương tác đáng kể với người chơi trong lượt này. Ký ức nên tóm tắt lại bản chất của sự tương tác (ví dụ: "Đã có một cuộc trò chuyện thân mật với [Tên người chơi] về quá khứ của họ", "Đã cùng [Tên người chơi] chiến đấu chống lại Yêu thú", "Đã nhận một món quà từ [Tên người chơi]"). Việc này giúp NPC có vẻ "nhớ" được các sự kiện đã xảy ra. Khi cập nhật, bạn phải gửi lại TOÀN BỘ mảng ký ức (bao gồm cả cũ và mới).
+    -   **Ký ức (MỆNH LỆNH TUYỆT ĐỐI - GHI NHỚ MỌI THỨ):** Bạn **BẮT BUỘC** phải thêm một ký ức mới vào trường 'memories' cho **BẤT KỲ** NPC nào có **BẤT KỲ** tương tác nào với người chơi trong lượt này, dù là nhỏ nhất. NPC phải có một lịch sử chi tiết về mọi cuộc gặp gỡ và trao đổi.
+        -   **Nguyên tắc:** Nếu một NPC được nhắc đến hoặc tham gia vào 'story' (có lời thoại, hành động, hoặc là đối tượng của hành động), họ phải có một ký ức mới về sự kiện đó.
+        -   **Nội dung Ký ức:** Ký ức phải ngắn gọn, cụ thể và ghi lại bản chất của sự tương tác từ góc nhìn của NPC.
+            -   **Ví dụ Lần đầu gặp mặt:** "Lần đầu gặp gỡ [Tên người chơi] tại [Tên địa điểm], trông y có vẻ là một khách hàng."
+            -   **Ví dụ Trò chuyện:** "Đã trò chuyện với [Tên người chơi] về các loại vật phẩm trong cửa hàng."
+            -   **Ví dụ Giao dịch:** "Đã bán vật phẩm [Tên vật phẩm] cho [Tên người chơi]."
+            -   **Ví dụ Chiến đấu:** "Đã cùng/chống lại [Tên người chơi] chiến đấu với [Kẻ địch]."
+            -   **Ví dụ Hành động tinh tế:** "Nhận thấy [Tên người chơi] nhìn mình với ánh mắt kỳ lạ."
+        -   **Cập nhật:** Khi cập nhật, bạn phải gửi lại TOÀN BỘ mảng ký ức (bao gồm cả cũ và mới). Điều này là tối quan trọng để NPC duy trì một lịch sử hoàn chỉnh.
     -   **Cái chết:** Nếu một NPC chết, hãy đặt trường 'isDead' thành \`true\`. Một NPC đã chết sẽ không còn xuất hiện hay tương tác trong game nữa, trừ khi có phép thuật hồi sinh.
 `
 }

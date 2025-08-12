@@ -241,7 +241,21 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
             // Check if it's a new noun, e.g., [[Lý Hàn Thiên]]
             if (part.startsWith('[[') && part.endsWith(']]')) {
                 const content = part.substring(2, part.length - 2);
-                return <span key={index} className="text-cyan-400 font-semibold">{content}</span>;
+                
+                // Cross-check if this "new" noun is actually a known keyword.
+                const knownKeywordData = sortedKeywords.find(k => k.keyword === content);
+                if (knownKeywordData) {
+                    // It is a known keyword that the AI mistakenly marked as new. Render it correctly.
+                     let showNewBadge = false;
+                    if (knownKeywordData.isNew && !renderedNewKeywordsThisTurn.has(knownKeywordData.keyword)) {
+                        showNewBadge = true;
+                        renderedNewKeywordsThisTurn.add(knownKeywordData.keyword);
+                    }
+                    return <KeywordTooltip key={index} keyword={knownKeywordData.keyword} description={knownKeywordData.description} isNew={showNewBadge} />;
+                } else {
+                    // It is a genuinely new noun.
+                    return <span key={index} className="font-semibold text-cyan-400 border-b border-cyan-400/50 border-dotted">{content}</span>;
+                }
             }
     
             // Check if it's a known keyword

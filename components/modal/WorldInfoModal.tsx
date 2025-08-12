@@ -202,7 +202,7 @@ export const WorldInfoModal: React.FC<WorldInfoModalProps> = ({ isOpen, onClose,
                         {otherKnowledge.length > 0 ? (
                             <div className="space-y-2 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
                                 {otherKnowledge.map(knowledge => (
-                                    <InfoAccordionItem key={knowledge.id} title={knowledge.title} content={knowledge.content} isNew={knowledge.isNew}/>
+                                    <InfoAccordionItem key={knowledge.id} title={knowledge.title} content={knowledge.content} isNew={knowledge.isNew} titleColor="text-amber-300"/>
                                 ))}
                             </div>
                         ) : (
@@ -213,11 +213,11 @@ export const WorldInfoModal: React.FC<WorldInfoModalProps> = ({ isOpen, onClose,
             case 'factions':
                 return (
                     <div className="bg-slate-900/50 p-6 rounded-lg space-y-4 border border-slate-700/50">
-                        <h3 className="text-lg font-bold text-yellow-400 mb-2">Thế Lực & Bang Phái</h3>
+                        <h3 className="text-lg font-bold text-amber-300 mb-2">Thế Lực & Bang Phái</h3>
                         {factions.length > 0 ? (
                             <div className="space-y-2 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
                                 {factions.map(faction => (
-                                    <InfoAccordionItem key={faction.id} title={faction.title} content={faction.content} isNew={faction.isNew} titleColor="text-yellow-400" />
+                                    <InfoAccordionItem key={faction.id} title={faction.title} content={faction.content} isNew={faction.isNew} titleColor="text-amber-300" />
                                 ))}
                             </div>
                         ) : (
@@ -249,7 +249,7 @@ export const WorldInfoModal: React.FC<WorldInfoModalProps> = ({ isOpen, onClose,
              case 'items':
                 return (
                     <div className="bg-slate-900/50 p-6 rounded-lg space-y-4 border border-slate-700/50">
-                        <h3 className="text-lg font-bold text-lime-300 mb-2">Vật Phẩm Đã Khám Phá</h3>
+                        <h3 className="text-lg font-bold text-amber-300 mb-2">Vật Phẩm Đã Khám Phá</h3>
                         {sortedDiscoveredItems.length > 0 ? (
                             <div className="space-y-2 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
                                 {sortedDiscoveredItems.map(item => (
@@ -258,7 +258,7 @@ export const WorldInfoModal: React.FC<WorldInfoModalProps> = ({ isOpen, onClose,
                                         title={item.name}
                                         content={item.description}
                                         isNew={item.isNew}
-                                        titleColor="text-lime-300"
+                                        titleColor="text-amber-300"
                                     />
                                 ))}
                             </div>
@@ -270,7 +270,7 @@ export const WorldInfoModal: React.FC<WorldInfoModalProps> = ({ isOpen, onClose,
             case 'locations':
                  return (
                     <div className="bg-slate-900/50 p-6 rounded-lg space-y-4 border border-slate-700/50">
-                        <h3 className="text-lg font-bold text-yellow-300 mb-2">Địa Điểm Đã Khám Phá</h3>
+                        <h3 className="text-lg font-bold text-amber-300 mb-2">Địa Điểm Đã Khám Phá</h3>
                         {sortedLocations.length > 0 ? (
                             <div className="space-y-2 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
                                 {sortedLocations.map(location => (
@@ -279,7 +279,7 @@ export const WorldInfoModal: React.FC<WorldInfoModalProps> = ({ isOpen, onClose,
                                         title={location.name}
                                         content={location.description}
                                         isNew={location.isNew}
-                                        titleColor="text-yellow-300"
+                                        titleColor="text-amber-300"
                                     />
                                 ))}
                             </div>
@@ -293,12 +293,12 @@ export const WorldInfoModal: React.FC<WorldInfoModalProps> = ({ isOpen, onClose,
             case 'bestiary':
                 return (
                     <div className="bg-slate-900/50 p-6 rounded-lg space-y-4 border border-slate-700/50">
-                        <h3 className="text-lg font-bold text-green-300 mb-2">Sinh Vật Đã Biết</h3>
+                        <h3 className="text-lg font-bold text-amber-300 mb-2">Sinh Vật Đã Biết</h3>
                         <p className="text-sm text-slate-400 -mt-2 mb-4">Danh sách các yêu thú, ma vật và các sinh vật khác bạn đã chạm trán.</p>
                         {sortedMonsters.length > 0 ? (
                             <div className="space-y-2 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
                                 {sortedMonsters.map(monster => (
-                                    <InfoAccordionItem key={monster.id} title={monster.name} content={monster.description} isNew={monster.isNew} titleColor="text-green-300" />
+                                    <InfoAccordionItem key={monster.id} title={monster.name} content={monster.description} isNew={monster.isNew} titleColor="text-amber-300" />
                                 ))}
                             </div>
                         ) : (
@@ -309,7 +309,7 @@ export const WorldInfoModal: React.FC<WorldInfoModalProps> = ({ isOpen, onClose,
             case 'npcs':
                 return (
                     <div className="bg-slate-900/50 p-6 rounded-lg space-y-4 border border-slate-700/50">
-                        <h3 className="text-lg font-bold text-purple-300 mb-2">Nhân Vật Đã Gặp</h3>
+                        <h3 className="text-lg font-bold text-amber-300 mb-2">Nhân Vật Đã Gặp</h3>
                         {sortedNpcs.length > 0 ? (
                             <div className="space-y-2 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
                                 {sortedNpcs.map(npc => (
@@ -323,7 +323,7 @@ export const WorldInfoModal: React.FC<WorldInfoModalProps> = ({ isOpen, onClose,
                                             </>
                                         }
                                         isNew={npc.isNew}
-                                        titleColor="text-purple-300"
+                                        titleColor="text-amber-300"
                                     />
                                 ))}
                             </div>

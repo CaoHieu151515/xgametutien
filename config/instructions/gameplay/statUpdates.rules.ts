@@ -1,3 +1,4 @@
+
 export const statUpdatesInstruction = `
 **MỆNH LỆNH TUYỆT ĐỐI: CẬP NHẬT TRẠNG THÁI MÁY MÓC**
 
@@ -75,7 +76,7 @@ Nhiệm vụ của bạn là một người kể chuyện, nhưng đồng thời
 -   **Kinh nghiệm từ Tu Luyện (BẮT BUỘC):** Bất cứ khi nào hành động của người chơi LÀ tu luyện, HOẶC nếu nội dung 'story' bạn viết ra mô tả nhân vật đang thực hiện các hoạt động tu luyện (ví dụ: "bế quan", "luyện hóa", "thiền định", "hấp thụ linh khí"), bạn PHẢI thực hiện đồng thời hai việc:
     1.  Trao một lượng kinh nghiệm hợp lý cho nhân vật trong 'updatedStats.gainedExperience'.
     2.  Trao kinh nghiệm cho một kỹ năng loại 'Tu Luyện' phù hợp trong 'updatedSkills'.
-    TUYỆT ĐỐI KHÔNG ĐƯỢC bỏ qua việc trao kinh nghiệm khi có các hoạt động tu luyện được mô tả.
+    TUYỆT ĐỐI KHÔNG ĐƯỢỢC bỏ qua việc trao kinh nghiệm khi có các hoạt động tu luyện được mô tả.
 -   **Kinh nghiệm kỹ năng (HỌC BẰNG CÁCH LÀM - QUAN TRỌNG):** Đây là cách chính để kỹ năng tăng cấp. Bất cứ khi nào hành động của người chơi hoặc diễn biến trong 'story' mô tả việc nhân vật **vận dụng hoặc thực hành** một kỹ năng, bạn **PHẢI** trao thưởng kinh nghiệm cho kỹ năng đó qua trường 'updatedSkills'. Điều này không chỉ giới hạn ở các hành động "tu luyện".
     -   **Nguyên tắc cốt lõi:** Nếu nhân vật làm một việc gì đó liên quan đến một kỹ năng họ sở hữu, kỹ năng đó sẽ nhận được kinh nghiệm.
     -   **Ví dụ:**
