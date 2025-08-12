@@ -1,4 +1,5 @@
 import { CharacterProfile, WorldSettings, NPC, Location, Skill } from '../types';
+import { buildContextForPrompt } from './promptUtils';
 
 export const buildWorldGenPrompt = (storyIdea: string, openingScene: string): string => {
     return `
@@ -38,7 +39,7 @@ Bạn PHẢI trả về một đối tượng JSON duy nhất tuân thủ nghiê
     *   **Sinh Vật Khởi Đầu (\`initialMonsters\`):** Tạo ít nhất NĂM (5) loại sinh vật, yêu thú hoặc quái vật phù hợp với bối cảnh và chủ đề của thế giới.
     *   **Địa điểm Khởi đầu:**
         *   Tạo ít nhất MƯỜI (10) địa điểm khởi đầu.
-        *   **Bắt buộc:** PHẢI có một địa điểm gốc loại 'THẾ GIỚI' làm cấp cao nhất (có \`parentId\` là \`null\`). Đây là nền tảng của toàn bộ bản đồ.
+        *   **Bắt buộc:** PHẢI có một địa điểm gốc loại 'THẾ GIỚỚI' làm cấp cao nhất (có \`parentId\` là \`null\`). Đây là nền tảng của toàn bộ bản đồ.
         *   **Thế Lực (Bang Phái):** Tạo ít nhất HAI (2) địa điểm loại 'THẾ LỰC'. Đây là các tông môn, hoàng triều, giáo phái, v.v.
         *   **Đồng bộ Tri Thức (Quan trọng):** Với MỖI địa điểm loại 'THẾ LỰC' bạn tạo, bạn PHẢI tạo một mục 'initialKnowledge' tương ứng với 'category' là 'Bang Phái'. Tiêu đề của tri thức phải là tên của thế lực, và nội dung mô tả về thế lực đó.
         *   Xây dựng một cấu trúc phân cấp (đa tầng) hợp lý cho các địa điểm còn lại (ví dụ: thành phố trong thế giới, cửa hàng trong thành phố).
@@ -78,76 +79,87 @@ export const buildNextStepPrompt = (
     npcs: NPC[]
 ): string => {
 
+    const {
+        contextualNpcs,
+        localLocations,
+        globalLocations,
+        locationRules,
+        minimalCharacterProfile,
+        equippedItems,
+        summarizedBagItems,
+        optimizedWorldSettings,
+        specialConstitution,
+        talent,
+    } = buildContextForPrompt(characterProfile, worldSettings, npcs, historyText);
+
     const locationMap = new Map(characterProfile.discoveredLocations.map(loc => [loc.id, loc]));
+    const currentLocation = characterProfile.currentLocationId ? locationMap.get(characterProfile.currentLocationId) : null;
     let locationContext: string;
-    let inheritedRules: string;
 
     const voidKnowledgeTitle = "Không Gian Hỗn Độn";
 
-    if (characterProfile.currentLocationId === null) {
+    if (!currentLocation) {
         const voidKnowledge = worldSettings.initialKnowledge.find(k => k.title === voidKnowledgeTitle);
         locationContext = `
 **Bối cảnh Vị trí Hiện tại:**
 Nhân vật đang ở trong ${voidKnowledge?.title || 'Không Gian Hỗn Độn'}.
 ${voidKnowledge?.content || 'Đây là một không gian trống rỗng, vô định nằm giữa các thế giới. Nơi đây không có thời gian, không gian, chỉ có năng lượng nguyên thủy cuộn chảy.'}
 `;
-        inheritedRules = "Không có luật lệ nào trong hư không.";
     } else {
-        const path: Location[] = [];
-        let currentLoc = locationMap.get(characterProfile.currentLocationId);
-        while (currentLoc) {
-            path.unshift(currentLoc);
-            currentLoc = currentLoc.parentId ? locationMap.get(currentLoc.parentId) : null;
-        }
-
-        const currentLocationDetails = characterProfile.discoveredLocations.find(loc => loc.id === characterProfile.currentLocationId);
-
         locationContext = `
-**Bối cảnh Vị trí Hiện tại: ${currentLocationDetails?.name || 'Không rõ'}**
-${currentLocationDetails?.description || ''}
+**Bối cảnh Vị trí Hiện tại: ${currentLocation.name}**
+${currentLocation.description}
 `;
-        inheritedRules = path.flatMap(loc => (loc.rules || []).map(rule => `(Từ ${loc.name}) ${rule}`)).join('\n');
     }
 
-    const discoveredLocationsForPrompt = characterProfile.discoveredLocations.map(
-        ({ id, name, type, parentId, isDestroyed }) => ({ id, name, type, parentId, isDestroyed })
-    );
-
-    const profileForPrompt = { ...characterProfile };
-    // @ts-ignore
-    delete profileForPrompt.discoveredLocations;
-    // @ts-ignore
-    delete profileForPrompt.initialNpcs;
-    // @ts-ignore
-    delete profileForPrompt.initialLocations;
-    // @ts-ignore
-    delete profileForPrompt.initialItems;
-    // @ts-ignore
-    delete profileForPrompt.initialMonsters;
+    const innateAbilitiesContext = `
+**Năng Lực Bẩm Sinh (Thể chất & Thiên phú):**
+- **${specialConstitution.name}:** ${specialConstitution.description}
+- **${talent.name}:** ${talent.description}
+`;
 
     return `
-**Bối cảnh nhân vật:**
+**Bối cảnh nhân vật (Tối ưu hóa):**
 \`\`\`json
-${JSON.stringify(profileForPrompt, null, 2)}
+${JSON.stringify(minimalCharacterProfile, null, 2)}
 \`\`\`
 
-**Các địa điểm đã biết:**
+${(specialConstitution.name || talent.name) ? innateAbilitiesContext : ''}
+
+**Trang bị đang mặc:**
 \`\`\`json
-${JSON.stringify(discoveredLocationsForPrompt, null, 2)}
+${JSON.stringify(equippedItems, null, 2)}
+\`\`\`
+
+**Vật phẩm trong túi (Tóm tắt):**
+\`\`\`json
+${JSON.stringify(summarizedBagItems, null, 2)}
+\`\`\`
+
+**Các NPC có liên quan trong ngữ cảnh:**
+\`\`\`json
+${JSON.stringify(contextualNpcs, null, 2)}
+\`\`\`
+
+**Quy luật Thế giới (Cốt lõi):**
+\`\`\`json
+${JSON.stringify(optimizedWorldSettings, null, 2)}
 \`\`\`
 
 ${locationContext}
 
-**Thông tin các NPC đã biết:**
+**Địa điểm lân cận (Chi tiết):**
 \`\`\`json
-${JSON.stringify(npcs.filter(npc => !npc.isDead), null, 2)}
+${JSON.stringify(localLocations, null, 2)}
+\`\`\`
+
+**Bản đồ Thế giới (Tổng quan):**
+\`\`\`json
+${JSON.stringify(globalLocations, null, 2)}
 \`\`\`
 
 **Luật Lệ Địa Điểm Theo Phân Cấp (từ cụ thể đến chung):**
-${inheritedRules || "Không có luật lệ nào tại địa điểm này."}
-
-**Tri thức/Quy tắc do người chơi định nghĩa (Thiên Đạo):**
-${worldSettings.playerDefinedRules.length > 0 ? worldSettings.playerDefinedRules.map(r => `- ${r}`).join('\n') : "Không có."}
+${locationRules || "Không có luật lệ nào tại địa điểm này."}
 
 **Lịch sử câu chuyện:**
 ${historyText}
@@ -163,28 +175,47 @@ export const buildInitialStoryPrompt = (
     characterProfile: CharacterProfile,
     worldSettings: WorldSettings,
 ): string => {
-    const profileForPrompt = { ...characterProfile };
-    // @ts-ignore
-    delete profileForPrompt.discoveredLocations;
-    // @ts-ignore
-    delete profileForPrompt.initialLocations;
-    // @ts-ignore
-    delete profileForPrompt.initialNpcs;
-    // @ts-ignore
-    delete profileForPrompt.initialItems;
-    // @ts-ignore
-    delete profileForPrompt.initialMonsters;
+    // Đối với lượt đi đầu tiên, chưa có NPC hay lịch sử.
+    const npcs: NPC[] = []; 
+    const {
+        minimalCharacterProfile,
+        equippedItems,
+        summarizedBagItems,
+        optimizedWorldSettings,
+        specialConstitution,
+        talent,
+    } = buildContextForPrompt(characterProfile, worldSettings, npcs, "");
+
+    const innateAbilitiesContext = `
+**Năng Lực Bẩm Sinh (Thể chất & Thiên phú):**
+- **${specialConstitution.name}:** ${specialConstitution.description}
+- **${talent.name}:** ${talent.description}
+`;
 
     return `
 Hãy bắt đầu một câu chuyện mới cho nhân vật sau đây.
 
-**Bối cảnh nhân vật:**
+**Bối cảnh nhân vật (Tối ưu hóa):**
 \`\`\`json
-${JSON.stringify(profileForPrompt, null, 2)}
+${JSON.stringify(minimalCharacterProfile, null, 2)}
 \`\`\`
 
-**Tri thức/Quy tắc do người chơi định nghĩa (Thiên Đạo):**
-${worldSettings.playerDefinedRules.length > 0 ? worldSettings.playerDefinedRules.map(r => `- ${r}`).join('\n') : "Không có."}
+${(specialConstitution.name || talent.name) ? innateAbilitiesContext : ''}
+
+**Trang bị đang mặc:**
+\`\`\`json
+${JSON.stringify(equippedItems, null, 2)}
+\`\`\`
+
+**Vật phẩm trong túi (Tóm tắt):**
+\`\`\`json
+${JSON.stringify(summarizedBagItems, null, 2)}
+\`\`\`
+
+**Quy luật Thế giới (Cốt lõi):**
+\`\`\`json
+${JSON.stringify(optimizedWorldSettings, null, 2)}
+\`\`\`
 
 Bạn PHẢI bắt đầu câu chuyện tại vị trí hiện tại của nhân vật ('currentLocationId'), được cung cấp trong Bối cảnh nhân vật. Hãy viết đoạn mở đầu thật hấp dẫn, giới thiệu nhân vật và thế giới tại địa điểm đó.
 Sau đó, cung cấp chính xác BỐN (4) lựa chọn hành động đầu tiên cho người chơi theo định dạng đã được chỉ định trong schema.

@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useState, useEffect } from 'react';
 import { SettingsModal } from './components/modal/SettingsModal';
 import { PlayerInfoModal } from './components/modal/PlayerInfoModal';
@@ -21,7 +22,7 @@ const App: React.FC = () => {
     useComponentLog('App.tsx');
     
     const {
-        gameState, setGameState, hasSaves, characterProfile, setCharacterProfile, worldSettings, displayHistory, npcs, setNpcs, choices, gameLog, isLoading, error, settings, toast, clearToast, lastFailedCustomAction,
+        gameState, setGameState, hasSaves, characterProfile, setCharacterProfile, worldSettings, displayHistory, npcs, setNpcs, choices, gameLog, isLoading, error, settings, apiKeyForService, toast, clearToast, lastFailedCustomAction,
         handleAction, handleContinue, handleGoHome, handleLoadGame, handleRestart, saveSettings, handleStartGame, handleUpdateLocation, handleUpdateWorldSettings, handleRewind, handleSave, handleUseItem
     } = useGameLogic();
     
@@ -62,6 +63,7 @@ const App: React.FC = () => {
         isLoading,
         error,
         settings,
+        apiKey: apiKeyForService,
         lastFailedCustomAction,
         handleAction,
         handleContinue,

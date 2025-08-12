@@ -18,6 +18,7 @@ interface AppContentProps {
     isLoading: boolean;
     error: string | null;
     settings: AppSettings;
+    apiKey: string;
     lastFailedCustomAction: string | null;
     handleAction: (choice: Choice) => void;
     handleContinue: () => void;
@@ -49,7 +50,7 @@ export const AppContent: React.FC<AppContentProps> = (props) => {
                         onStartGame={props.handleStartGame}
                         onBackToMenu={() => props.setGameState(GameState.HOME)}
                         apiProvider={props.settings.apiProvider}
-                        apiKey={props.settings.apiProvider === 'gemini' ? (props.settings.gemini.useDefault ? '_USE_DEFAULT_KEY_' : (props.settings.gemini.customKeys.find(k => k.id === props.settings.gemini.activeCustomKeyId)?.key || '')) : props.settings.openaiApiKey}
+                        apiKey={props.apiKey}
                     />;
         case GameState.PLAYING:
             if (props.characterProfile && props.worldSettings) {

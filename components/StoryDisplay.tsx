@@ -75,7 +75,7 @@ const KeywordTooltip: React.FC<{ keyword: string; description: string; isNew?: b
   return (
     <span 
       ref={ref}
-      className="relative inline"
+      className="relative inline align-baseline"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={() => setShow(false)}
       onClick={handleClick}

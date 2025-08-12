@@ -6,6 +6,7 @@ import { StoryPart, StoryResponse, GameState, NarrativePerspective, CharacterPro
 import { processLevelUps, getRealmDisplayName, calculateBaseStatsForLevel, getLevelFromRealmName } from '../services/progressionService';
 import { log } from '../services/logService';
 import { applyStoryResponseToState } from '../aiPipeline/applyDiff';
+import { verifyStoryResponse } from '../utils/stateVerifier';
 
 const SETTINGS_KEY = 'tuTienTruyenSettings_v2';
 const USE_DEFAULT_KEY_IDENTIFIER = '_USE_DEFAULT_KEY_';
@@ -33,6 +34,62 @@ const updateStatusEffectDurations = <T extends CharacterProfile | NPC>(entity: T
     }).filter((effect): effect is StatusEffect => effect !== null);
 
     return { ...entity, statusEffects: updatedEffects };
+};
+
+/**
+ * Finds inconsistencies in the AI's response regarding new entities.
+ * Checks for proper nouns marked with [[...]] in the story that are not defined
+ * in the response's new entity lists (NPCs, locations, items, etc.).
+ * @param response The story response from the AI.
+ * @param profile The current character profile.
+ * @param npcs The current list of NPCs.
+ * @param worldSettings The current world settings.
+ * @returns An array of names of "ghost" entities.
+ */
+const findInconsistentNewEntities = (
+    response: StoryResponse,
+    profile: CharacterProfile,
+    npcs: NPC[],
+    worldSettings: WorldSettings
+): string[] => {
+    const { story, newNPCs = [], newLocations = [], newItems = [], newSkills = [], newWorldKnowledge = [] } = response;
+    if (!story) return [];
+
+    // 1. Find all nouns marked as new by the AI
+    const newNounRegex = /\[\[(.*?)\]\]/g;
+    const mentionedNewNouns = new Set<string>();
+    let match;
+    while ((match = newNounRegex.exec(story)) !== null) {
+        mentionedNewNouns.add(match[1].trim());
+    }
+    if (mentionedNewNouns.size === 0) return [];
+
+    // 2. Build a set of all known names (current state)
+    const allKnownNames = new Set<string>();
+    npcs.forEach(n => { allKnownNames.add(n.name); if(n.aliases) n.aliases.split(',').forEach(a => allKnownNames.add(a.trim())); });
+    profile.discoveredLocations.forEach(l => allKnownNames.add(l.name));
+    profile.skills.forEach(s => allKnownNames.add(s.name));
+    (profile.discoveredItems || []).forEach(i => allKnownNames.add(i.name));
+    worldSettings.initialKnowledge.forEach(k => allKnownNames.add(k.title));
+    allKnownNames.add(profile.name);
+
+    // 3. Build a set of all new names defined in the response
+    const newNamesInResponse = new Set<string>();
+    newNPCs.forEach(n => newNamesInResponse.add(n.name));
+    newLocations.forEach(l => newNamesInResponse.add(l.name));
+    newItems.forEach(i => newNamesInResponse.add(i.name));
+    newSkills.forEach(s => newNamesInResponse.add(s.name));
+    newWorldKnowledge.forEach(k => newNamesInResponse.add(k.title));
+
+    // 4. Find inconsistencies
+    const ghosts: string[] = [];
+    for (const noun of mentionedNewNouns) {
+        // A ghost is a noun marked as new, that is NOT in the current known names, AND is NOT in the newly defined names.
+        if (!allKnownNames.has(noun) && !newNamesInResponse.has(noun)) {
+            ghosts.push(noun);
+        }
+    }
+    return ghosts;
 };
 
 
@@ -164,9 +221,94 @@ export const useGameLogic = () => {
             .map(part => `${part.type === 'story' ? 'Bối cảnh' : 'Người chơi'}: ${part.text}`)
             .join('\n');
             
+        const MAX_RETRIES = 2;
+        let storyResponse: StoryResponse | null = null;
+        let usageMetadata: StoryApiResponse['usageMetadata'] | undefined;
+        let lastErrorReason = '';
+
+
+        for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) {
+            try {
+                let currentActionText = choice.title;
+                if (attempt > 1 && lastErrorReason) {
+                    currentActionText = `**System Correction (Attempt ${attempt}):** Your previous response was invalid due to: "${lastErrorReason}". YOU MUST FIX THIS. If you mention a new NPC, you MUST define them in 'newNPCs'. Do not update NPCs that are not in the provided context.\n\n**Original Action:**\n${choice.title}`;
+                }
+
+                const apiResponse = await api.getNextStoryStep(historyText, currentActionText, settings.isMature, settings.perspective, characterProfile, worldSettings, npcs, apiKeyForService);
+                log('useGameLogic.ts', `[Attempt ${attempt}] Received story response from API.`, 'API');
+
+                // --- START OF VERIFICATION LOGIC ---
+                let isConsistent = true;
+                let errorReason = '';
+
+                // 1. Check for ghost updates (updating non-existent NPCs)
+                if (apiResponse.storyResponse.updatedNPCs) {
+                    const currentNpcIds = new Set(npcs.map(n => n.id));
+                    const newNpcIdsInThisResponse = new Set((apiResponse.storyResponse.newNPCs || []).map(n => n.id));
+                    
+                    const ghostUpdateIds = apiResponse.storyResponse.updatedNPCs
+                        .filter(update => !currentNpcIds.has(update.id) && !newNpcIdsInThisResponse.has(update.id))
+                        .map(update => update.id);
+                    
+                    if (ghostUpdateIds.length > 0) {
+                        isConsistent = false;
+                        errorReason = `AI tried to update non-existent NPC IDs: ${ghostUpdateIds.join(', ')}. An NPC must be in the current context or created in 'newNPCs' in the SAME response before it can be updated.`;
+                    }
+                }
+
+                // 2. Check for ghost entities ([[...]])
+                if (isConsistent) {
+                    const ghostEntityNames = findInconsistentNewEntities(apiResponse.storyResponse, characterProfile, npcs, worldSettings);
+                    if (ghostEntityNames.length > 0) {
+                        isConsistent = false;
+                        errorReason = `AI mentioned new entities [[...]] but did not define them: ${ghostEntityNames.join(', ')}.`;
+                    }
+                }
+                // --- END OF VERIFICATION LOGIC ---
+                
+                if (!isConsistent) {
+                    lastErrorReason = errorReason;
+                    log('useGameLogic.ts', `[Attempt ${attempt}] Inconsistent response: ${lastErrorReason} Retrying...`, 'ERROR');
+                    if (attempt > MAX_RETRIES) {
+                        throw new Error(`AI liên tục tạo ra phản hồi không nhất quán: ${lastErrorReason}`);
+                    }
+                    continue; // Loop will continue to the next attempt
+                }
+                
+                // If consistent, proceed
+                log('useGameLogic.ts', `[Attempt ${attempt}] AI response is consistent.`, 'INFO');
+                storyResponse = apiResponse.storyResponse;
+                usageMetadata = apiResponse.usageMetadata;
+                break; // Success, exit the retry loop
+
+            } catch (e) {
+                if (attempt > MAX_RETRIES) {
+                    const errorMessage = `Lỗi khi xử lý bước tiếp theo sau ${attempt} lần thử: ${(e as Error).message}`;
+                    log('useGameLogic.ts', errorMessage, 'ERROR');
+                    setToast({ message: `Lỗi khi tạo bước tiếp theo của câu chuyện: ${(e as Error).message}`, type: 'error' });
+                    setChoices(preActionState.choices);
+                    if (choice.isCustom) {
+                        setLastFailedCustomAction(choice.title);
+                    }
+                    setIsLoading(false);
+                    return;
+                }
+            }
+        }
+        
+        if (!storyResponse) {
+             const finalError = "Không nhận được phản hồi hợp lệ từ AI sau nhiều lần thử.";
+             log('useGameLogic.ts', finalError, 'ERROR');
+             setToast({ message: finalError, type: 'error' });
+             setChoices(preActionState.choices);
+             setIsLoading(false);
+             return;
+        }
+
         try {
-            const { storyResponse, usageMetadata } = await api.getNextStoryStep(historyText, choice.title, settings.isMature, settings.perspective, characterProfile, worldSettings, npcs, apiKeyForService);
-            log('useGameLogic.ts', 'Received story response from API.', 'INFO');
+            // Xác minh tính nhất quán logic của phản hồi AI trước khi áp dụng
+            verifyStoryResponse(storyResponse, characterProfile, npcs, worldSettings);
+            log('useGameLogic.ts', 'AI response passed final verification.', 'INFO');
             
             let { nextProfile, nextNpcs, finalWorldSettings, notifications } = await applyStoryResponseToState({
                 storyResponse,
@@ -224,9 +366,9 @@ export const useGameLogic = () => {
             setWorldSettings(finalWorldSettings);
 
         } catch (e: any) {
-            const errorMessage = `Lỗi khi tạo bước tiếp theo của câu chuyện: ${e.message}`;
-            setToast({ message: errorMessage, type: 'error' });
-            // Restore previous state
+            const errorMessage = `Lỗi khi áp dụng trạng thái: ${e.message}`;
+            log('useGameLogic.ts', errorMessage, 'ERROR');
+            setToast({ message: `Lỗi khi xử lý câu chuyện: ${e.message}`, type: 'error' });
             setChoices(preActionState.choices);
             if (choice.isCustom) {
                 setLastFailedCustomAction(choice.title);
@@ -475,7 +617,7 @@ export const useGameLogic = () => {
     }, [api, apiKeyForService, settings.isMature, settings.perspective]);
 
     return {
-        gameState, setGameState, hasSaves, characterProfile, setCharacterProfile, worldSettings, setWorldSettings, history, displayHistory, npcs, setNpcs, choices, gameLog, isLoading, error, settings, toast, clearToast, lastFailedCustomAction,
+        gameState, setGameState, hasSaves, characterProfile, setCharacterProfile, worldSettings, setWorldSettings, history, displayHistory, npcs, setNpcs, choices, gameLog, isLoading, error, settings, apiKeyForService, toast, clearToast, lastFailedCustomAction,
         handleAction, handleContinue, handleGoHome, handleLoadGame, handleRestart, saveSettings, handleStartGame, handleUpdateLocation, handleUpdateWorldSettings, handleRewind, handleSave, handleUseItem
     };
 };

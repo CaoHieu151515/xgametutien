@@ -69,7 +69,8 @@ export const callOpenAiApi = async ({ systemInstruction, prompt, apiKey, isWorld
                     { role: "system", content: fullSystemInstruction },
                     { role: "user", content: prompt }
                 ],
-                response_format: { type: "json_object" }
+                response_format: { type: "json_object" },
+                max_tokens: 4096
             })
         });
 
