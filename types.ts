@@ -1,5 +1,6 @@
 
 
+
 export interface StoryPart {
   id: number;
   type: 'story' | 'action';
@@ -21,6 +22,13 @@ export interface StatusEffect {
   name: string;
   description: string;
   duration: string; // "Vĩnh viễn", "3 lượt", "Trang bị", etc.
+}
+
+export interface Achievement {
+  name: string;
+  description: string;
+  tier?: string; // e.g., "Sơ cấp", "Trung cấp"
+  isNew?: boolean;
 }
 
 export enum SkillType {
@@ -173,6 +181,8 @@ export interface StoryResponse {
     breakthroughToRealm?: string; // Tên cảnh giới mới, hệ thống sẽ tự tính EXP.
     newStatusEffects?: StatusEffect[];
     removedStatusEffects?: string[]; // Mảng tên các trạng thái cần xóa
+    newAchievements?: Achievement[];
+    updatedAchievements?: { name: string; description?: string; tier?: string }[];
   }>;
   updatedGameTime?: string; // ISO 8601 string for major time skips
   updatedGender?: CharacterGender;
@@ -336,6 +346,7 @@ export interface CharacterProfile {
 
   // Status Effects
   statusEffects: StatusEffect[];
+  achievements: Achievement[];
 
   // Skills
   skills: Skill[];

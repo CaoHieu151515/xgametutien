@@ -1,6 +1,6 @@
 import {
     StoryResponse, CharacterProfile, NPC, WorldSettings, StatusEffect, Skill,
-    NewNPCFromAI, Item, ItemType, AppSettings, ApiProvider
+    NewNPCFromAI, Item, ItemType, AppSettings, ApiProvider, Achievement
 } from '../types';
 import {
     processLevelUps, getRealmDisplayName, calculateBaseStatsForLevel,
@@ -49,6 +49,7 @@ export const applyStoryResponseToState = async ({
         ...characterProfile,
         items: characterProfile.items.map(i => ({ ...i, isNew: false })),
         skills: characterProfile.skills.map(s => ({ ...s, isNew: false })),
+        achievements: (characterProfile.achievements || []).map(a => ({ ...a, isNew: false })),
         discoveredLocations: characterProfile.discoveredLocations.map(loc => ({ ...loc, isNew: false })),
         discoveredMonsters: characterProfile.discoveredMonsters.map(m => ({ ...m, isNew: false })),
         discoveredItems: (characterProfile.discoveredItems || []).map(i => ({ ...i, isNew: false })),
@@ -435,6 +436,49 @@ export const applyStoryResponseToState = async ({
             });
         }
         nextProfile.statusEffects = currentStatusEffects;
+
+        if (stats.newAchievements?.length) {
+            if (!nextProfile.achievements) {
+                nextProfile.achievements = [];
+            }
+            const existingAchievementNames = new Set(nextProfile.achievements.map(a => a.name));
+            stats.newAchievements.forEach(newAchievement => {
+                if (!existingAchievementNames.has(newAchievement.name)) {
+                    nextProfile.achievements.push({ ...newAchievement, isNew: true });
+                    notifications.push(`🏆 Bạn đã đạt được thành tích mới: <b>${newAchievement.name}</b>!`);
+                }
+            });
+        }
+
+        if (stats.updatedAchievements?.length) {
+            if (!nextProfile.achievements) {
+                nextProfile.achievements = [];
+            }
+            stats.updatedAchievements.forEach(update => {
+                const achievementIndex = nextProfile.achievements.findIndex(a => a.name === update.name);
+                if (achievementIndex !== -1) {
+                    const oldAchievement = nextProfile.achievements[achievementIndex];
+                    const updatedAchievement = { ...oldAchievement, ...update, isNew: true };
+                    nextProfile.achievements[achievementIndex] = updatedAchievement;
+                    
+                    if (update.tier && oldAchievement.tier !== update.tier) {
+                         notifications.push(`🏆 Thành tích "<b>${update.name}</b>" đã được nâng cấp lên bậc <b>${update.tier}</b>!`);
+                    } else {
+                         notifications.push(`🏆 Thành tích "<b>${update.name}</b>" đã được cập nhật.`);
+                    }
+                } else {
+                    // If AI tries to update a non-existent achievement, add it as a new one.
+                    const newAchievement: Achievement = {
+                        name: update.name,
+                        description: update.description || 'Thành tích đã được cập nhật.',
+                        tier: update.tier,
+                        isNew: true,
+                    };
+                    nextProfile.achievements.push(newAchievement);
+                    notifications.push(`🏆 Bạn đã đạt được thành tích mới: <b>${newAchievement.name}</b>!`);
+                }
+            });
+        }
     }
 
     let gainedXp = response.updatedStats?.gainedExperience ?? 0;

@@ -11,6 +11,16 @@ export const statusEffectSchema = {
     required: ["name", "description", "duration"]
 };
 
+export const achievementSchema = {
+    type: Type.OBJECT,
+    properties: {
+        name: { type: Type.STRING, description: "Tên của thành tích hoặc danh hiệu (ví dụ: 'Đan Sư', 'Kẻ Diệt Rồng')." },
+        description: { type: Type.STRING, description: "Mô tả về thành tích và các lợi ích (nếu có)." },
+        tier: { type: Type.STRING, description: "Cấp bậc của thành tích nếu có thể nâng cấp (ví dụ: 'Sơ cấp', 'Trung cấp').", nullable: true }
+    },
+    required: ["name", "description"]
+};
+
 export const updatedStatsSchema = {
     type: Type.OBJECT,
     description: "Một đối tượng tùy chọn chứa các chỉ số của nhân vật đã được cập nhật. Chỉ bao gồm các chỉ số đã thay đổi. Hệ thống sẽ tự xử lý việc lên cấp, bạn chỉ cần cung cấp điểm kinh nghiệm nhận được.",
@@ -30,6 +40,26 @@ export const updatedStatsSchema = {
             type: Type.ARRAY,
             description: "Một mảng tên các trạng thái cần được xóa bỏ khỏi nhân vật (do hết hạn hoặc bị giải trừ). Bỏ qua nếu không có.",
             items: { type: Type.STRING },
+            nullable: true,
+        },
+        newAchievements: {
+            type: Type.ARRAY,
+            description: "Một mảng các thành tích hoặc danh hiệu vĩnh viễn MỚI mà nhân vật đạt được. Bỏ qua nếu không có.",
+            items: achievementSchema,
+            nullable: true,
+        },
+        updatedAchievements: {
+            type: Type.ARRAY,
+            description: "Một mảng để cập nhật các thành tích đã có (ví dụ: nâng cấp 'Đan Sư Sơ Cấp' lên 'Đan Sư Trung Cấp'). Cung cấp tên và các trường cần thay đổi.",
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    name: { type: Type.STRING, description: "Tên chính xác của thành tích cần cập nhật." },
+                    description: { type: Type.STRING, description: "Mô tả mới.", nullable: true },
+                    tier: { type: Type.STRING, description: "Cấp bậc mới.", nullable: true }
+                },
+                required: ["name"]
+            },
             nullable: true,
         }
     },

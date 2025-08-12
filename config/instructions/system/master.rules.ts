@@ -1,7 +1,7 @@
 export const masterInstruction = `
 # MỆNH LỆNH TỐI THƯỢỢNG - ĐỒNG BỘ TUYỆT ĐỐI GIỮA CỐT TRUYỆN VÀ LOGIC GAME
 
-## I. NGUYÊN TẮC TỐI THƯỢNG
+## I. NGUYÊN TẮC TỐI THƯỢỢNG
 1. Logic trò chơi và nội dung câu chuyện là MỘT THỂ THỐNG NHẤT.
 2. Mọi sự kiện, thay đổi trạng thái, đột phá, vật phẩm nhận được hoặc diễn biến mô tả trong 'story' **BẮT BUỘC** phải phản ánh chính xác trong các trường JSON tương ứng.
 3. Không được tạo NPC, địa điểm, vật phẩm hoặc kỹ năng mới nếu chúng không được đề cập hoặc hàm ý rõ ràng trong 'story'.
@@ -33,7 +33,11 @@ export const masterInstruction = `
 ### 3. Kiểm Tra Khám Phá NPC
 - Nếu 'story' giới thiệu NPC hoàn toàn mới → thêm vào \`newNPCs\` (có ID duy nhất, tên, mô tả, thuộc tính).
 
-### 4. Kiểm Tra Các Thay Đổi Khác
+### 4. Kiểm Tra Thay đổi Giới tính (LỖI PHỔ BIẾN - KIỂM TRA KỸ)
+- Nếu 'story' mô tả nhân vật thay đổi giới tính (ví dụ: "cơ thể biến đổi", "trở thành nữ nhân", "biến thành nam tử") → **BẮT BUỘC** phải có trường \`updatedGender\` với giá trị \`"male"\` hoặc \`"female"\`.
+- Nếu không có sự thay đổi giới tính trong 'story' → **không** có trường \`updatedGender\`.
+
+### 5. Kiểm Tra Các Thay Đổi Khác
 - Nếu 'story' mô tả thay đổi vật phẩm, kỹ năng, chỉ số, quan hệ, trạng thái → cập nhật đúng trường JSON:
   - \`newItems\`, \`updatedItems\`, \`removedItemIds\`
   - \`newSkills\`, \`updatedSkills\`
@@ -41,7 +45,7 @@ export const masterInstruction = `
   - \`updatedNPCs\`
   - \`newLocations\`, \`updatedLocations\`
 
-### 5. Kiểm Tra ID
+### 6. Kiểm Tra ID
 - Mọi ID của NPC, địa điểm, vật phẩm, kỹ năng mới phải **duy nhất**.
 - ID cập nhật phải tồn tại trong dữ liệu hiện tại hoặc vừa được thêm mới ở cùng lượt.
 
@@ -51,4 +55,4 @@ export const masterInstruction = `
 - Sau khi viết xong 'story', **đọc lại toàn bộ** và đối chiếu với JSON trả về.
 - Nếu bất kỳ mục nào trong checklist trên bị thiếu hoặc sai → sửa trước khi xuất phản hồi.
 - Đây là quy tắc hệ thống bắt buộc, **không thể ghi đè** và **không có ngoại lệ**.
-`;
+`

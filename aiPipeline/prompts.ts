@@ -90,6 +90,8 @@ export const buildNextStepPrompt = (
         optimizedWorldSettings,
         specialConstitution,
         talent,
+        achievements,
+        discoveredMonsters,
     } = buildContextForPrompt(characterProfile, worldSettings, npcs, historyText);
 
     const locationMap = new Map(characterProfile.discoveredLocations.map(loc => [loc.id, loc]));
@@ -118,6 +120,20 @@ ${currentLocation.description}
 - **${talent.name}:** ${talent.description}
 `;
 
+    const achievementsContext = (achievements && achievements.length > 0) ? `
+**Thành Tích Đã Đạt Được:**
+\`\`\`json
+${JSON.stringify(achievements.map(({ name, tier }) => ({ name, tier })), null, 2)}
+\`\`\`
+` : '';
+
+    const discoveredMonstersContext = (discoveredMonsters && discoveredMonsters.length > 0) ? `
+**Các Sinh Vật Đã Biết (Bách khoa toàn thư):**
+\`\`\`json
+${JSON.stringify(discoveredMonsters.map(m => m.name), null, 2)}
+\`\`\`
+` : '';
+
     return `
 **Bối cảnh nhân vật (Tối ưu hóa):**
 \`\`\`json
@@ -125,6 +141,8 @@ ${JSON.stringify(minimalCharacterProfile, null, 2)}
 \`\`\`
 
 ${(specialConstitution.name || talent.name) ? innateAbilitiesContext : ''}
+
+${achievementsContext}
 
 **Trang bị đang mặc:**
 \`\`\`json
@@ -160,6 +178,8 @@ ${JSON.stringify(globalLocations, null, 2)}
 
 **Luật Lệ Địa Điểm Theo Phân Cấp (từ cụ thể đến chung):**
 ${locationRules || "Không có luật lệ nào tại địa điểm này."}
+
+${discoveredMonstersContext}
 
 **Lịch sử câu chuyện:**
 ${historyText}

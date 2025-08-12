@@ -3,6 +3,7 @@
 
 
 
+
 import React, { useState, useRef } from 'react';
 import { CharacterProfile, CharacterGender, WorldSettings, PowerSystemDefinition, Skill, NewNPCFromAI, Location, Item, ApiProvider, SkillType, LocationType, ItemType } from '../../types';
 import { Loader } from '../Loader';
@@ -70,6 +71,7 @@ const initialProfile: CharacterProfile = {
     level: 1,
     lifespan: 100,
     statusEffects: [],
+    achievements: [],
     skills: [],
     items: [],
     equipment: {},

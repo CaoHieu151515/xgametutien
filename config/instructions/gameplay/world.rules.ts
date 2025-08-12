@@ -1,4 +1,3 @@
-
 import { WorldSettings } from '../../../types';
 
 const worldDetailsInstruction = (worldSettings: WorldSettings | null): string => {
@@ -95,6 +94,8 @@ const initialKnowledgeInstruction = (worldSettings: WorldSettings | null): strin
     
     return `
 - **Tri Thức Thế Giới Khởi Đầu (Lore):** Dưới đây là những sự thật và khái niệm cốt lõi của thế giới. Bạn PHẢI tuân thủ những điều này và sử dụng chúng để làm phong phú thêm câu chuyện. Những tri thức này là nền tảng, không thể thay đổi.
+    - **Hệ thống Đẳng cấp Đan Sư (Bất biến):** Đây là hệ thống xếp hạng chính thức cho các luyện đan sư trong thế giới, được dùng để trao danh hiệu và thành tích. Hệ thống bao gồm 7 đại cảnh giới: Sơ Cấp Đan Sư → Trung Cấp Đan Sư → Cao Cấp Đan Sư → Địa Cấp Đan Sư → Thiên Cấp Đan Sư → Thánh Cấp Đan Sư → Thần Cấp Đan Sư. Mỗi đại cảnh giới lại được chia thành 3 tiểu cảnh giới: Tiểu Thành, Đại Thành, và Viên Mãn.
+    - **Hệ thống Đẳng cấp Tạo Vật Sư (Bất biến):** Đây là hệ thống xếp hạng chính thức cho các nghệ nhân chế tạo pháp khí, pháp bảo, chiến giáp. Hệ thống bao gồm 10 đại cảnh giới: Tập Sự → Sơ Cấp → Trung Cấp → Cao Cấp → Địa Cấp → Thiên Cấp → Huyền Cấp → Thánh Cấp → Thần Cấp → Chí Tôn Tạo Vật Sư. Mỗi đại cảnh giới lại được chia thành 3 tiểu cảnh giới: Tiểu Thành, Đại Thành, và Viên Mãn.
 ${initialKnowledgeList}
     `;
 };

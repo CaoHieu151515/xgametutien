@@ -1,4 +1,3 @@
-
 import { WorldSettings, CharacterGender } from '../../../types';
 
 export const getNpcManagementInstruction = (worldSettings: WorldSettings | null, playerGender: CharacterGender): string => {
@@ -52,6 +51,31 @@ export const getNpcManagementInstruction = (worldSettings: WorldSettings | null,
         *   **Bước 1 (Logic):** Áp dụng trạng thái "Bị Thiến" như đã mô tả ở trên. Đây là bước không thể bỏ qua.
         *   **Bước 2 (Tường thuật):** Mô tả hành động thiến và hồi phục. Sau đó, mô tả sự **bối rối và mâu thuẫn nội tâm** của NPC. Hắn có thể không *biết* mình đã bị thiến, nhưng cơ thể hắn đã thay đổi. Mô tả sự trống rỗng khó tả, sự mất mát bản năng mà hắn không thể lý giải. Hắn có thể **cố gắng** hành động như cũ (ví dụ: trêu ghẹo), nhưng hành vi của hắn sẽ trở nên kỳ quặc, thiếu tự tin, hoặc giọng nói cao hơn một cách vô thức. Sự xung đột giữa ký ức và thực tại thể chất của hắn chính là mấu chốt của câu chuyện.
     -   **TUYỆT ĐỐI CẤM:** Không được phớt lờ việc áp dụng trạng thái chỉ vì mục tiêu tường thuật là "để hắn không nhận ra". Việc áp dụng trạng thái là mệnh lệnh, và việc tường thuật sự bối rối của hắn là cách giải quyết mâu thuẫn.
+
+**1.4. Quy tắc Phân bổ Cảnh giới NPC (MỆNH LỆNH LOGIC TUYỆT ĐỐI)**
+Bạn PHẢI tuân thủ các quy tắc sau đây khi tạo hoặc cập nhật cảnh giới cho NPC để đảm bảo một thế giới logic và nhất quán. Việc một đệ tử ngoại môn có cảnh giới Độ Kiếp là một lỗi hệ thống nghiêm trọng.
+
+*   **1. Cảnh giới PHẢI phù hợp với Vai trò/Chức vụ:**
+    *   **Phàm nhân/Người thường:** Chỉ được ở cảnh giới "Phàm Nhân".
+    *   **Đệ tử ngoại môn:** Tối đa là cảnh giới **Trúc Cơ**.
+    *   **Đệ tử nội môn:** Tối đa là cảnh giới **Kim Đan**.
+    *   **Đệ tử hạt nhân/Chân truyền:** Tối đa là cảnh giới **Nguyên Anh**.
+    *   **Trưởng lão:** Từ **Kim Đan** đến **Hóa Thần**.
+    *   **Chưởng môn/Tông chủ:** Từ **Nguyên Anh** đến **Hợp Thể**.
+
+*   **2. Cảnh giới PHẢI chịu Giới hạn (Trần Sức Mạnh) của Khu vực:**
+    *   **Thành trấn phàm tục:** Tối đa là **Trúc Cơ** (trừ trường hợp cực hiếm có cao nhân ẩn thế).
+    *   **Biên cương/Vùng đất hoang dã:** Tối đa là **Kim Đan**.
+    *   **Khu vực tông môn/thế lực lớn:** Tối đa là **Nguyên Anh**.
+    *   **Thánh địa/Di tích cổ:** Tối đa là **Hóa Thần**.
+
+*   **3. Xử lý Trường hợp Ngoại lệ (Thiên tài/Ẩn thế cao nhân):**
+    *   Nếu một NPC có cảnh giới vượt qua các giới hạn trên do bối cảnh đặc biệt (ví dụ: một thiên tài ngàn năm có một, một lão quái vật sống ẩn dật), bạn **BẮT BUỘC** phải giải thích rõ lý do này trong trường 'story'.
+    *   Các trường hợp ngoại lệ phải hiếm và không được lạm dụng để tránh làm loãng giá trị của các cao thủ.
+
+*   **4. Mệnh lệnh Áp dụng:**
+    *   Khi tạo một NPC mới (\`newNPCs\`) hoặc cập nhật một NPC (\`updatedNPCs\`), bạn phải kiểm tra vai trò và vị trí của họ và gán một cảnh giới nằm trong khoảng hợp lệ.
+    *   Nếu hành động của người chơi khiến một NPC thăng chức (ví dụ: từ đệ tử nội môn lên trưởng lão), bạn có thể cân nhắc cho họ đột phá cảnh giới cho phù hợp.
 
 ---
 **PHẦN 2: LOGIC HÀNH VI - ĐỘNG LỰC VÀ TÍNH CÁCH**
