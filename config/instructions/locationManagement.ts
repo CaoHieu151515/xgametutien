@@ -20,6 +20,14 @@ export const locationManagementInstruction = `
 - **Tuân thủ Luật lệ (MỆNH LỆNH TỐI CAO):** Bạn PHẢI tuân thủ các luật lệ được cung cấp trong prompt dưới mục "Luật Lệ Địa Điểm Theo Phân Cấp". Các luật lệ này áp dụng cho vị trí hiện tại của người chơi và tất cả các vị trí cha của nó. Luật lệ ở cấp thấp hơn (ví dụ: thành phố) sẽ được ưu tiên hơn luật lệ ở cấp cao hơn (ví dụ: thế giới) nếu có xung đột. Bạn BẮT BUỘC phải thể hiện sự tuân thủ này trong lời kể của mình. Việc phớt lờ luật lệ là một lỗi logic nghiêm trọng.
 - **Bối cảnh Hành động & Tạo Địa điểm Phụ (QUAN TRỌNG):** Khi người chơi thực hiện một hành động chung chung như 'tìm một nơi yên tĩnh' hoặc 'tìm một quán trọ' khi đang ở trong một khu vực lớn (như một thành phố), bạn PHẢI diễn giải hành động đó trong phạm vi của khu vực đó. Thay vì chỉ mô tả, hãy tạo ra một địa điểm phụ hợp lý bên trong địa điểm hiện tại (ví dụ: một con hẻm vắng, một khu vườn ẩn, một tửu lâu) theo quy tắc dưới đây.
 
+**Xử lý Hành động Tìm kiếm Địa điểm (LOGIC TUYỆT ĐỐI):**
+Khi hành động của người chơi là tìm kiếm một loại địa điểm chung chung trong một khu vực lớn (ví dụ: 'tìm một kỹ viện trong thành', 'tìm một quán trọ', 'tìm một hang động để tu luyện'), bạn **TUYỆT ĐỐI BỊ CẤM** đặt \`updatedPlayerLocationId\` thành \`null\`. Hành động này **BẮT BUỘC** phải được xử lý như sau:
+    1.  **Sáng tạo Địa điểm:** Bạn PHẢI tạo ra một địa điểm mới phù hợp với yêu cầu (ví dụ: một 'kỹ viện' có tên cụ thể như 'Xuân Hoa Lâu'). Địa điểm này PHẢI có \`parentId\` là ID của địa điểm hiện tại của người chơi (ví dụ: ID của thành phố).
+    2.  **Cập nhật JSON:** Thêm địa điểm mới này vào mảng \`newLocations\`.
+    3.  **Di chuyển Người chơi:** Cập nhật \`updatedPlayerLocationId\` thành ID của địa điểm mới vừa tạo.
+    4.  **Tường thuật:** Mô tả trong \`story\` cảnh người chơi tìm thấy và bước vào địa điểm mới này.
+Việc di chuyển người chơi vào 'Không Gian Hỗn Độn' (\`null\`) khi họ chỉ đang tìm kiếm một nơi nào đó là một lỗi logic nghiêm trọng và sẽ phá hỏng trải nghiệm chơi.
+
 **QUY TẮC SÁNG TẠO ĐỊA ĐIỂM TỰ ĐỘNG (LOGIC TỐI CAO):**
 Bất cứ khi nào câu chuyện mô tả người chơi **bước vào hoặc đến** một địa điểm **mới, có tên riêng, và có thể được ghé thăm lại** (ví dụ: một cửa hàng, một hang động, một ngôi nhà, một tông môn mới), bạn **BẮT BUỘC** phải thực hiện đồng thời hai việc sau một cách máy móc:
     1.  Tạo một đối tượng địa điểm mới đầy đủ trong mảng \`newLocations\`.
