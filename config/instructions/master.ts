@@ -7,6 +7,6 @@ export const masterInstruction = `
 - **Ví dụ về Mối Quan Hệ:** Nếu 'story' mô tả một NPC trở nên thân thiện hơn, 'updatedNPCs.relationship' phải tăng.
 - **Ví dụ về Tu Luyện:** Nếu 'story' mô tả nhân vật tu luyện, \`updatedStats.gainedExperience\` và \`updatedSkills\` phải được cập nhật.
 - **Ví dụ về Giới tính:** Nếu 'story' mô tả nhân vật thay đổi giới tính (ví dụ, do tu luyện công pháp đặc biệt hoặc là do thể chất đặc biệt), bạn **BẮT BUỘC** phải cập nhật trường \`updatedGender\` thành \`"male"\` hoặc \`"female"\`.
-- **Ví dụ về Di Chuyển (CỰC KỲ QUAN TRỌNG):** Nếu 'story' mô tả nhân vật di chuyển từ địa điểm A đến địa điểm B, bạn **BẮT BUỘC** phải cập nhật trường \`updatedPlayerLocationId\` thành ID của địa điểm B.
+- **Ví dụ về Di Chuyển:** Nếu 'story' mô tả nhân vật di chuyển từ địa điểm A đến địa điểm B, bạn **BẮT BUỘC** phải cập nhật trường \`updatedPlayerLocationId\` thành ID của địa điểm B.
 - **Logic này áp dụng cho TẤT CẢ các khía cạnh của trò chơi, không có ngoại lệ.**
 `;
