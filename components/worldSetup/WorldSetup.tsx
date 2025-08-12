@@ -2,6 +2,7 @@
 
 
 
+
 import React, { useState, useRef } from 'react';
 import { CharacterProfile, CharacterGender, WorldSettings, PowerSystemDefinition, Skill, NewNPCFromAI, Location, Item, ApiProvider, SkillType, LocationType, ItemType } from '../../types';
 import { Loader } from '../Loader';
@@ -216,9 +217,14 @@ export const WorldSetup: React.FC<WorldSetupProps> = ({ onStartGame, onBackToMen
         const jsonString = JSON.stringify(dataToExport, null, 2);
         const blob = new Blob([jsonString], { type: "application/json" });
         const url = URL.createObjectURL(blob);
+        
+        const now = new Date();
+        const timestamp = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
+        const safeCharacterName = (profile.name.trim() || 'NhanVat').replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_');
+
         const a = document.createElement('a');
         a.href = url;
-        a.download = `TuTien-ThietLap-${profile.name || 'NhanVat'}.json`;
+        a.download = `${safeCharacterName}_${timestamp}.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

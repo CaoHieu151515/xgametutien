@@ -51,9 +51,14 @@ export const SaveManagementScreen: React.FC<SaveManagementScreenProps> = ({ onLo
             const jsonString = JSON.stringify(saveData, null, 2);
             const blob = new Blob([jsonString], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
+
+            const now = new Date();
+            const timestamp = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
+            const safeCharacterName = (saveData.characterProfile.name.trim() || 'NhanVat').replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_');
+            
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${saveData.name.replace(/ /g, '_')}.json`;
+            a.download = `${safeCharacterName}_${timestamp}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
