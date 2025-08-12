@@ -270,7 +270,7 @@ export const WorldInfoModal: React.FC<WorldInfoModalProps> = ({ isOpen, onClose,
             case 'locations':
                  return (
                     <div className="bg-slate-900/50 p-6 rounded-lg space-y-4 border border-slate-700/50">
-                        <h3 className="text-lg font-bold text-cyan-300 mb-2">Địa Điểm Đã Khám Phá</h3>
+                        <h3 className="text-lg font-bold text-yellow-300 mb-2">Địa Điểm Đã Khám Phá</h3>
                         {sortedLocations.length > 0 ? (
                             <div className="space-y-2 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
                                 {sortedLocations.map(location => (
@@ -279,7 +279,7 @@ export const WorldInfoModal: React.FC<WorldInfoModalProps> = ({ isOpen, onClose,
                                         title={location.name}
                                         content={location.description}
                                         isNew={location.isNew}
-                                        titleColor="text-cyan-300"
+                                        titleColor="text-yellow-300"
                                     />
                                 ))}
                             </div>

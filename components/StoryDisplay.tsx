@@ -70,7 +70,7 @@ const KeywordTooltip: React.FC<{ keyword: string; description: string; isNew?: b
       return classes;
   };
     
-  const keywordClasses = "text-yellow-400 border-b border-yellow-400/50 border-dotted cursor-pointer";
+  const keywordClasses = "font-semibold text-yellow-400 border-b border-yellow-400/50 border-dotted cursor-pointer";
 
   return (
     <span 
