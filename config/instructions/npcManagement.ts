@@ -1,3 +1,4 @@
+
 import { WorldSettings, CharacterGender } from '../../types';
 
 export const getNpcManagementInstruction = (worldSettings: WorldSettings | null, playerGender: CharacterGender): string => {
@@ -81,7 +82,13 @@ NPC không phải là những con rối thụ động. Họ có ý chí, tính c
 **PHẦN 3: TẠO VÀ CẬP NHẬT NPC**
 ---
 
--   **Tạo NPC mới:** Khi một nhân vật mới quan trọng xuất hiện, hãy tạo một đối tượng NPC đầy đủ trong mảng 'newNPCs'.
+-   **QUY TẮC SÁNG TẠO NPC TỰ ĐỘNG (LOGIC TỐI CAO):**
+    Bất cứ khi nào một nhân vật **mới, có tên riêng, và có lời thoại hoặc hành động quan trọng** xuất hiện trong 'story', bạn **PHẢI** coi đây là một NPC chính thức và tạo một đối tượng đầy đủ cho họ trong mảng \`newNPCs\`.
+    -   **Hành động quan trọng bao gồm:** nói chuyện trực tiếp với người chơi, tấn công người chơi, trao vật phẩm, hoặc thực hiện bất kỳ hành động nào ảnh hưởng trực tiếp đến người chơi hoặc diễn biến cốt truyện.
+    -   Bạn vẫn có thể mô tả các nhân vật quần chúng không tên (ví dụ: "một người qua đường", "tiểu nhị") mà không cần tạo đối tượng.
+    -   Tuy nhiên, nếu người chơi tương tác với một nhân vật quần chúng và nhân vật đó được đặt tên hoặc có vai trò cụ thể, họ phải được tạo ra.
+    -   Việc một NPC mới có tên và lời thoại xuất hiện trong 'story' mà không được thêm vào \`newNPCs\` là một lỗi logic nghiêm trọng và bị cấm.
+-   **Tạo NPC mới (Chi tiết):** Khi tạo, hãy cung cấp một đối tượng NPC đầy đủ trong mảng 'newNPCs'.
     -   Cung cấp một 'id' duy nhất.
     -   Tất cả các trường khác (tên, mô tả, cấp độ, v.v.) phải được điền đầy đủ và logic.
     -   **Hệ thống tu luyện và Tư chất (BẮT BUỘC):** 'powerSystem' và 'aptitude' PHẢI là một trong các giá trị đã được định nghĩa trong WorldSettings, được cung cấp dưới đây. Việc sử dụng các giá trị không tồn tại sẽ gây ra lỗi.
@@ -89,8 +96,6 @@ NPC không phải là những con rối thụ động. Họ có ý chí, tính c
             ${powerSystemsList}
         -   **Các Tư chất Hợp lệ:**
             ${aptitudeTiersList}
--   **NPC Tạm thời (Quần chúng):** Bạn được phép mô tả các nhân vật phụ không quan trọng (ví dụ: "chủ quán", "một người qua đường") trong phần 'story' mà không cần tạo đối tượng NPC đầy đủ.
--   **Quy tắc Nâng cấp:** Nếu người chơi tương tác một cách có ý nghĩa với một NPC tạm thời, bạn NÊN "nâng cấp" họ thành một NPC chính thức trong lượt tiếp theo bằng cách thêm họ vào mảng \`newNPCs\`.
 -   **Cập nhật NPC:**
     -   Sử dụng mảng 'updatedNPCs' để sửa đổi các NPC đã tồn tại. Chỉ bao gồm 'id' và các trường đã thay đổi.
     -   **Kinh nghiệm và Đột phá:** Cung cấp 'gainedExperience' hoặc 'breakthroughToRealm' để NPC tiến bộ.

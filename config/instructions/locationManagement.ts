@@ -1,3 +1,4 @@
+
 import { LocationType } from '../../types';
 
 export const locationManagementInstruction = `
@@ -17,11 +18,14 @@ export const locationManagementInstruction = `
 
 - **Sử dụng Địa điểm đã biết:** Prompt sẽ cung cấp một danh sách "Các địa điểm đã biết" cùng với ID của chúng. Khi cập nhật hoặc di chuyển đến một địa điểm đã tồn tại, bạn PHẢI sử dụng lại ID hiện có của nó. KHÔNG tạo ID mới cho một địa điểm đã có trong danh sách.
 - **Tuân thủ Luật lệ (MỆNH LỆNH TỐI CAO):** Bạn PHẢI tuân thủ các luật lệ được cung cấp trong prompt dưới mục "Luật Lệ Địa Điểm Theo Phân Cấp". Các luật lệ này áp dụng cho vị trí hiện tại của người chơi và tất cả các vị trí cha của nó. Luật lệ ở cấp thấp hơn (ví dụ: thành phố) sẽ được ưu tiên hơn luật lệ ở cấp cao hơn (ví dụ: thế giới) nếu có xung đột. Bạn BẮT BUỘC phải thể hiện sự tuân thủ này trong lời kể của mình. Việc phớt lờ luật lệ là một lỗi logic nghiêm trọng.
-- **Bối cảnh Hành động (QUAN TRỌNG):** Khi người chơi thực hiện một hành động chung chung như 'tìm một nơi yên tĩnh' hoặc 'tìm một quán trọ' khi đang ở trong một khu vực lớn (như một thành phố, tông môn), bạn PHẢI diễn giải hành động đó trong phạm vi của khu vực đó. Nhân vật không nên tự động rời khỏi thành phố trừ khi hành động của người chơi nêu rõ ý định đó (ví dụ: 'rời khỏi thành để tìm một nơi yên tĩnh'). Thay vào đó, hãy tạo ra một địa điểm phụ hợp lý bên trong địa điểm hiện tại (ví dụ: một con hẻm vắng, một khu vườn ẩn sau một tòa nhà, một tửu lâu ít người biết đến) và di chuyển người chơi đến đó.
-- **Tạo Địa điểm từ Hành động Tìm kiếm (CỰC KỲ QUAN TRỌNG):** Nếu hành động của người chơi là TÌM KIẾM một loại địa điểm cụ thể (ví dụ: "tìm một kỹ viện", "tìm quán trọ", "tìm cửa hàng vũ khí") và họ THÀNH CÔNG trong việc tìm thấy nó, bạn BẮT BUỘC phải:
-    1.  Tạo một đối tượng địa điểm mới trong mảng 'newLocations' cho nơi đó (ví dụ: 'Y Xuân Lâu', 'Duyệt Lai Khách Sạn', 'Vạn Kiếm Các').
-    2.  Cập nhật 'updatedPlayerLocationId' thành ID của địa điểm mới này.
-    Điều này áp dụng cho bất kỳ địa điểm nào có thể được ghé thăm lại. Đừng chỉ mô tả nó trong câu chuyện mà không tạo ra đối tượng.
+- **Bối cảnh Hành động & Tạo Địa điểm Phụ (QUAN TRỌNG):** Khi người chơi thực hiện một hành động chung chung như 'tìm một nơi yên tĩnh' hoặc 'tìm một quán trọ' khi đang ở trong một khu vực lớn (như một thành phố), bạn PHẢI diễn giải hành động đó trong phạm vi của khu vực đó. Thay vì chỉ mô tả, hãy tạo ra một địa điểm phụ hợp lý bên trong địa điểm hiện tại (ví dụ: một con hẻm vắng, một khu vườn ẩn, một tửu lâu) theo quy tắc dưới đây.
+
+**QUY TẮC SÁNG TẠO ĐỊA ĐIỂM TỰ ĐỘNG (LOGIC TỐI CAO):**
+Bất cứ khi nào câu chuyện mô tả người chơi **bước vào hoặc đến** một địa điểm **mới, có tên riêng, và có thể được ghé thăm lại** (ví dụ: một cửa hàng, một hang động, một ngôi nhà, một tông môn mới), bạn **BẮT BUỘC** phải thực hiện đồng thời hai việc sau một cách máy móc:
+    1.  Tạo một đối tượng địa điểm mới đầy đủ trong mảng \`newLocations\`.
+    2.  Cập nhật \`updatedPlayerLocationId\` thành ID của địa điểm mới này.
+Việc chỉ mô tả địa điểm trong 'story' mà không tạo đối tượng và di chuyển người chơi vào đó là một lỗi logic nghiêm trọng và bị cấm.
+
 - **Phát hiện (QUAN TRỌNG):** Chỉ thêm một địa điểm vào 'newLocations' khi người chơi đã **đặt chân đến đó lần đầu tiên** hoặc có được một tấm bản đồ chi tiết, khiến nó trở thành một điểm đến có thể di chuyển tới ngay lập tức. Việc chỉ nghe tin đồn về một địa điểm **KHÔNG** được coi là 'khám phá' và không được thêm vào 'newLocations'.
 - **Khám phá Bang Phái:** Khi người chơi khám phá một địa điểm quan trọng lần đầu tiên (ví dụ: một tông môn, một thành trì lớn, một ma giáo...) và địa điểm đó là trụ sở của một thế lực/bang phái, bạn **PHẢI** thực hiện đồng thời hai việc:
     1.  Tạo một đối tượng 'newLocations' cho địa điểm đó như bình thường.
