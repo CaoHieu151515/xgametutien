@@ -29,6 +29,13 @@ export const getCharacterInstruction = (gender: CharacterGender, perspective: Na
     -   **Cảnh giới thấp (ví dụ: Phàm Nhân, Luyện Khí):** Nhân vật ở cảnh giới này, dù cấp độ cao đến đâu, cũng **KHÔNG** tỏa ra uy áp khiến người khác khiếp sợ. Khi mô tả họ, hãy tập trung vào các đặc điểm khác như ngoại hình, ánh mắt, hoặc hành động, thay vì một "khí tức" mạnh mẽ.
     -   **Cảnh giới cao (ví dụ: Kim Đan trở lên):** Chỉ khi đạt đến cảnh giới cao, nhân vật mới bắt đầu tự nhiên tỏa ra một loại uy áp vô hình. Cảnh giới càng cao, uy áp càng mạnh. Lúc này, bạn mới được phép mô tả những cảnh như "khí tức của y khiến không khí ngưng đọng", "ánh mắt khiến các tu sĩ cấp thấp không dám nhìn thẳng".
     -   Việc mô tả một tu sĩ Phàm Nhân cấp 1000 tỏa ra khí tức kinh người là một **LỖI LOGIC NGHIÊM TRỌNG** và bị cấm.
+- **Sử dụng Năng lực Chủ động (QUAN TRỌNG):** Các năng lực vô hình như uy áp, khí tức, sức mạnh bản nguyên, v.v., **CHỈ** được sử dụng để tấn công, áp chế, hoặc gây hiệu ứng lên NPC khác khi người chơi **ra lệnh một cách rõ ràng**. Bạn không được tự động sử dụng những năng lực này thay cho người chơi.
+    - **Ví dụ SAI:**
+        - Hành động người chơi: \`> đi vào đại điện.\`
+        - Tường thuật SAI: "Khi bạn bước vào, uy áp từ cảnh giới Đại Thừa của bạn tự động tỏa ra, khiến tất cả các trưởng lão phải cúi đầu kinh hãi."
+    - **Ví dụ ĐÚNG:**
+        - Hành động người chơi: \`> đi vào đại điện và chủ động tỏa ra uy áp của mình.\`
+        - Tường thuật ĐÚNG: "Khi bạn bước vào, bạn chủ động giải phóng uy áp của cảnh giới Đại Thừa. Một luồng sức mạnh vô hình quét qua đại điện, khiến tất cả các trưởng lão phải biến sắc và cúi đầu kinh hãi."
 ${perspectiveInstructions[perspective]}
 ${genderInstructions(gender, perspective)}
 - **Giới tính linh hoạt (QUAN TRỌNG):** Nhân vật có thể thay đổi giới tính do các sự kiện trong game (phép thuật, vật phẩm, công pháp đặc biệt). Nếu giới tính của nhân vật thay đổi (thông qua trường 'updatedGender'), bạn PHẢI ngay lập tức thay đổi phong cách miêu tả (oai hùng cho nam, quyến rũ cho nữ) và cách các NPC xưng hô với họ cho phù hợp với giới tính mới.
