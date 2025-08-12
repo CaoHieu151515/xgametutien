@@ -54,4 +54,4 @@ export const locationManagementInstruction = `
 - Tương tự như NPC tạm thời, bạn có thể mô tả các địa điểm nhỏ, mang tính bối cảnh trong phần 'story' mà không cần tạo đối tượng 'newLocations' ngay lập tức.
     - **Ví dụ:** "Một con hẻm tối tăm giữa hai tòa nhà.", "Một quầy hàng cá ồn ào trong chợ.", "Một cây cổ thụ xù xì, có vẻ đã sống hàng ngàn năm."
 - **Quy tắc Nâng cấp:** Nếu hành động của người chơi liên quan cụ thể đến một trong những địa điểm tạm thời này (ví dụ: "> Đi vào con hẻm tối", "> Điều tra cây cổ thụ"), bạn NÊN tạo một đối tượng 'newLocations' đầy đủ cho nó để biến nó thành một địa điểm vĩnh viễn, có thể khám phá trên bản đồ.
-`
+`;

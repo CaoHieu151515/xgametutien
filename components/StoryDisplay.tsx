@@ -143,10 +143,11 @@ interface StoryDisplayProps {
 }
 
 export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterProfile, worldSettings, npcs }) => {
-  const endOfHistoryRef = useRef<HTMLDivElement>(null);
+  const storyContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    endOfHistoryRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // When a new turn starts, scroll to the top of the story display.
+    storyContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   }, [history]);
 
   const keywords = useMemo((): Keyword[] => {
@@ -260,88 +261,93 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
     };
 
     const renderStoryPart = (part: StoryPart) => {
-      if (!characterProfile) return null;
+        if (!characterProfile) return null;
+    
+        const dialogueCaptureRegex = /(\s*\[[^\]]+\][:：]\s*["“].*?["”]\s*)/g;
+        const dialogueExtractRegex = /^\s*\[([^\]]+)\][:：]\s*["“](.*?)["”]\s*$/;
+    
+        // Process the entire text block at once to handle mixed dialogue and narration.
+        const segments = part.text.split(dialogueCaptureRegex);
+    
+        return (
+            <div key={part.id} className="flex flex-col">
+                {segments.map((segment, segmentIndex) => {
+                    if (!segment || segment.trim() === '') {
+                        return null;
+                    }
+                    
+                    const dialogueMatch = segment.match(dialogueExtractRegex);
   
-      const dialogueCaptureRegex = /(\s*\[[^\]]+\][:：]\s*["“].*?["”]\s*)/g;
-      const dialogueExtractRegex = /^\s*\[([^\]]+)\][:：]\s*["“](.*?)["”]\s*$/;
+                    if (dialogueMatch) {
+                        const speakerNameWithTags = dialogueMatch[1].trim();
+                        const message = dialogueMatch[2];
   
-      // Process the entire text block at once to handle mixed dialogue and narration.
-      const segments = part.text.split(dialogueCaptureRegex);
-  
-      return (
-          <div key={part.id} className="flex flex-col">
-              {segments.map((segment, segmentIndex) => {
-                  if (!segment || segment.trim() === '') {
-                      return null;
-                  }
-                  
-                  const dialogueMatch = segment.match(dialogueExtractRegex);
-
-                  if (dialogueMatch) {
-                      const speakerNameWithTags = dialogueMatch[1].trim();
-                      const message = dialogueMatch[2];
-
-                      // Check for NEW/MỚI tag in speaker name
-                      const newTagRegex = /\s+(?:NEW|MỚI)\s*$/i;
-                      const hasNewTag = newTagRegex.test(speakerNameWithTags);
-                      const speakerName = speakerNameWithTags.replace(newTagRegex, '').trim();
-                      const speakerDisplayName = <>{speakerName}{hasNewTag && <NewBadge />}</>;
-                      
-                      if (speakerName === characterProfile.name) {
-                          return (
-                              <ChatBubble 
-                                  key={`${part.id}-${segmentIndex}`} 
-                                  speakerName={speakerDisplayName}
-                                  speakerAvatar={characterProfile.avatarUrl}
-                                  message={linkifyStory(message)} 
-                                  isPlayer={true}
-                                  gender={characterProfile.gender}
-                              />
-                          );
-                      }
-                      
-                      const npc = npcs.find(n => n.name === speakerName || n.aliases?.includes(speakerName));
-                      if (npc) {
-                          return (
-                              <ChatBubble 
-                                  key={`${part.id}-${segmentIndex}`} 
-                                  speakerName={speakerDisplayName}
-                                  speakerAvatar={npc.avatarUrl}
-                                  message={linkifyStory(message)} 
-                                  isPlayer={false}
-                                  gender={npc.gender}
-                              />
-                          );
-                      }
-                      
-                      // Generic speaker (gray bubble)
-                      return (
-                          <ChatBubble 
-                              key={`${part.id}-${segmentIndex}`} 
-                              speakerName={speakerDisplayName}
-                              message={linkifyStory(message)} 
-                              isPlayer={false}
-                              gender={CharacterGender.MALE} // does not matter for generic
-                              isGeneric={true}
-                          />
-                      );
-          
-                  } else {
-                      // This segment is narration.
-                      return (
-                          <div key={`${part.id}-${segmentIndex}`} className="flex items-start gap-3 my-3 text-slate-300 text-base leading-relaxed animate-fade-in">
-                             <span className="text-slate-600 text-lg leading-tight mt-1 select-none">➤</span>
-                             <p className="flex-1 whitespace-pre-wrap">{linkifyStory(segment)}</p>
-                          </div>
-                      );
-                  }
-              })}
-          </div>
-      );
-  };
+                        // Check for NEW/MỚI tag in speaker name
+                        const newTagRegex = /\s+(?:NEW|MỚI)\s*$/i;
+                        const hasNewTag = newTagRegex.test(speakerNameWithTags);
+                        const speakerName = speakerNameWithTags.replace(newTagRegex, '').trim();
+                        const speakerDisplayName = <>{speakerName}{hasNewTag && <NewBadge />}</>;
+                        
+                        if (speakerName === characterProfile.name) {
+                            return (
+                                <ChatBubble 
+                                    key={`${part.id}-${segmentIndex}`} 
+                                    speakerName={speakerDisplayName}
+                                    speakerAvatar={characterProfile.avatarUrl}
+                                    message={linkifyStory(message)} 
+                                    isPlayer={true}
+                                    gender={characterProfile.gender}
+                                />
+                            );
+                        }
+                        
+                        const npc = npcs.find(n => n.name === speakerName || n.aliases?.includes(speakerName));
+                        if (npc) {
+                            return (
+                                <ChatBubble 
+                                    key={`${part.id}-${segmentIndex}`} 
+                                    speakerName={speakerDisplayName}
+                                    speakerAvatar={npc.avatarUrl}
+                                    message={linkifyStory(message)} 
+                                    isPlayer={false}
+                                    gender={npc.gender}
+                                />
+                            );
+                        }
+                        
+                        // Generic speaker (gray bubble)
+                        return (
+                            <ChatBubble 
+                                key={`${part.id}-${segmentIndex}`} 
+                                speakerName={speakerDisplayName}
+                                message={linkifyStory(message)} 
+                                isPlayer={false}
+                                gender={CharacterGender.MALE} // does not matter for generic
+                                isGeneric={true}
+                            />
+                        );
+            
+                    } else {
+                        // This segment is narration. Split it into paragraphs.
+                        const paragraphs = segment.trim().split(/\n\s*\n+/).filter(p => p.trim());
+                        return (
+                            <React.Fragment key={`${part.id}-${segmentIndex}`}>
+                                {paragraphs.map((paragraph, paragraphIndex) => (
+                                    <div key={`${part.id}-${segmentIndex}-${paragraphIndex}`} className="flex items-start gap-3 my-3 text-slate-300 leading-relaxed animate-fade-in" style={{ fontSize: 'var(--story-font-size)' }}>
+                                       <span className="text-slate-600 text-2xl leading-tight mt-1 select-none">➤</span>
+                                       <p className="flex-1 whitespace-pre-wrap">{linkifyStory(paragraph)}</p>
+                                    </div>
+                                ))}
+                            </React.Fragment>
+                        );
+                    }
+                })}
+            </div>
+        );
+    };
 
   return (
-    <div className="flex-grow min-h-0 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+    <div ref={storyContainerRef} className="flex-grow min-h-0 overflow-y-auto p-6 md:p-8 custom-scrollbar">
       {history.map((part) => (
         <div key={part.id}>
           {part.type === 'story' ? (
@@ -352,13 +358,12 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
               )}
             </>
           ) : (
-            <p className="font-sans text-amber-400 italic text-right text-md md:text-lg border-t border-slate-700 pt-4 mt-4 animate-fade-in">
+            <p className="font-sans text-amber-400 italic text-right border-t border-slate-700 pt-4 mt-4 animate-fade-in" style={{ fontSize: 'var(--story-font-size-large)' }}>
               &gt; {linkifyStory(part.text)}
             </p>
           )}
         </div>
       ))}
-      <div ref={endOfHistoryRef} />
     </div>
   );
 };

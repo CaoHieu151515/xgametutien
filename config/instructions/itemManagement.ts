@@ -27,4 +27,4 @@ export const itemManagementInstruction = `
     - Sử dụng \`updatedGender\` nếu hiệu ứng thay đổi giới tính người chơi.
     - Nếu đan dược được dùng trên một NPC, hãy sử dụng \`updatedNPCs\` để áp dụng các thay đổi tương ứng, bao gồm cả việc thay đổi \`aptitude\` nếu đó là một loại độc dược làm suy giảm tư chất.
 - **Tiêu thụ:** Sau khi sử dụng, số lượng đan dược PHẢI được giảm đi. Hãy tuân thủ quy tắc **Tiêu thụ Vật phẩm khi Sử dụng** ở trên.
-`
+`;

@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { GameState, CharacterProfile, WorldSettings, StoryPart, NPC, Choice } from '../../types';
 import { Loader } from '../Loader';
@@ -164,7 +163,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                 npcs={npcs}
             />
             <div className="flex-shrink-0 p-4 border-t border-slate-800 bg-slate-900/50">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                     {choices.map((choice, index) => (
                         <AdventureCard key={index} choice={choice} onClick={() => handleAction(choice)} disabled={isLoading} />
                     ))}

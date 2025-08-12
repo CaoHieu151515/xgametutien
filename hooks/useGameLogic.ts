@@ -52,6 +52,7 @@ export const useGameLogic = () => {
                 activeCustomKeyId: null
             },
             historyContextSize: 10,
+            storyFontSize: 18,
         };
         try {
             const saved = localStorage.getItem(SETTINGS_KEY);
@@ -732,10 +733,10 @@ export const useGameLogic = () => {
     useEffect(() => {
         if (history.length === 0) {
             setDisplayHistory([]);
-        } else if (history.length === 1) {
-            setDisplayHistory([history[0]]);
         } else {
-            setDisplayHistory(history.slice(-2));
+            // Always show only the last part of the history.
+            // This is either the initial story part, or the result of a player action.
+            setDisplayHistory(history.slice(-1)); 
         }
     }, [history]);
 

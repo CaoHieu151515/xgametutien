@@ -382,6 +382,7 @@ export interface AppSettings {
    openaiApiKey: string;
    gemini: GeminiSettings;
    historyContextSize: number;
+   storyFontSize: number;
 }
 
 export interface GameSnapshot {

@@ -21,13 +21,13 @@ const LogEntry = ({ snapshot, onRewind, isRewindable }: { snapshot: GameSnapshot
                 )}
             </div>
             <div className="px-4 pb-4 border-t border-slate-700 space-y-4">
-                <p className="font-sans text-amber-400 italic text-md md:text-lg border-b border-slate-700/50 pb-4">
+                <p className="font-sans text-amber-400 italic border-b border-slate-700/50 pb-4" style={{ fontSize: 'var(--story-font-size-large)' }}>
                     {turnContent.playerAction
                         ? `Lựa chọn: "${turnContent.playerAction.text}"`
                         : "Khởi đầu câu chuyện"
                     }
                 </p>
-                <p className="text-slate-300 text-lg md:text-xl leading-relaxed whitespace-pre-wrap">
+                <p className="text-slate-300 leading-relaxed whitespace-pre-wrap" style={{ fontSize: 'var(--story-font-size-xl)' }}>
                     {turnContent.storyResult.text}
                 </p>
             </div>

@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { SettingsModal } from './components/modal/SettingsModal';
 import { PlayerInfoModal } from './components/modal/PlayerInfoModal';
@@ -38,6 +39,15 @@ const App: React.FC = () => {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isDebugLogVisible]);
+
+    useEffect(() => {
+        const size = settings.storyFontSize || 18; // Fallback to default
+        document.documentElement.style.setProperty('--story-font-size', `${size}px`);
+        document.documentElement.style.setProperty('--story-font-size-large', `${Math.round(size * 1.1)}px`);
+        document.documentElement.style.setProperty('--story-font-size-xl', `${Math.round(size * 1.2)}px`);
+        log('App.tsx', `Story font size set to ${size}px`, 'STATE');
+    }, [settings.storyFontSize]);
+
 
     const appContentProps = {
         gameState,
