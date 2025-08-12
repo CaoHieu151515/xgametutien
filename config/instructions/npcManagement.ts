@@ -1,4 +1,3 @@
-
 import { WorldSettings, CharacterGender } from '../../types';
 
 export const getNpcManagementInstruction = (worldSettings: WorldSettings | null, playerGender: CharacterGender): string => {
@@ -103,6 +102,7 @@ NPC không phải là những con rối thụ động. Họ có ý chí, tính c
         -   Hành động tích cực (giúp đỡ, tặng quà): tăng điểm.
         -   Hành động tiêu cực (xúc phạm, tấn công): giảm điểm.
         -   Sự thay đổi phải hợp lý. Một hành động nhỏ không thể thay đổi mối quan hệ từ thù địch thành bạn bè ngay lập tức.
+        -   **QUAN TRỌNG:** Khi cập nhật, bạn PHẢI cung cấp **giá trị tuyệt đối mới** của mối quan hệ, không phải là lượng thay đổi. Ví dụ: nếu mối quan hệ cũ là 50 và nó tăng nhẹ, hãy trả về một giá trị như 70.
     -   **Trạng thái Đạo Lữ (CỰC KỲ QUAN TRỌNG):**
         -   Trở thành Đạo Lữ là một sự kiện trọng đại, đòi hỏi mối quan hệ ('relationship') phải đạt đến mức rất cao (thường là trên 900) VÀ phải có một hành động hoặc sự kiện xác nhận rõ ràng trong câu chuyện (ví dụ: một lời cầu hôn, một nghi lễ kết đôi).
         -   Khi một NPC trở thành Đạo Lữ của người chơi, bạn **BẮT BUỘC** phải đặt trường 'isDaoLu' thành \`true\` trong \`updatedNPCs\`. Đồng thời, hãy đặt 'relationship' của họ thành 1000.

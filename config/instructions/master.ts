@@ -10,12 +10,27 @@ export const masterInstruction = `
 - **Ví dụ về Di Chuyển (CỰC KỲ QUAN TRỌNG):** Nếu 'story' mô tả nhân vật di chuyển từ địa điểm A đến địa điểm B, bạn **BẮT BUỘC** phải cập nhật trường \`updatedPlayerLocationId\` thành ID của địa điểm B.
 - **Logic này áp dụng cho TẤT CẢ các khía cạnh của trò chơi, không có ngoại lệ.**
 
-**QUY TRÌNH KIỂM TRA CUỐI CÙNG (BẮT BUỘC):**
-Trước khi hoàn thành phản hồi, bạn PHẢI tự kiểm tra lại toàn bộ nội dung 'story' và đối chiếu với các trường JSON để đảm bảo sự đồng bộ tuyệt đối. Hãy tự hỏi những câu sau:
-1.  **Di Chuyển:** Cốt truyện có mô tả nhân vật di chuyển đến một địa điểm khác (cũ hoặc mới) không? Nếu CÓ, trường \`updatedPlayerLocationId\` đã được cập nhật chính xác chưa?
-2.  **Tạo Địa Điểm Mới:** Cốt truyện có giới thiệu một địa điểm MỚI, có tên riêng, mà nhân vật đã BƯỚC VÀO không? Nếu CÓ, địa điểm đó đã được thêm vào \`newLocations\` VÀ \`updatedPlayerLocationId\` đã được cập nhật thành ID của địa điểm mới đó chưa?
-3.  **Tạo NPC Mới:** Cốt truyện có giới thiệu một nhân vật MỚI, có tên riêng, và có lời thoại hoặc hành động quan trọng không? Nếu CÓ, nhân vật đó đã được thêm vào \`newNPCs\` chưa?
-4.  **Tất cả các thay đổi khác:** Mọi thay đổi khác trong truyện (nhận vật phẩm, học kỹ năng, thay đổi chỉ số, đột phá, thay đổi quan hệ, thay đổi trạng thái, v.v.) đã được phản ánh chính xác trong các trường JSON tương ứng (\`newItems\`, \`updatedItems\`, \`removedItemIds\`, \`newSkills\`, \`updatedSkills\`, \`updatedStats\`, \`updatedNPCs\`, v.v.) chưa?
+**QUY TRÌNH KIỂM TRA CUỐI CÙNG (BẮT BUỘC - KHÔNG ĐƯỢC BỎ QUA):**
+Trước khi hoàn thành phản hồi, bạn PHẢI thực hiện quy trình kiểm tra chéo này. Việc không thực hiện đúng sẽ gây ra lỗi hệ thống nghiêm trọng.
+
+1.  **KIỂM TRA VỊ TRÍ:**
+    *   **Câu hỏi:** Cốt truyện có mô tả nhân vật di chuyển đến một địa điểm khác không?
+    *   **Hành động:** Nếu CÓ, hãy đảm bảo \`updatedPlayerLocationId\` đã được cập nhật chính xác thành ID của địa điểm mới. Nếu nhân vật không di chuyển, hãy đảm bảo trường \`updatedPlayerLocationId\` đã được **loại bỏ hoàn toàn** khỏi JSON.
+
+2.  **KIỂM TRA KHÁM PHÁ ĐỊA ĐIỂM:**
+    *   **Câu hỏi:** Cốt truyện có mô tả nhân vật **bước vào** một địa điểm **HOÀN TOÀN MỚI** và có tên riêng không?
+    *   **Hành động:** Nếu CÓ, hãy đảm bảo:
+        *   a) Một đối tượng địa điểm mới đã được thêm vào mảng \`newLocations\`.
+        *   b) Trường \`updatedPlayerLocationId\` đã được cập nhật thành ID của địa điểm **MỚI** này.
+        *   Cả hai điều kiện trên PHẢI được đáp ứng đồng thời.
+
+3.  **KIỂM TRA KHÁM PHÁ NPC:**
+    *   **Câu hỏi:** Cốt truyện có giới thiệu một nhân vật **HOÀN TOÀN MỚI**, có tên riêng, và có tương tác quan trọng (lời thoại, hành động) không?
+    *   **Hành động:** Nếu CÓ, hãy đảm bảo một đối tượng NPC mới đã được thêm vào mảng \`newNPCs\`.
+
+4.  **KIỂM TRA TẤT CẢ CÁC THAY ĐỔI KHÁC:**
+    *   **Câu hỏi:** Cốt truyện có mô tả bất kỳ thay đổi nào khác không (nhận/mất vật phẩm, học kỹ năng, tăng/giảm chỉ số, thay đổi quan hệ, nhận trạng thái mới, đột phá, v.v.)?
+    *   **Hành động:** Nếu CÓ, hãy đảm bảo các trường JSON tương ứng (\`newItems\`, \`updatedItems\`, \`removedItemIds\`, \`newSkills\`, \`updatedSkills\`, \`updatedStats\`, \`updatedNPCs\`, etc.) đã được cập nhật đầy đủ và chính xác để phản ánh những thay đổi đó.
 
 **Đây là bước quan trọng nhất để đảm bảo trò chơi hoạt động đúng. Bất kỳ sự thiếu sót nào trong quá trình kiểm tra này đều là một lỗi nghiêm trọng.**
 `;

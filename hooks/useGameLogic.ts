@@ -153,12 +153,11 @@ export const useGameLogic = () => {
             text: choice.title
         };
 
-        const currentHistoryForApi = [...history, newActionPart];
         setChoices([]);
         
         const historySize = settings.historyContextSize;
         const historyPartsToTake = historySize > 0 ? (historySize * 2) : 0;
-        const relevantHistory = historySize > 0 ? currentHistoryForApi.slice(-historyPartsToTake) : [];
+        const relevantHistory = historySize > 0 ? history.slice(-historyPartsToTake) : [];
 
         const historyText = relevantHistory
             .map(part => `${part.type === 'story' ? 'Bối cảnh' : 'Người chơi'}: ${part.text}`)
@@ -392,20 +391,17 @@ export const useGameLogic = () => {
                                 notifications.push(`❤️ Bạn và <b>${modifiedNpc.name}</b> đã trở thành Đạo Lữ!`);
                             } else if (existingNpc.isDaoLu) {
                                 modifiedNpc.relationship = 1000;
-                            } else if (update.relationship !== undefined && update.relationship !== existingNpc.relationship) {
+                            } else if (update.relationship !== undefined) {
                                 const oldRelationship = existingNpc.relationship;
-                                const newRelationshipFromAI = update.relationship;
-                                const change = newRelationshipFromAI - oldRelationship;
-                                const cappedChange = Math.max(-100, Math.min(100, change));
-                                const finalRelationship = oldRelationship + cappedChange;
+                                const newRelationship = Math.max(-1000, Math.min(1000, update.relationship));
+                                modifiedNpc.relationship = newRelationship;
+                                const change = newRelationship - oldRelationship;
             
-                                modifiedNpc.relationship = finalRelationship;
-                                
-                                if (cappedChange !== 0) {
-                                    const changeText = cappedChange > 0 
-                                        ? `<span class='text-green-400'>tăng ${cappedChange}</span>` 
-                                        : `<span class='text-red-400'>giảm ${Math.abs(cappedChange)}</span>`;
-                                    notifications.push(`😊 Hảo cảm của <b>${modifiedNpc.name}</b> đã ${changeText} điểm (hiện tại: ${finalRelationship}).`);
+                                if (change !== 0) {
+                                    const changeText = change > 0 
+                                        ? `<span class='text-green-400'>tăng ${Math.round(change)}</span>` 
+                                        : `<span class='text-red-400'>giảm ${Math.round(Math.abs(change))}</span>`;
+                                    notifications.push(`😊 Hảo cảm của <b>${modifiedNpc.name}</b> đã ${changeText} điểm (hiện tại: ${newRelationship}).`);
                                 }
                             }
                             

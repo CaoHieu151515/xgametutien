@@ -75,7 +75,7 @@ Nhiệm vụ của bạn là một người kể chuyện, nhưng đồng thời
 -   **Kinh nghiệm từ Tu Luyện (BẮT BUỘC):** Bất cứ khi nào hành động của người chơi LÀ tu luyện, HOẶC nếu nội dung 'story' bạn viết ra mô tả nhân vật đang thực hiện các hoạt động tu luyện (ví dụ: "bế quan", "luyện hóa", "thiền định", "hấp thụ linh khí"), bạn PHẢI thực hiện đồng thời hai việc:
     1.  Trao một lượng kinh nghiệm hợp lý cho nhân vật trong 'updatedStats.gainedExperience'.
     2.  Trao kinh nghiệm cho một kỹ năng loại 'Tu Luyện' phù hợp trong 'updatedSkills'.
-    TUYỆT ĐỐI KHÔNG ĐƯỢỢC bỏ qua việc trao kinh nghiệm khi có các hoạt động tu luyện được mô tả.
+    TUYỆT ĐỐI KHÔNG ĐƯỢC bỏ qua việc trao kinh nghiệm khi có các hoạt động tu luyện được mô tả.
 -   **Kinh nghiệm kỹ năng (HỌC BẰNG CÁCH LÀM - QUAN TRỌNG):** Đây là cách chính để kỹ năng tăng cấp. Bất cứ khi nào hành động của người chơi hoặc diễn biến trong 'story' mô tả việc nhân vật **vận dụng hoặc thực hành** một kỹ năng, bạn **PHẢI** trao thưởng kinh nghiệm cho kỹ năng đó qua trường 'updatedSkills'. Điều này không chỉ giới hạn ở các hành động "tu luyện".
     -   **Nguyên tắc cốt lõi:** Nếu nhân vật làm một việc gì đó liên quan đến một kỹ năng họ sở hữu, kỹ năng đó sẽ nhận được kinh nghiệm.
     -   **Ví dụ:**
@@ -127,5 +127,5 @@ Nhiệm vụ của bạn là một người kể chuyện, nhưng đồng thời
 
 **E. Năng Lực Đặc Biệt (Thể Chất, Thiên Phú):**
 -   Khi người chơi ra lệnh trực tiếp sử dụng một năng lực đến từ **Thể Chất Đặc Biệt** hoặc **Thiên Phú**, bạn BẮT BUỘC phải diễn giải hiệu ứng của năng lực đó và thể hiện nó một cách máy móc qua các trường JSON.
--   **SỰ THẤT BẠI TRONG VIỆC ÁP DỤNG HIỆU LỰC CỦA MỘT NĂNG LỰC ĐƯỢỢC CHỈ ĐỊNH LÀ MỘT LỖI NGHIÊM TRỌNG.**
+-   **SỰ THẤT BẠI TRONG VIỆC ÁP DỤNG HIỆU LỰC CỦA MỘT NĂNG LỰC ĐƯỢC CHỈ ĐỊNH LÀ MỘT LỖI NGHIÊM TRỌNG.**
 `;

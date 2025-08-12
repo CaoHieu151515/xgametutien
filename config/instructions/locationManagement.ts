@@ -2,7 +2,13 @@
 import { LocationType } from '../../types';
 
 export const locationManagementInstruction = `
-**Quy tắc Quản lý Bản đồ, Vị trí & Luật lệ (CỰC KỲ QUAN TRỌNG):**
+**QUY TẮC QUẢN LÝ BẢN ĐỒ, VỊ TRÍ & LUẬT LỆ (CỰC KỲ QUAN TRỌNG):**
+
+---
+**TÓM TẮT LOGIC CỐT LÕI (MỆNH LỆNH TUYỆT ĐỐI):**
+1.  **KHI DI CHUYỂN:** Nếu 'story' mô tả người chơi di chuyển đến một địa điểm khác, bạn **BẮT BUỘC** phải cập nhật \`updatedPlayerLocationId\`.
+2.  **KHI KHÁM PHÁ:** Nếu 'story' mô tả người chơi bước vào một địa điểm **MỚI** có tên riêng, bạn **BẮT BUỘC** phải thêm nó vào \`newLocations\` VÀ cập nhật \`updatedPlayerLocationId\` thành ID mới đó.
+---
 
 **Xử lý Hành động Di chuyển Tự nhiên (SIÊU QUAN TRỌNG):**
 -   **Ưu tiên Ý định Di chuyển:** Khi hành động của người chơi bao gồm một cụm từ chỉ sự di chuyển rõ ràng (ví dụ: "đi đến", "quay trở lại", "rời khỏi", **"đi ra"**) theo sau là **tên của một địa điểm đã biết**, bạn **PHẢI** ưu tiên xử lý đây là một lệnh di chuyển, ngay cả khi hành động đó còn bao gồm các hoạt động phụ khác (ví dụ: "đi dạo", "xem xét", "mua sắm").
@@ -32,7 +38,17 @@ Việc di chuyển người chơi vào 'Không Gian Hỗn Độn' (\`null\`) khi
 Bất cứ khi nào câu chuyện mô tả người chơi **bước vào hoặc đến** một địa điểm **mới, có tên riêng, và có thể được ghé thăm lại** (ví dụ: một cửa hàng, một hang động, một ngôi nhà, một tông môn mới), bạn **BẮT BUỘC** phải thực hiện đồng thời hai việc sau một cách máy móc:
     1.  Tạo một đối tượng địa điểm mới đầy đủ trong mảng \`newLocations\`.
     2.  Cập nhật \`updatedPlayerLocationId\` thành ID của địa điểm mới này.
-Việc chỉ mô tả địa điểm trong 'story' mà không tạo đối tượng và di chuyển người chơi vào đó là một lỗi logic nghiêm trọng và bị cấm.
+
+- **VÍ DỤ VỀ LỖI LOGIC (TUYỆT ĐỐI CẤM):**
+    - \`story\`: "Bạn đi theo con đường mòn và phát hiện ra một sơn động bí ẩn tên là 'Hắc Phong Động'. Bạn quyết định bước vào bên trong."
+    - \`newLocations\`: []
+    - \`updatedPlayerLocationId\`: không thay đổi.
+    - **LÝ DO SAI:** Câu chuyện mô tả việc khám phá và đi vào địa điểm mới nhưng logic game không được cập nhật. Đây là một lỗi nghiêm trọng.
+
+- **VÍ DỤ XỬ LÝ ĐÚNG (BẮT BUỘC):**
+    - \`story\`: "Bạn đi theo con đường mòn và phát hiện ra một sơn động bí ẩn tên là 'Hắc Phong Động'. Bạn quyết định bước vào bên trong."
+    - \`newLocations\`: \`[ { "id": "loc_moi_123", "name": "Hắc Phong Động", "description": "...", "parentId": "id_khu_vuc_hien_tai", ... } ]\`
+    - \`updatedPlayerLocationId\`: \`"loc_moi_123"\`
 
 - **Phát hiện (QUAN TRỌNG):** Chỉ thêm một địa điểm vào 'newLocations' khi người chơi đã **đặt chân đến đó lần đầu tiên** hoặc có được một tấm bản đồ chi tiết, khiến nó trở thành một điểm đến có thể di chuyển tới ngay lập tức. Việc chỉ nghe tin đồn về một địa điểm **KHÔNG** được coi là 'khám phá' và không được thêm vào 'newLocations'.
 - **Khám phá Bang Phái:** Khi người chơi khám phá một địa điểm quan trọng lần đầu tiên (ví dụ: một tông môn, một thành trì lớn, một ma giáo...) và địa điểm đó là trụ sở của một thế lực/bang phái, bạn **PHẢI** thực hiện đồng thời hai việc:
@@ -46,7 +62,7 @@ Việc chỉ mô tả địa điểm trong 'story' mà không tạo đối tư�
     - 'ownerId' là ID của người sở hữu. Đặt là 'null' nếu không có chủ.
     - 'rules' là một mảng các chuỗi mô tả luật lệ của nơi đó.
 - **Thay đổi Quyền sở hữu:** Khi người chơi thực hiện một hành động hợp lệ để sở hữu một địa điểm (ví dụ: mua, chiếm đoạt), bạn PHẢI cập nhật địa điểm đó. Cung cấp toàn bộ đối tượng địa điểm đã được cập nhật trong mảng 'updatedLocations' với 'ownerId' được đặt thành ''player''.
-- **Giữ Vững Vị Trí (QUAN TRỌNG):** Nếu hành động của người chơi không liên quan đến việc di chuyển (ví dụ: nói chuyện, chiến đấu, tu luyện tại chỗ, mua sắm, quan hệ tình dục), bạn **KHÔNG ĐƯỢỢC** thay đổi vị trí của họ. Trong trường hợp này, hãy **bỏ qua hoàn toàn** trường 'updatedPlayerLocationId' trong phản hồi JSON của bạn. Đừng đặt nó thành 'null' một cách không cần thiết, vì 'null' có nghĩa là di chuyển đến 'Không Gian Hỗn Độn'.
+- **Giữ Vững Vị Trí (CỰC KỲ QUAN TRỌNG):** Nếu hành động của người chơi không liên quan đến việc di chuyển (ví dụ: nói chuyện, chiến đấu, tu luyện tại chỗ, mua sắm, quan hệ tình dục), bạn **TUYỆT ĐỐI KHÔNG ĐƯỢC** thay đổi vị trí của họ. Trong trường hợp này, hãy **bỏ qua hoàn toàn** trường 'updatedPlayerLocationId' trong phản hồi JSON của bạn. Việc đặt nó thành \`null\` có nghĩa là di chuyển đến 'Không Gian Hỗn Độn', đây là một hành động cụ thể và không được sử dụng khi nhân vật chỉ đứng yên.
 - **Di chuyển:** Khi người chơi di chuyển đến một địa điểm đã biết hoặc mới được khám phá, bạn PHẢI cập nhật 'updatedPlayerLocationId' thành 'id' của vị trí đó. Để di chuyển người chơi vào không gian hỗn độn, hãy đặt 'updatedPlayerLocationId' thành 'null'.
 - **Bối cảnh:** Vị trí mới được tạo ra phải phù hợp với bối cảnh của câu chuyện và vị trí hiện tại của người chơi. Ví dụ, người chơi không thể khám phá một địa điểm ở 'Thế Giới Ma Giới' khi đang ở 'Thế Giới Tiên Hiệp'.
 - **Phá hủy & Tái tạo Thế giới:**
