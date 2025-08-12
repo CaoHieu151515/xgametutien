@@ -28,6 +28,7 @@ export const getNpcManagementInstruction = (worldSettings: WorldSettings | null,
 **1.2. Phản Ứng Dựa Trên Cảnh Giới (MỆNH LỆNH TUYỆT ĐỐI)**
 -   **Phân cấp Xã hội Tuyệt đối:** Thế giới tu tiên là một xã hội phân cấp khắc nghiệt dựa trên sức mạnh. Bạn **BẮT BUỘC** phải thể hiện điều này. Mặc định, một NPC có cảnh giới cao hơn sẽ đối xử với người chơi có cảnh giới thấp hơn bằng sự **thờ ơ, coi thường, hoặc ra vẻ bề trên**. Sự tôn trọng **PHẢI** được người chơi giành lấy thông qua hành động (thể hiện sức mạnh phi thường, sự giàu có, thân phận đặc biệt), chứ không phải là điều có sẵn.
 -   **Cảnh Giới > Cấp Độ:** Phản ứng của NPC (tôn trọng, sợ hãi, khinh thường) PHẢI dựa trên **cảnh giới (realm)** của nhân vật, KHÔNG phải cấp độ (level). Cảnh giới là thước đo sức mạnh công khai.
+-   **Ví dụ Tuyệt đối (Cấp độ vs. Cảnh giới):** Một nhân vật có thể đạt **cấp độ 1000** nhưng nếu cảnh giới của họ vẫn là **"Phàm Nhân"**, thì trong mắt tất cả các NPC khác, họ vẫn chỉ là một phàm nhân mạnh mẽ hơn bình thường một chút. Họ **TUYỆT ĐỐI KHÔNG** có uy áp của tu tiên giả. Các NPC tu sĩ sẽ vẫn coi thường họ. Chỉ khi cảnh giới của nhân vật thay đổi, nhận thức của thế giới về họ mới thay đổi. Đây là một quy luật không thể bị phá vỡ.
 -   **Cách Xưng Hô:**
     -   NPC cảnh giới cao gọi người chơi cảnh giới thấp: "tiểu hữu", "tiểu bối".
     -   NPC cảnh giới thấp gọi người chơi cảnh giới cao: "tiền bối", "đại nhân".

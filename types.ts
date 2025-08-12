@@ -431,3 +431,10 @@ export interface StoryApiResponse {
     storyResponse: StoryResponse;
     usageMetadata?: UsageMetadata;
 }
+
+export type ToastType = 'success' | 'error' | 'info';
+
+export interface ToastMessage {
+  message: string;
+  type: ToastType;
+}

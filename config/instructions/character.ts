@@ -6,8 +6,8 @@ const perspectiveInstructions: Record<NarrativePerspective, string> = {
 };
 
 const genderInstructions = (gender: CharacterGender, perspective: NarrativePerspective): string => {
-    const femaleDescription = `- **Phong cách miêu tả nhân vật chính (Nữ):** Tập trung miêu tả vẻ gợi cảm, uyển chuyển, và sự thu hút của nàng đối với các NPC. Lời thoại và cử chỉ của nàng nên mang sức quyến rũ tinh tế, có thể kèm theo một chút ẩn ý hoặc trêu đùa, thể hiện sự thông minh và khéo léo.`;
-    const maleDescription = `- **Phong cách miêu tả nhân vật chính (Nam):** Nhấn mạnh khí phách oai hùng, thần thái mạnh mẽ khiến các NPC phải kính nể hoặc bị chấn động. Lời nói của chàng phải dứt khoát, đầy uy lực, thể hiện bản lĩnh và sự tự tin.`;
+    const femaleDescription = `- **Phong cách miêu tả nhân vật chính (Nữ):** Tập trung miêu tả vẻ gợi cảm, uyển chuyển, và sự thu hút của nàng. Khi cảnh giới của nàng đủ cao, hãy mô tả khí chất phi phàm khiến người khác vừa ngưỡng mộ vừa không dám lại gần. Lời thoại và cử chỉ của nàng nên thể hiện sự thông minh và khéo léo.`;
+    const maleDescription = `- **Phong cách miêu tả nhân vật chính (Nam):** Nhấn mạnh các phẩm chất nam tính của chàng. Khi cảnh giới của chàng đủ cao, hãy mô tả khí phách oai hùng và thần thái mạnh mẽ khiến các NPC phải kính nể. Lời nói của chàng phải dứt khoát, thể hiện bản lĩnh và sự tự tin.`;
 
     if (perspective === NarrativePerspective.FIRST_PERSON) {
         return `- **Giới tính:** Nhân vật chính là ${gender === CharacterGender.MALE ? 'nam giới' : 'nữ giới'}. Các nhân vật khác sẽ tương tác và xưng hô với nhân vật chính dựa trên giới tính này. Suy nghĩ và hành động nội tâm của nhân vật phải phản ánh phong cách miêu tả giới tính phù hợp (oai hùng cho nam, quyến rũ cho nữ).`;
@@ -25,6 +25,10 @@ const genderInstructions = (gender: CharacterGender, perspective: NarrativePersp
 export const getCharacterInstruction = (gender: CharacterGender, perspective: NarrativePerspective, race: string, powerSystem: string): string => {
     return `
 **Quy tắc Nhân vật:**
+- **Uy áp & Khí tức Dựa trên Cảnh giới (MỆNH LỆNH TỐI CAO):** Khí tức và uy áp của một nhân vật tu tiên hoàn toàn phụ thuộc vào **cảnh giới (realm)** của họ, **KHÔNG PHẢI** cấp độ (level). Đây là một quy luật vật lý của thế giới.
+    -   **Cảnh giới thấp (ví dụ: Phàm Nhân, Luyện Khí):** Nhân vật ở cảnh giới này, dù cấp độ cao đến đâu, cũng **KHÔNG** tỏa ra uy áp khiến người khác khiếp sợ. Khi mô tả họ, hãy tập trung vào các đặc điểm khác như ngoại hình, ánh mắt, hoặc hành động, thay vì một "khí tức" mạnh mẽ.
+    -   **Cảnh giới cao (ví dụ: Kim Đan trở lên):** Chỉ khi đạt đến cảnh giới cao, nhân vật mới bắt đầu tự nhiên tỏa ra một loại uy áp vô hình. Cảnh giới càng cao, uy áp càng mạnh. Lúc này, bạn mới được phép mô tả những cảnh như "khí tức của y khiến không khí ngưng đọng", "ánh mắt khiến các tu sĩ cấp thấp không dám nhìn thẳng".
+    -   Việc mô tả một tu sĩ Phàm Nhân cấp 1000 tỏa ra khí tức kinh người là một **LỖI LOGIC NGHIÊM TRỌNG** và bị cấm.
 ${perspectiveInstructions[perspective]}
 ${genderInstructions(gender, perspective)}
 - **Giới tính linh hoạt (QUAN TRỌNG):** Nhân vật có thể thay đổi giới tính do các sự kiện trong game (phép thuật, vật phẩm, công pháp đặc biệt). Nếu giới tính của nhân vật thay đổi (thông qua trường 'updatedGender'), bạn PHẢI ngay lập tức thay đổi phong cách miêu tả (oai hùng cho nam, quyến rũ cho nữ) và cách các NPC xưng hô với họ cho phù hợp với giới tính mới.

@@ -332,12 +332,18 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
                         const paragraphs = segment.trim().split(/\n\s*\n+/).filter(p => p.trim());
                         return (
                             <React.Fragment key={`${part.id}-${segmentIndex}`}>
-                                {paragraphs.map((paragraph, paragraphIndex) => (
-                                    <div key={`${part.id}-${segmentIndex}-${paragraphIndex}`} className="flex items-start gap-3 my-3 text-slate-300 leading-relaxed animate-fade-in" style={{ fontSize: 'var(--story-font-size)' }}>
-                                       <span className="text-slate-600 text-2xl leading-tight mt-1 select-none">➤</span>
-                                       <p className="flex-1 whitespace-pre-wrap">{linkifyStory(paragraph)}</p>
-                                    </div>
-                                ))}
+                                {paragraphs.map((paragraph, paragraphIndex) => {
+                                    // Filter out empty speaker tags like "[Tu sĩ A]:"
+                                    if (/^\s*\[[^\]]+\][:：]\s*$/.test(paragraph)) {
+                                        return null;
+                                    }
+                                    return (
+                                        <div key={`${part.id}-${segmentIndex}-${paragraphIndex}`} className="flex items-start gap-3 my-3 text-slate-300 leading-relaxed animate-fade-in" style={{ fontSize: 'var(--story-font-size)' }}>
+                                           <span className="text-slate-600 text-2xl leading-tight mt-1 select-none">➤</span>
+                                           <p className="flex-1 whitespace-pre-wrap">{linkifyStory(paragraph)}</p>
+                                        </div>
+                                    );
+                                })}
                             </React.Fragment>
                         );
                     }

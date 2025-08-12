@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import * as geminiService from '../services/geminiService';
 import * as openaiService from '../services/openaiService';
 import * as saveService from '../services/saveService';
-import { StoryPart, StoryResponse, GameState, NarrativePerspective, CharacterProfile, WorldSettings, StatusEffect, Skill, Location, NPC, NewNPCFromAI, WorldKnowledge, Choice, ApiProvider, AppSettings, GameSnapshot, Item, ItemType, FullGameState, StoryApiResponse, CharacterGender } from '../types';
+import { StoryPart, StoryResponse, GameState, NarrativePerspective, CharacterProfile, WorldSettings, StatusEffect, Skill, Location, NPC, NewNPCFromAI, WorldKnowledge, Choice, ApiProvider, AppSettings, GameSnapshot, Item, ItemType, FullGameState, StoryApiResponse, CharacterGender, ToastMessage } from '../types';
 import { processLevelUps, getRealmDisplayName, calculateBaseStatsForLevel, processSkillLevelUps, processNpcLevelUps, recalculateDerivedStats, getLevelFromRealmName, calculateExperienceForBreakthrough } from '../services/progressionService';
 import { log } from '../services/logService';
 
@@ -92,12 +92,12 @@ export const useGameLogic = () => {
     const [choices, setChoices] = useState<Choice[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [toastError, setToastError] = useState<string | null>(null);
+    const [toast, setToast] = useState<ToastMessage | null>(null);
     const [lastFailedCustomAction, setLastFailedCustomAction] = useState<string | null>(null);
     const [npcs, setNpcs] = useState<NPC[]>([]);
     const [gameLog, setGameLog] = useState<GameSnapshot[]>([]);
 
-    const clearToastError = useCallback(() => setToastError(null), []);
+    const clearToast = useCallback(() => setToast(null), []);
 
     useEffect(() => {
         log('useGameLogic.ts', `Game state changed to: ${GameState[gameState]}`, 'STATE');
@@ -142,7 +142,7 @@ export const useGameLogic = () => {
 
         setIsLoading(true);
         setError(null);
-        setToastError(null);
+        setToast(null);
         setLastFailedCustomAction(null);
 
         const preActionState = { characterProfile, worldSettings, npcs, history, choices };
@@ -705,7 +705,7 @@ export const useGameLogic = () => {
 
         } catch (e: any) {
             const errorMessage = `Lỗi khi tạo bước tiếp theo của câu chuyện: ${e.message}`;
-            setToastError(errorMessage);
+            setToast({ message: errorMessage, type: 'error' });
             // Restore previous state
             setChoices(preActionState.choices);
             if (choice.isCustom) {
@@ -757,9 +757,9 @@ export const useGameLogic = () => {
                 gameLog
             );
             log('useGameLogic.ts', 'Game saved successfully.', 'INFO');
-            setToastError('Đã lưu game thành công!');
+            setToast({ message: 'Đã lưu game thành công!', type: 'success' });
         } catch(e) {
-            setToastError(`Lỗi khi lưu game: ${(e as Error).message}`);
+            setToast({ message: `Lỗi khi lưu game: ${(e as Error).message}`, type: 'error' });
         } finally {
             setIsLoading(false);
         }
@@ -826,7 +826,7 @@ export const useGameLogic = () => {
         setNpcs([]);
         setGameLog([]);
         setError(null);
-        setToastError(null);
+        setToast(null);
         setLastFailedCustomAction(null);
         setGameState(GameState.HOME);
     }, []);
@@ -955,7 +955,7 @@ export const useGameLogic = () => {
     }, [api, apiKeyForService, settings.isMature, settings.perspective]);
 
     return {
-        gameState, setGameState, hasSaves, characterProfile, setCharacterProfile, worldSettings, setWorldSettings, history, displayHistory, npcs, setNpcs, choices, gameLog, isLoading, error, settings, toastError, clearToastError, lastFailedCustomAction,
+        gameState, setGameState, hasSaves, characterProfile, setCharacterProfile, worldSettings, setWorldSettings, history, displayHistory, npcs, setNpcs, choices, gameLog, isLoading, error, settings, toast, clearToast, lastFailedCustomAction,
         handleAction, handleContinue, handleGoHome, handleLoadGame, handleRestart, saveSettings, handleStartGame, handleUpdateLocation, handleUpdateWorldSettings, handleRewind, handleSave, handleUseItem
     };
 };
