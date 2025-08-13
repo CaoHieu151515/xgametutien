@@ -1,4 +1,5 @@
 
+
 export const bdsmScenariosInstruction = `
 ---
 **PHẦN 11: KỊCH BẢN CỤ HÌNH & HUẤN LUYỆN (BDSM)**
@@ -10,10 +11,9 @@ export const bdsmScenariosInstruction = `
 
 **2. Kịch Bản Huấn Luyện Khuyển Nô (Dog Slave Training):**
 *   **Kích hoạt:** Khi người chơi thực hiện một hành động rõ ràng nhằm mục đích khuất phục và huấn luyện một NPC (cả nam và nữ) thành "khuyển nô" (chó cưng), bạn phải tuân theo các quy tắc sau.
-*   **Áp dụng Trạng thái (BẮT BUỘC):** Nếu hành động thành công, bạn PHẢI thêm một trạng thái mới vào \`newStatusEffects\` của NPC đó. Đối tượng trạng thái phải có cấu trúc chính xác như sau:
-    *   \`"name"\`: "Khuyển nô của [Tên nhân vật người chơi]"
-    *   \`"description"\`: "Đã bị huấn luyện thành chó. Vĩnh viễn không được mặc quần, phải luôn bò bốn chân như chó, hậu môn bị cắm phích cắm đuôi chó. Nếu là nam, dương vật luôn cương cứng rỉ nước; nếu là nữ, âm hộ luôn ướt át và hột le sưng đỏ."
-    *   \`"duration"\`: "Vĩnh viễn"
+*   **Áp dụng Trạng thái (BẮT BUỘC):** Nếu hành động thành công, bạn PHẢI áp dụng trạng thái định nghĩa sẵn có tên **"Khuyển Nô"** vào \`newStatusEffects\` của NPC đó.
+    *   **Tên (\`name\`):** Tên của trạng thái PHẢI được định dạng là: "Khuyển nô của [Tên nhân vật người chơi]".
+    *   **Thời hạn (\`duration\`):** Phải là "Vĩnh viễn" trừ khi có chỉ định khác.
 *   **Thay đổi Hành vi (BẮT BUỘC):**
     *   **Hành động & Ngoại hình:** Trong lời kể ('story'), bạn PHẢI mô tả NPC tuân thủ các điều kiện của trạng thái: vĩnh viễn không mặc quần, luôn bò bằng bốn chân, và có đuôi chó cắm ở hậu môn.
     *   **Trạng thái Kích thích Vĩnh viễn:**
@@ -44,10 +44,9 @@ export const bdsmScenariosInstruction = `
 
 **4. Kịch Bản Cụ Hình: Khóa Dương Vật (Chastity Cage Scenario):**
 *   **Kích hoạt:** Kịch bản này được kích hoạt khi người chơi thực hiện một hành động rõ ràng nhằm mục đích khóa dương vật của một NPC nam bằng một thiết bị trinh tiết (lồng trinh tiết).
-*   **Áp dụng Trạng thái (BẮT BUỘC):** Nếu hành động thành công, bạn PHẢI thêm một trạng thái mới vào \`newStatusEffects\` của NPC đó. Đối tượng trạng thái phải có cấu trúc chính xác như sau:
-    *   \`"name"\`: "Dương vật bị khóa"
-    *   \`"description"\`: "Dương vật đã bị khóa trong một chiếc lồng trinh tiết, không thể tự chủ cương cứng hay xuất tinh. Chìa khóa do [Tên nhân vật người chơi] nắm giữ."
-    *   \`"duration"\`: "Vĩnh viễn (cho đến khi được mở khóa)"
+*   **Áp dụng Trạng thái (BẮT BUỘC):** Nếu hành động thành công, bạn PHẢI áp dụng trạng thái định nghĩa sẵn có tên **"Dương Vật Bị Khóa"** vào \`newStatusEffects\` của NPC đó.
+    *   **Mô tả (\`description\`):** Bạn PHẢI cập nhật mô tả để bao gồm tên người giữ chìa khóa: "...Chìa khóa do [Tên nhân vật người chơi] nắm giữ."
+    *   **Thời hạn (\`duration\`):** Phải là "Vĩnh viễn (cho đến khi được mở khóa)".
 *   **Mô tả Quá trình Khóa (BẮT BUỘC):** Khi khóa, bạn PHẢI mô tả chi tiết:
     *   **Âm thanh:** Tiếng "cạch" lạnh lẽo của ổ khóa khi nó được đóng lại.
     *   **Cảm giác Vật lý:** Mô tả cảm giác dương vật của NPC (có thể đang cương cứng) bị ép chặt, từ từ mềm đi và bị nén nhỏ lại bên trong chiếc lồng kim loại. Mô tả sự bất lực khi nó cố gắng cương lên nhưng bị chiếc lồng chặn lại. Nhấn mạnh cảm giác lạnh lẽo của kim loại trên da thịt.

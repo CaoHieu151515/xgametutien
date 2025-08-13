@@ -1,4 +1,5 @@
 
+
 export const matureContentInstruction = `
 **QUY TẮC NỘI DUNG 18+ (CỰC KỲ QUAN TRỌNG)**
 
@@ -125,21 +126,20 @@ Bạn nên cấu trúc các cảnh nóng theo trình tự sau để đảm bảo
 Đây là một quy tắc logic máy móc không thể bị phá vỡ. Việc vi phạm sẽ gây ra lỗi nghiêm trọng trong trò chơi.
 
 **1. Điều kiện Kích hoạt:**
-*   Kịch bản này được kích hoạt khi có bất kỳ hành động hoặc diễn biến nào trong câu chuyện thể hiện **ý định rõ ràng** về việc **làm cho một NPC nữ mang thai**.
+*   Kịch bản này được kích hoạt khi có bất kỳ hành động hoặc diễn biến nào trong câu chuyện thể hiện **ý định rõ ràng** về việc **làm cho một nhân vật nữ mang thai**.
 *   Các điều kiện bao gồm, nhưng không giới hạn ở:
     *   Hành động của người chơi chứa các từ khóa như: "mang thai", "thụ thai", "có con", "làm nàng có thai", "bắn vào trong để có thai", "gieo giống", "truyền thừa huyết mạch".
     *   Một NPC nữ thể hiện mong muốn có con và chủ động hành động để nhận tinh dịch vào bên trong.
     *   Kết quả của một lựa chọn ('choice') mà lợi ích ('benefit') có đề cập đến khả năng mang thai.
 
 **2. Hành động BẮT BUỘC (Logic Game Tuyệt Đối):**
-*   Khi điều kiện trên được đáp ứng và hành động thụ thai được mô tả là **thành công** trong trường 'story', bạn **BẮT BUỘC** phải cập nhật trạng thái của NPC nữ đó.
-*   Bạn PHẢI thêm một đối tượng trạng thái mới vào mảng \`newStatusEffects\` cho NPC đó trong \`updatedNPCs\`.
+*   Khi điều kiện trên được đáp ứng và hành động thụ thai được mô tả là **thành công** trong trường 'story', bạn **BẮT BUỘC** phải cập nhật trạng thái của nhân vật nữ đó.
+*   Bạn PHẢI thêm một đối tượng trạng thái mới vào mảng \`newStatusEffects\` cho nhân vật nữ đó.
 
 **3. Chi tiết Trạng thái "Mang Thai" (BẮT BUỘC):**
-*   Đối tượng trạng thái PHẢI có các trường sau:
-    *   \`"name"\`: "Mang Thai"
-    *   \`"description"\`: "Đang mang trong mình giọt máu của [Tên Nhân Vật]. Cần thời gian để thai nhi phát triển và chào đời."
-    *   \`"duration"\`: "9 tháng"
+*   Bạn PHẢI sử dụng trạng thái định nghĩa sẵn có tên "Mang Thai".
+*   Bạn PHẢI cập nhật mô tả của nó để bao gồm tên của người cha: \`"description"\`: "Đang mang trong mình giọt máu của [Tên của nhân vật nam đã giao hợp]. Cần thời gian để thai nhi phát triển và chào đời."
+*   Thời hạn (\`duration\`) phải là "9 tháng".
 
 **4. Cảnh báo Lỗi Hệ thống (TUYỆT ĐỐI CẤM):**
 *   Việc mô tả một hành động thụ thai thành công trong 'story' (ví dụ: "hắn bắn tất cả tinh hoa của mình vào sâu trong tử cung nàng, gieo xuống một hạt giống mới...") mà **KHÔNG** thêm trạng thái "Mang Thai" tương ứng vào JSON là một **LỖI HỆ THỐNG CỰC KỲ NGHIÊM TRỌNG**.

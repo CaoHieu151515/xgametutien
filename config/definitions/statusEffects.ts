@@ -34,10 +34,10 @@ export const PREDEFINED_STATUS_EFFECTS: readonly PredefinedStatusEffect[] = [
     
     // === Special/Contextual Effects ===
     { name: 'Bị Thiến', description: 'Đã mất đi bộ phận sinh dục nam. Giọng nói trở nên thanh mảnh hơn, tính cách có thể thay đổi, không còn khả năng sinh sản hoặc thực hiện các hành vi tình dục của nam giới.' },
-    { name: 'Dương Vật Bị Khóa', description: 'Dương vật đã bị khóa trong một chiếc lồng trinh tiết, không thể tự chủ cương cứng hay xuất tinh. Chìa khóa do [Tên nhân vật người chơi] nắm giữ.' },
+    { name: 'Dương Vật Bị Khóa', description: 'Dương vật đã bị khóa trong một chiếc lồng trinh tiết, không thể tự chủ cương cứng hay xuất tinh. Chìa khóa do chủ nhân nắm giữ.' },
     { name: 'Mang Thai', description: 'Đang mang trong mình một sinh mệnh mới. Cần thời gian để thai nhi phát triển.' },
     { name: 'Khế Ước Nô Lệ', description: 'Bị ràng buộc bởi một khế ước, phải tuyệt đối phục tùng chủ nhân.' },
-    { name: 'Khuyển Nô', description: 'Bị biến thành Khuyển Nô, hoàn toàn mất đi nhân cách và chỉ biết phục tùng chủ nhân như một con thú.' },
+    { name: 'Khuyển Nô', description: 'Đã bị huấn luyện thành chó. Vĩnh viễn không được mặc quần, phải luôn bò bốn chân như chó, hậu môn bị cắm phích cắm đuôi chó. Nếu là nam, dương vật luôn cương cứng rỉ nước; nếu là nữ, âm hộ luôn ướt át và hột le sưng đỏ. Phải tuyệt đối phục tùng chủ nhân.' },
     { name: 'Huyết Mạch Thức Tỉnh', description: 'Huyết mạch đặc biệt đã được kích hoạt, mang lại sức mạnh tiềm ẩn.' },
     { name: 'Trúng Xuân Dược', description: 'Cơ thể nóng như lửa đốt, lý trí dần tan rã, dục vọng nguyên thủy trỗi dậy không thể kiểm soát. Cần phải giao hợp để giải trừ.' },
     { name: 'Bị Sỉ Nhục', description: 'Trạng thái tinh thần bị ảnh hưởng tiêu cực do bị làm nhục, có thể ảnh hưởng đến khả năng tập trung.' },

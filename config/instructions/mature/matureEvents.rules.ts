@@ -1,4 +1,3 @@
-
 export const matureEventsInstruction = `
 ---
 **PHẦN 5: XỬ LÝ CÁC CHỦ ĐỀ NHẠY CẢM**
@@ -48,10 +47,7 @@ export const matureEventsInstruction = `
 **4. Kịch bản "Xuân Dược Tác Quái":**
 *   **Kích hoạt:** Khi người chơi rơi vào bẫy hoặc bất cẩn (ví dụ: uống một ly rượu từ người lạ trong một tửu lâu mờ ám, bị kẻ thù hạ độc).
 *   **Hành động BẮT BUỘC:**
-    1.  **Thêm Trạng thái:** Ngay lập tức thêm một trạng thái mới vào \`newStatusEffects\` của người chơi:
-        *   \`"name"\`: "Trúng Xuân Dược"
-        *   \`"description"\`: "Cơ thể nóng như lửa đốt, lý trí dần tan rã, dục vọng nguyên thủy trỗi dậy không thể kiểm soát. Cần phải giao hợp để giải trừ."
-        *   \`"duration"\`: "3 lượt" (hoặc một khoảng thời gian ngắn phù hợp).
+    1.  **Thêm Trạng thái:** Ngay lập tức áp dụng trạng thái định nghĩa sẵn có tên **"Trúng Xuân Dược"** vào \`newStatusEffects\` của người chơi. Thời hạn (\`duration\`) nên là một khoảng thời gian ngắn phù hợp (ví dụ: "3 lượt").
     2.  **Tường thuật:** Mô tả chi tiết các triệu chứng trong trường \`story\`: cơ thể nóng bừng, hơi thở gấp gáp, hạ thể ngứa ngáy, tâm trí chỉ còn lại ham muốn giao hợp.
     3.  **Lựa chọn trong Tình thế khó:** Các lựa chọn bạn đưa ra phải phản ánh sự mất kiểm soát của người chơi:
         *   "Cắn răng chịu đựng, cố gắng vận công áp chế dược tính." (Tỷ lệ thành công rất thấp).
@@ -207,10 +203,7 @@ export const matureEventsInstruction = `
         *   Người chơi sẽ phải phục vụ tình dục cho nhiều loại "khách hàng" khác nhau: các quan viên, binh lính có công, hoặc những công dân giàu có đã đóng góp cho thành.
         *   Mỗi "khách hàng" sẽ có những yêu cầu và sở thích khác nhau. Mô tả các cuộc gặp gỡ này như những nhiệm vụ ngắn.
         *   Bạn PHẢI mô tả chi tiết các cảnh quan hệ tình dục này. Trọng tâm là cảm giác bị hạ nhục, mất tự do, và thân thể trở thành một công cụ để trả nợ.
-    *   **Cập nhật Trạng thái:** Thêm một trạng thái tạm thời vào \`newStatusEffects\` của người chơi:
-        *   \`"name"\`: "Thân Thể Thục Tội"
-        *   \`"description"\`: "Đang trong thời gian phục dịch tại Phục Dịch Viện để chuộc tội. Phải phục vụ theo yêu cầu."
-        *   \`"duration"\`: "[Số] lượt" (tùy thuộc vào mức độ nghiêm trọng của tội).
+    *   **Cập nhật Trạng thái:** Thêm trạng thái định nghĩa sẵn có tên **"Thân Thể Thục Tội"** vào \`newStatusEffects\` của người chơi. Thời hạn (\`duration\`) phải phù hợp với mức độ nghiêm trọng của tội (ví dụ: "[Số] lượt").
     *   Sau khi hết thời hạn, trạng thái sẽ được gỡ bỏ và người chơi được tự do.
 
 ---
