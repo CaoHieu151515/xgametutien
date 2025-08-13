@@ -1,6 +1,6 @@
 import {
     StoryResponse, CharacterProfile, NPC, WorldSettings, StatusEffect, Skill,
-    NewNPCFromAI, Item, ItemType, AppSettings, ApiProvider, Achievement
+    NewNPCFromAI, Item, ItemType, AppSettings, ApiProvider, Achievement, SkillType
 } from '../types';
 import {
     processLevelUps, getRealmDisplayName, calculateBaseStatsForLevel,
@@ -481,7 +481,8 @@ export const applyStoryResponseToState = async ({
         }
     }
 
-    let gainedXp = response.updatedStats?.gainedExperience ?? 0;
+    const gainedXpFromAI = response.updatedStats?.gainedExperience ?? 0;
+    let finalGainedXp = 0;
     const breakthroughRealm = response.updatedStats?.breakthroughToRealm;
 
     if (breakthroughRealm) {
@@ -492,18 +493,49 @@ export const applyStoryResponseToState = async ({
                 nextProfile.experience,
                 targetLevel
             );
-            gainedXp += xpForBreakthrough;
+            finalGainedXp = gainedXpFromAI + xpForBreakthrough;
             notifications.push(`✨ **ĐỘT PHÁ THẦN TỐC!** Vận may ập đến, bạn nhận được một lượng lớn kinh nghiệm để đạt đến <b>${breakthroughRealm}</b>.`);
+        }
+    } else if (gainedXpFromAI > 0) {
+        // Level Bonus: Càng cao cấp, nhận càng nhiều EXP.
+        const levelBonus = 1 + (nextProfile.level / 50); // +2% EXP mỗi cấp
+        
+        // Cultivation Technique Bonus
+        const cultivationSkills = nextProfile.skills.filter(s => s.type === SkillType.CULTIVATION);
+        const qualityTiers = finalWorldSettings.qualityTiers.split(' - ').map(q => q.trim());
+        let cultivationBonus = 1.0;
+        
+        cultivationSkills.forEach(skill => {
+            const qualityIndex = qualityTiers.indexOf(skill.quality);
+            if (qualityIndex !== -1) {
+                // Mỗi công pháp tu luyện sẽ cộng thêm bonus dựa trên phẩm chất của nó
+                // Phàm Phẩm (index 0) +0.1, Linh Phẩm (index 1) +0.2, ...
+                cultivationBonus += (qualityIndex + 1) * 0.1;
+            }
+        });
+        
+        const adjustedXp = Math.max(1, Math.round(gainedXpFromAI * levelBonus * cultivationBonus));
+        finalGainedXp = adjustedXp;
+        
+        const bonusDescriptions: string[] = [];
+        if (levelBonus > 1.01) { // Only show bonus if it's significant
+            bonusDescriptions.push(`nhờ Cấp độ ${nextProfile.level} (x${levelBonus.toFixed(2)})`);
+        }
+        if (cultivationBonus > 1.01) {
+            bonusDescriptions.push(`nhờ Công pháp (x${cultivationBonus.toFixed(2)})`);
+        }
+
+        if (bonusDescriptions.length > 0) {
+            notifications.push(`Bạn nhận được <b>${adjustedXp.toLocaleString()} EXP</b> (gốc: ${gainedXpFromAI.toLocaleString()}, ${bonusDescriptions.join(', ')}).`);
+        } else {
+             notifications.push(`Bạn nhận được <b>${adjustedXp.toLocaleString()} EXP</b>.`);
         }
     }
 
-    if (gainedXp > 0) {
-        if ((response.updatedStats?.gainedExperience ?? 0) > 0 && !breakthroughRealm) {
-            notifications.push(`Bạn nhận được <b>${gainedXp.toLocaleString()} EXP</b>.`);
-        }
+    if (finalGainedXp > 0) {
         const oldLevel = nextProfile.level;
         const oldRealm = nextProfile.realm;
-        nextProfile = processLevelUps(nextProfile, gainedXp, finalWorldSettings);
+        nextProfile = processLevelUps(nextProfile, finalGainedXp, finalWorldSettings);
         if (nextProfile.level > oldLevel) {
             notifications.push(`🎉 Chúc mừng! Bạn đã đạt đến <b>cấp độ ${nextProfile.level}</b>.`);
             if (nextProfile.realm !== oldRealm) {
@@ -513,6 +545,7 @@ export const applyStoryResponseToState = async ({
     } else {
         nextProfile = recalculateDerivedStats(nextProfile);
     }
+
 
     if (response.updatedGender && response.updatedGender !== nextProfile.gender) {
         nextProfile.gender = response.updatedGender;

@@ -1,4 +1,3 @@
-
 export const statUpdatesInstruction = `
 **MỆNH LỆNH TUYỆT ĐỐI: CẬP NHẬT TRẠNG THÁI MÁY MÓC**
 
@@ -72,7 +71,14 @@ Nhiệm vụ của bạn là một người kể chuyện, nhưng đồng thời
     -   Hành động thông thường, khám phá nhỏ: 10-50 EXP.
     -   Đánh bại kẻ địch yếu, khám phá quan trọng: 50-150 EXP.
     -   Hoàn thành nhiệm vụ, đánh bại trùm, đột phá lớn: 150-300+ EXP.
-    -   Khi nhân vật đạt cấp độ rất cao (trên 50), hãy giảm nhẹ lượng kinh nghiệm trao thưởng để làm chậm quá trình thăng cấp.
+    -   Lưu ý: Lượng kinh nghiệm bạn cung cấp là giá trị **cơ bản**. Hệ thống sẽ tự động **khuếch đại** lượng kinh nghiệm nhận được dựa trên **cấp độ hiện tại** và **số lượng/phẩm chất của các công pháp tu luyện** mà nhân vật sở hữu. Do đó, hãy tiếp tục cung cấp một lượng kinh nghiệm cơ bản hợp lý cho hành động.
+-   **Kinh nghiệm từ các Nguồn Đặc Biệt (Hấp thụ, Truyền công...):** Khi câu chuyện có các sự kiện đặc biệt giúp tăng tiến sức mạnh nhanh chóng, bạn PHẢI trao một lượng kinh nghiệm cơ bản CỰC LỚN.
+    -   **Các sự kiện bao gồm:** Thôn phệ/hấp thụ tu vi/linh hồn của kẻ khác, nhận truyền công từ một cao nhân, tìm thấy và hấp thụ một nguồn năng lượng khổng lồ (linh mạch, dị bảo).
+    -   **Logic trao thưởng:** Lượng kinh nghiệm cơ bản phải phản ánh mức độ mạnh mẽ của nguồn năng lượng.
+        - Hấp thụ một tu sĩ cấp thấp: 5,000 - 10,000 EXP.
+        - Hấp thụ một tu sĩ cấp cao: 20,000 - 100,000+ EXP.
+        - Nhận truyền công từ một Đại Năng: 50,000 - 500,000+ EXP.
+    - Hệ thống sẽ tự động giảm lượng kinh nghiệm này nếu cấp độ của người chơi đã cao, nhưng giá trị cơ bản lớn sẽ đảm bảo đây vẫn là một bước tiến đáng kể.
 -   **Kinh nghiệm từ Tu Luyện (BẮT BUỘC):** Bất cứ khi nào hành động của người chơi LÀ tu luyện, HOẶC nếu nội dung 'story' bạn viết ra mô tả nhân vật đang thực hiện các hoạt động tu luyện (ví dụ: "bế quan", "luyện hóa", "thiền định", "hấp thụ linh khí"), bạn PHẢI thực hiện đồng thời hai việc:
     1.  Trao một lượng kinh nghiệm hợp lý cho nhân vật trong 'updatedStats.gainedExperience'.
     2.  Trao kinh nghiệm cho một kỹ năng loại 'Tu Luyện' phù hợp trong 'updatedSkills'.
@@ -159,4 +165,4 @@ Nhiệm vụ của bạn là một người kể chuyện, nhưng đồng thời
 
 **D. NGUYÊN TẮC HƯỚNG DẪN**
 - **Ghi nhớ:** Thành tích là những **dấu ấn đáng nhớ** trong cuộc đời tu tiên của nhân vật, không phải là một danh sách kỹ năng thông thường.
-`;
+`
