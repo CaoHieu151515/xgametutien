@@ -82,7 +82,7 @@ export const getNpcManagementInstruction = (worldSettings: WorldSettings | null,
     2. **Lời nói:** Lời nói của NPC phải cực kỳ đơn giản, chỉ giới hạn ở việc xác nhận mệnh lệnh hoặc thể hiện sự phục tùng.
     3. **Trang bị:** Mọi trang bị hoặc quần áo không phù hợp với vai trò Khuyển Nô sẽ tự động bị loại bỏ (nhưng không bị xóa khỏi game). Tường thuật rằng NPC hiện đang khỏa thân hoặc chỉ mặc những trang phục phù hợp với vai trò mới.
 
-**1.7. Quy tắc Phân bổ Cảnh giới NPC (MỆNH LỆNH LOGIC TUYỆT ĐỐI)**
+**1.7. QUY TẮC PHÂN BỔ CẢNH GIỚI NPC (MỆNH LỆNH LOGIC TUYỆT ĐỐI)**
 Bạn PHẢI tuân thủ các quy tắc sau đây khi tạo hoặc cập nhật cảnh giới cho NPC để đảm bảo một thế giới logic và nhất quán. Việc một đệ tử ngoại môn có cảnh giới Độ Kiếp là một lỗi hệ thống nghiêm trọng.
 
 *   **1. Cảnh giới PHẢI phù hợp với Vai trò/Chức vụ:**
@@ -133,11 +133,26 @@ NPC không phải là những con rối thụ động. Họ có ý chí, tính c
 -   **Kết luận:** Trừ khi một trong hai trạng thái trên được kích hoạt, bạn PHẢI giữ vững tính cách gốc của NPC một cách tuyệt đối. Việc thay đổi tính cách của một NPC phải là một thành tựu cực kỳ khó khăn, không phải là kết quả của vài cuộc trò chuyện thân thiện.
 
 ---
-**PHẦN 3: TẠO VÀ CẬP NHẬT NPC**
+**PHẦN 3: TẠO VÀ CẬP NHẬT NPC (MỆNH LỆNH ĐỒNG BỘ TUYỆT ĐỐI)**
 ---
 
--   **QUY TẮC SÁNG TẠO NPC TỰ ĐỘNG (LOGIC TỐI CAO):**
-    Bất cứ khi nào một nhân vật **mới, có tên riêng, và có lời thoại hoặc hành động quan trọng** xuất hiện trong 'story', bạn **PHẢI** coi đây là một NPC chính thức và tạo một đối tượng đầy đủ cho họ trong mảng \`newNPCs\`.
+**3.1. Mệnh Lệnh "CÓ TRUYỆN MỚI CÓ NPC" (QUAN TRỌNG NHẤT - LỖI HỆ THỐNG NẾU VI PHẠM)**
+- **Nguyên tắc Cốt lõi:** Bạn **TUYỆT ĐỐI BỊ CẤM** tạo ra một NPC mới trong mảng \`newNPCs\` nếu nhân vật đó không được giới thiệu một cách rõ ràng trong trường 'story' của CÙNG MỘT LƯỢT PHẢN HỒI.
+- **Quy trình Bắt buộc:**
+    1.  **Giới thiệu trong Truyện:** Đầu tiên, bạn phải viết vào 'story' cảnh nhân vật người chơi gặp gỡ, nhìn thấy, hoặc tương tác với một nhân vật mới. Nhân vật mới này PHẢI có tên riêng và có hành động hoặc lời thoại.
+    2.  **Đồng bộ vào JSON:** SAU KHI đã giới thiệu họ trong 'story', bạn mới được phép tạo một đối tượng JSON đầy đủ cho họ trong mảng \`newNPCs\`.
+- **LỖI LOGIC CẤM:** Việc thêm một NPC vào \`newNPCs\` mà không có bất kỳ sự đề cập nào đến họ trong 'story' là một lỗi logic nghiêm trọng. Điều này tạo ra "NPC ma" trong dữ liệu game, phá vỡ sự nhất quán.
+- **Ví dụ về Lỗi (Cấm):**
+    - \`story\`: "Bạn bước vào quán trọ và gọi một bình rượu."
+    - \`newNPCs\`: \`[ { "id": "npc_123", "name": "Lý Tiểu Nhị", ... } ]\`
+    - (Lý do sai: NPC "Lý Tiểu Nhị" xuất hiện trong dữ liệu nhưng hoàn toàn không tồn tại trong câu chuyện.)
+- **Ví dụ Xử lý Đúng (Bắt buộc):**
+    - \`story\`: "Bạn bước vào quán trọ. Một tiểu nhị nhanh nhẹn chạy ra. [Lý Tiểu Nhị]: 'Khách quan, ngài muốn dùng gì ạ?'"
+    - \`newNPCs\`: \`[ { "id": "npc_123", "name": "Lý Tiểu Nhị", ... } ]\`
+    - (Lý do đúng: NPC được giới thiệu trong truyện trước, sau đó mới được tạo trong dữ liệu.)
+
+**3.2. QUY TẮC SÁNG TẠO NPC TỰ ĐỘNG (LOGIC TỐI CAO - CHIỀU NGƯỢC LẠI):**
+- **Nguyên tắc:** Đây là quy tắc ngược lại và bổ sung cho quy tắc 3.1. Bất cứ khi nào một nhân vật **mới, có tên riêng, và có lời thoại hoặc hành động quan trọng** xuất hiện trong 'story', bạn **PHẢI** coi đây là một NPC chính thức và tạo một đối tượng đầy đủ cho họ trong mảng \`newNPCs\`.
     -   **Hành động quan trọng bao gồm:** nói chuyện trực tiếp với người chơi, tấn công người chơi, trao vật phẩm, hoặc thực hiện bất kỳ hành động nào ảnh hưởng trực tiếp đến người chơi hoặc diễn biến cốt truyện.
     -   Bạn vẫn có thể mô tả các nhân vật quần chúng không tên (ví dụ: "một người qua đường", "tiểu nhị") mà không cần tạo đối tượng.
     -   Tuy nhiên, nếu người chơi tương tác với một nhân vật quần chúng và nhân vật đó được đặt tên hoặc có vai trò cụ thể, họ phải được tạo ra.

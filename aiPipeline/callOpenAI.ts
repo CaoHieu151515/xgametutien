@@ -1,9 +1,18 @@
+
 import { log } from '../services/logService';
 
 const API_URL = "https://api.openai.com/v1/chat/completions";
 const MODEL = 'gpt-4o';
 
-const getJsonSchemaDescription = (forWorldGen: boolean): string => {
+const getJsonSchemaDescription = (isWorldGen: boolean, isStateUpdate: boolean, isNarrativeUpdate: boolean): string => {
+    if (isStateUpdate) {
+        return `Your response MUST be a single, valid JSON object representing ONLY the CHANGES to the game state. DO NOT include 'story' or 'choices'. The object can contain any of the following optional fields: updatedStats, updatedGameTime, updatedGender, newSkills, updatedSkills, newLocations, updatedLocations, updatedPlayerLocationId, newNPCs, updatedNPCs, newItems, updatedItems, removedItemIds, newWorldKnowledge.`;
+    }
+
+    if (isNarrativeUpdate) {
+        return `Your response MUST be a single, valid JSON object with EXACTLY two keys: "story" (string) and "choices" (an array of 4 choice objects).`;
+    }
+
     const storyResponseSchema = `
         "story": A string containing the next part of the story.
         "choices": An array of EXACTLY FOUR choice objects. Each object must have:
@@ -29,7 +38,7 @@ const getJsonSchemaDescription = (forWorldGen: boolean): string => {
         "newItems": (optional array of Item objects) for newly acquired items. If the item type is 'Dược Phẩm', you MUST provide an 'effectsDescription' field detailing its effect.
         "updatedItems": (optional array of {name: string, quantity: number}) for updating item quantities.
         "removedItemIds": (optional array of strings) IDs of items to remove.
-        "newWorldKnowledge": (optional array of WorldKnowledge objects) For newly discovered lore/factions. Each object: {"id": string, "title": string, "content": string, "category": string ('Bang Phái' | 'Lịch Sử' | 'Nhân Vật' | 'Khác')}.
+        "newWorldKnowledge": (optional array of WorldKnowledge objects) For newly discovered lore/factions. Each object: {"id": string, "title": string, "content": string, "category": string ('Bang Phái' | 'Lịch Sử', 'Nhân Vật', 'Khác')}.
     `;
 
     const worldGenSchema = `
@@ -37,7 +46,7 @@ const getJsonSchemaDescription = (forWorldGen: boolean): string => {
         "worldSettings": An object describing the game world, including 'theme', 'powerSystems', 'initialKnowledge'. Each knowledge item MUST have a 'category'.
     `;
 
-    return `Your response MUST be a single, valid JSON object with the following structure: {${forWorldGen ? worldGenSchema : storyResponseSchema}}`;
+    return `Your response MUST be a single, valid JSON object with the following structure: {${isWorldGen ? worldGenSchema : storyResponseSchema}}`;
 };
 
 interface CallParams {
@@ -45,16 +54,18 @@ interface CallParams {
     prompt: string;
     apiKey: string;
     isWorldGen?: boolean;
+    isStateUpdate?: boolean;
+    isNarrativeUpdate?: boolean;
 }
 
-export const callOpenAiApi = async ({ systemInstruction, prompt, apiKey, isWorldGen = false }: CallParams): Promise<any> => {
-    log('callOpenAI.ts', `Calling OpenAI API (${isWorldGen ? 'WorldGen' : 'Content'})...`, 'API');
+export const callOpenAiApi = async ({ systemInstruction, prompt, apiKey, isWorldGen = false, isStateUpdate = false, isNarrativeUpdate = false }: CallParams): Promise<any> => {
+    log('callOpenAI.ts', `Calling OpenAI API (${isWorldGen ? 'WorldGen' : isStateUpdate ? 'StateUpdate' : isNarrativeUpdate ? 'Narrative' : 'Content'})...`, 'API');
     if (!apiKey) {
         log('callOpenAI.ts', 'OpenAI API Key is missing.', 'ERROR');
         throw new Error("Vui lòng cung cấp API Key của OpenAI trong phần Cài đặt.");
     }
 
-    const fullSystemInstruction = `${systemInstruction}\n\n${getJsonSchemaDescription(isWorldGen)}`;
+    const fullSystemInstruction = `${systemInstruction}\n\n${getJsonSchemaDescription(isWorldGen, isStateUpdate, isNarrativeUpdate)}`;
 
     try {
         const response = await fetch(API_URL, {

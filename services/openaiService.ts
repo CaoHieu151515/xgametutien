@@ -6,7 +6,7 @@ import {
 import { getSystemInstruction } from '../config/instructions';
 import { log } from './logService';
 import {
-    buildNextStepPrompt, buildInitialStoryPrompt, buildWorldGenPrompt, buildNewSkillDescriptionPrompt
+    buildStateUpdatePrompt, buildNarrativePrompt, buildInitialStoryPrompt, buildWorldGenPrompt, buildNewSkillDescriptionPrompt
 } from '../aiPipeline/prompts';
 import { callOpenAiApi } from '../aiPipeline/callOpenAI';
 import { parseAndValidateJson, validateWorldGenResponse } from '../aiPipeline/validate';
@@ -24,7 +24,7 @@ const getApiResponse = (data: any): StoryApiResponse => {
     };
 };
 
-export const getNextStoryStep = async (
+export const getGameStateUpdate = async (
     historyText: string,
     actionText: string,
     isMature: boolean,
@@ -35,9 +35,78 @@ export const getNextStoryStep = async (
     apiKey: string,
 ): Promise<StoryApiResponse> => {
     const systemInstruction = getSystemInstruction(isMature, perspective, characterProfile.gender, characterProfile.race, characterProfile.powerSystem, worldSettings);
-    const prompt = buildNextStepPrompt(historyText, actionText, characterProfile, worldSettings, npcs);
-    const data = await callOpenAiApi({ systemInstruction, prompt, apiKey });
+    const prompt = buildStateUpdatePrompt(historyText, actionText, characterProfile, worldSettings, npcs);
+    const data = await callOpenAiApi({ systemInstruction, prompt, apiKey, isStateUpdate: true });
     return getApiResponse(data);
+};
+
+export const getNarrativeUpdate = async (
+    playerAction: string,
+    stateChanges: StoryResponse,
+    isMature: boolean,
+    perspective: NarrativePerspective,
+    characterProfile: CharacterProfile,
+    worldSettings: WorldSettings,
+    npcs: NPC[],
+    apiKey: string,
+): Promise<StoryApiResponse> => {
+     const systemInstruction = getSystemInstruction(isMature, perspective, characterProfile.gender, characterProfile.race, characterProfile.powerSystem, worldSettings);
+     const prompt = buildNarrativePrompt(playerAction, stateChanges, characterProfile, worldSettings, npcs);
+     const data = await callOpenAiApi({ systemInstruction, prompt, apiKey, isNarrativeUpdate: true });
+     return getApiResponse(data);
+};
+
+export const getNextStoryStep = async (
+    historyText: string,
+    actionText: string,
+    isMature: boolean,
+    perspective: NarrativePerspective,
+    characterProfile: CharacterProfile,
+    worldSettings: WorldSettings,
+    npcs: NPC[],
+    apiKey: string,
+): Promise<StoryApiResponse> => {
+    // 1. Get state update
+    const stateUpdate = await getGameStateUpdate(
+        historyText,
+        actionText,
+        isMature,
+        perspective,
+        characterProfile,
+        worldSettings,
+        npcs,
+        apiKey
+    );
+
+    // 2. Get narrative update based on state changes
+    const narrativeUpdate = await getNarrativeUpdate(
+        actionText,
+        stateUpdate.storyResponse,
+        isMature,
+        perspective,
+        characterProfile,
+        worldSettings,
+        npcs,
+        apiKey
+    );
+
+    // 3. Combine results
+    const combinedStoryResponse: StoryResponse = {
+        ...stateUpdate.storyResponse,
+        story: narrativeUpdate.storyResponse.story,
+        choices: narrativeUpdate.storyResponse.choices,
+    };
+    
+    const combinedUsageMetadata = {
+        totalTokenCount: (stateUpdate.usageMetadata?.totalTokenCount || 0) + (narrativeUpdate.usageMetadata?.totalTokenCount || 0),
+        promptTokenCount: (stateUpdate.usageMetadata?.promptTokenCount || 0) + (narrativeUpdate.usageMetadata?.promptTokenCount || 0),
+        candidatesTokenCount: (stateUpdate.usageMetadata?.candidatesTokenCount || 0) + (narrativeUpdate.usageMetadata?.candidatesTokenCount || 0),
+    };
+    
+    return {
+        storyResponse: combinedStoryResponse,
+        usageMetadata: combinedUsageMetadata
+    };
 };
 
 export const getInitialStory = async (

@@ -63,7 +63,7 @@ export const Toast: React.FC<ToastProps> = ({ toast, onClose }) => {
   const config = TOAST_CONFIG[toast.type];
 
   return (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-full max-w-md animate-fade-in-down">
+    <div className="fixed top-4 right-4 z-[100] w-full max-w-sm animate-fade-in-right">
       <div className={`${config.bg} border ${config.border} text-white p-4 rounded-lg shadow-2xl backdrop-blur-sm flex items-start gap-4`}>
         <div className="flex-shrink-0 pt-0.5">
             {config.icon}
@@ -79,18 +79,18 @@ export const Toast: React.FC<ToastProps> = ({ toast, onClose }) => {
         </button>
       </div>
       <style>{`
-        @keyframes fadeInDown {
+        @keyframes fadeInRight {
           from {
             opacity: 0;
-            transform: translate(-50%, -20px);
+            transform: translateX(100%);
           }
           to {
             opacity: 1;
-            transform: translate(-50%, 0);
+            transform: translateX(0);
           }
         }
-        .animate-fade-in-down {
-          animation: fadeInDown 0.3s ease-out forwards;
+        .animate-fade-in-right {
+          animation: fadeInRight 0.4s ease-out forwards;
         }
       `}</style>
     </div>

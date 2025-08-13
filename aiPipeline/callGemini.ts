@@ -33,8 +33,6 @@ export const callGeminiApi = async ({ systemInstruction, prompt, apiKey, schema 
                 ...(systemInstruction && { systemInstruction }),
                 responseMimeType: "application/json",
                 responseSchema: schema,
-                maxOutputTokens: 8192,
-                thinkingConfig: { thinkingBudget: 2048 },
             },
         });
         

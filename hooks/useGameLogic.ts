@@ -161,6 +161,8 @@ export const useGameLogic = () => {
     const [lastFailedCustomAction, setLastFailedCustomAction] = useState<string | null>(null);
     const [npcs, setNpcs] = useState<NPC[]>([]);
     const [gameLog, setGameLog] = useState<GameSnapshot[]>([]);
+    const [isRewindAndSavePending, setIsRewindAndSavePending] = useState(false);
+
 
     const clearToast = useCallback(() => setToast(null), []);
 
@@ -220,13 +222,44 @@ export const useGameLogic = () => {
 
         setChoices([]);
         
+        let historyText = '';
         const historySize = settings.historyContextSize;
-        const historyPartsToTake = historySize > 0 ? (historySize * 2) : 0;
-        const relevantHistory = historySize > 0 ? history.slice(-historyPartsToTake) : [];
-
-        const historyText = relevantHistory
-            .map(part => `${part.type === 'story' ? 'Bối cảnh' : 'Người chơi'}: ${part.text}`)
-            .join('\n');
+        if (historySize > 0 && history.length > 0) {
+            const verbatimTurns = 3;
+            const historyPartsToTake = historySize * 2;
+            const relevantHistory = history.slice(-historyPartsToTake);
+        
+            const verbatimPartsCount = Math.min(relevantHistory.length, verbatimTurns * 2);
+            const verbatimHistory = relevantHistory.slice(-verbatimPartsCount);
+            const summaryHistory = relevantHistory.slice(0, relevantHistory.length - verbatimPartsCount);
+        
+            const summaryLines: string[] = [];
+            if (summaryHistory.length > 0) {
+                summaryLines.push("Tóm tắt các sự kiện trước đó:");
+                for (let i = 0; i < summaryHistory.length; i += 2) {
+                    const actionPart = summaryHistory[i];
+                    const storyPart = summaryHistory[i + 1];
+        
+                    if (actionPart && actionPart.type === 'action' && storyPart && storyPart.type === 'story') {
+                        const firstSentenceMatch = storyPart.text.match(/[^.!?]+[.!?]/);
+                        const storySummary = (firstSentenceMatch ? firstSentenceMatch[0] : (storyPart.text.substring(0, 150) + '...')).replace(/\s+/g, ' ').trim();
+                        summaryLines.push(`- Người chơi: ${actionPart.text}. Kết quả: ${storySummary}`);
+                    }
+                }
+            }
+        
+            const summaryText = summaryLines.join('\n');
+        
+            const verbatimText = verbatimHistory
+                .map(part => `${part.type === 'story' ? 'Bối cảnh' : 'Người chơi'}: ${part.text}`)
+                .join('\n');
+        
+            if (summaryText) {
+                historyText = `${summaryText}\n\n---\n\nLịch sử gần đây (chi tiết):\n${verbatimText}`;
+            } else {
+                historyText = verbatimText;
+            }
+        }
             
         const MAX_RETRIES = 2;
         let storyResponse: StoryResponse | null = null;
@@ -312,6 +345,13 @@ export const useGameLogic = () => {
              return;
         }
 
+        if (usageMetadata?.totalTokenCount) {
+            setToast({
+                message: `Đã sử dụng ${usageMetadata.totalTokenCount.toLocaleString()} tokens.`,
+                type: 'info',
+            });
+        }
+
         try {
             // Xác minh tính nhất quán logic của phản hồi AI trước khi áp dụng
             verifyStoryResponse(storyResponse, characterProfile, npcs, worldSettings);
@@ -325,10 +365,6 @@ export const useGameLogic = () => {
                 settings,
                 choice
             });
-            
-            if (usageMetadata?.totalTokenCount) {
-                notifications.unshift(`✨ Đã sử dụng <b>${usageMetadata.totalTokenCount.toLocaleString()} tokens</b> cho lượt này.`);
-            }
 
             // Apply turn-based status effect duration updates
             nextProfile = updateStatusEffectDurations(nextProfile);
@@ -448,6 +484,7 @@ export const useGameLogic = () => {
         setHistory(state.history);
         setChoices(state.choices);
         setGameLog(state.gameLog);
+        setLastFailedCustomAction(null);
     }, []);
 
     const handleRewind = useCallback((turnNumber: number) => {
@@ -459,11 +496,36 @@ export const useGameLogic = () => {
                 gameLog: gameLog.filter(s => s.turnNumber < turnNumber)
             };
             loadState(stateToLoad);
-            log('useGameLogic.ts', 'Rewind successful.', 'INFO');
+            setIsRewindAndSavePending(true); // Flag for auto-save
+            log('useGameLogic.ts', 'Rewind successful. Pending auto-save.', 'INFO');
         } else {
             log('useGameLogic.ts', `Rewind failed for turn ${turnNumber}: No rewind data found.`, 'ERROR');
         }
     }, [gameLog, loadState]);
+
+    useEffect(() => {
+        if (isRewindAndSavePending && characterProfile && worldSettings) {
+            const performAutoSave = async () => {
+                log('useGameLogic.ts', 'Performing auto-save after rewind...', 'FUNCTION');
+                try {
+                    await saveService.saveGame(
+                        characterProfile,
+                        worldSettings,
+                        npcs,
+                        history,
+                        choices,
+                        gameLog
+                    );
+                    setToast({ message: 'Đã quay lại lượt và tự động lưu game!', type: 'success' });
+                } catch (e) {
+                    setToast({ message: `Lỗi khi tự động lưu game: ${(e as Error).message}`, type: 'error' });
+                } finally {
+                    setIsRewindAndSavePending(false);
+                }
+            };
+            performAutoSave();
+        }
+    }, [isRewindAndSavePending, characterProfile, worldSettings, npcs, history, choices, gameLog]);
 
     const handleContinue = async () => {
         log('useGameLogic.ts', 'Continuing last game.', 'FUNCTION');
@@ -574,12 +636,14 @@ export const useGameLogic = () => {
         try {
             const { storyResponse, usageMetadata } = await api.getInitialStory(finalProfile, newWorldSettings, settings.isMature, settings.perspective, apiKeyForService);
             
-            const notifications: string[] = [];
             if (usageMetadata?.totalTokenCount) {
-                notifications.push(`✨ Đã sử dụng <b>${usageMetadata.totalTokenCount.toLocaleString()} tokens</b> cho lượt này.`);
+                setToast({
+                    message: `Đã sử dụng ${usageMetadata.totalTokenCount.toLocaleString()} tokens.`,
+                    type: 'info',
+                });
             }
             
-            const initialStoryPart: StoryPart = { id: Date.now(), type: 'story', text: storyResponse.story, notifications };
+            const initialStoryPart: StoryPart = { id: Date.now(), type: 'story', text: storyResponse.story, notifications: [] };
             
             const preActionState = {
                 characterProfile: finalProfile,

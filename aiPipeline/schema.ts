@@ -6,7 +6,7 @@ export const statusEffectSchema = {
     properties: {
         name: { type: Type.STRING, description: "Tên của trạng thái (ví dụ: 'Trúng Độc', 'Tăng Sức Mạnh')." },
         description: { type: Type.STRING, description: "Mô tả ngắn gọn về ảnh hưởng của trạng thái." },
-        duration: { type: Type.STRING, description: "Thời hạn của trạng thái (ví dụ: 'Vĩnh viễn', '3 lượt', '1 ngày')." }
+        duration: { type: Type.STRING, description: "Thời hạn của trạng thái. BẮT BUỘC phải là chuỗi 'Vĩnh viễn' hoặc một chuỗi theo định dạng 'X lượt' (ví dụ: '3 lượt', '270 lượt'). TUYỆT ĐỐI KHÔNG sử dụng các định dạng khác." }
     },
     required: ["name", "description", "duration"]
 };
@@ -16,7 +16,7 @@ export const achievementSchema = {
     properties: {
         name: { type: Type.STRING, description: "Tên của thành tích hoặc danh hiệu (ví dụ: 'Đan Sư', 'Kẻ Diệt Rồng')." },
         description: { type: Type.STRING, description: "Mô tả về thành tích và các lợi ích (nếu có)." },
-        tier: { type: Type.STRING, description: "Cấp bậc của thành tích nếu có thể nâng cấp (ví dụ: 'Sơ cấp', 'Trung cấp').", nullable: true }
+        tier: { type: Type.STRING, description: "Cấp bậc của thành tích nếu có thể nâng cấp (ví dụ: 'Sơ cấp', 'Trung cấp')." }
     },
     required: ["name", "description"]
 };
@@ -29,24 +29,21 @@ export const updatedStatsSchema = {
         mana: { type: Type.NUMBER, description: "Linh lực/Năng lượng hiện tại của nhân vật (ví dụ: sau khi dùng phép)." },
         currencyAmount: { type: Type.NUMBER, description: "Số lượng tiền tệ hiện tại của nhân vật." },
         gainedExperience: { type: Type.NUMBER, description: "Điểm kinh nghiệm nhân vật NHẬN ĐƯỢỢC từ hành động này (không phải tổng kinh nghiệm). Hệ thống sẽ tự cộng dồn." },
-        breakthroughToRealm: { type: Type.STRING, description: "Tên cảnh giới MỚI mà nhân vật đột phá đến (ví dụ: 'Kim Đan Viên Mãn'). Hệ thống sẽ tự tính toán và cộng dồn toàn bộ kinh nghiệm cần thiết để đạt được cảnh giới này. Bỏ qua gainedExperience khi dùng trường này.", nullable: true },
+        breakthroughToRealm: { type: Type.STRING, description: "Tên cảnh giới MỚI mà nhân vật đột phá đến (ví dụ: 'Kim Đan Viên Mãn'). Hệ thống sẽ tự tính toán và cộng dồn toàn bộ kinh nghiệm cần thiết để đạt được cảnh giới này. Bỏ qua gainedExperience khi dùng trường này." },
         newStatusEffects: {
             type: Type.ARRAY,
             description: "Một mảng các trạng thái mới được thêm cho nhân vật do sự kiện trong truyện. Bỏ qua nếu không có.",
             items: statusEffectSchema,
-            nullable: true,
         },
         removedStatusEffects: {
             type: Type.ARRAY,
             description: "Một mảng tên các trạng thái cần được xóa bỏ khỏi nhân vật (do hết hạn hoặc bị giải trừ). Bỏ qua nếu không có.",
             items: { type: Type.STRING },
-            nullable: true,
         },
         newAchievements: {
             type: Type.ARRAY,
             description: "Một mảng các thành tích hoặc danh hiệu vĩnh viễn MỚI mà nhân vật đạt được. Bỏ qua nếu không có.",
             items: achievementSchema,
-            nullable: true,
         },
         updatedAchievements: {
             type: Type.ARRAY,
@@ -55,15 +52,13 @@ export const updatedStatsSchema = {
                 type: Type.OBJECT,
                 properties: {
                     name: { type: Type.STRING, description: "Tên chính xác của thành tích cần cập nhật." },
-                    description: { type: Type.STRING, description: "Mô tả mới.", nullable: true },
-                    tier: { type: Type.STRING, description: "Cấp bậc mới.", nullable: true }
+                    description: { type: Type.STRING, description: "Mô tả mới." },
+                    tier: { type: Type.STRING, description: "Cấp bậc mới." }
                 },
                 required: ["name"]
             },
-            nullable: true,
         }
     },
-    nullable: true,
 };
 
 export const newSkillSchema = {
@@ -92,7 +87,7 @@ export const equipmentDetailsSchema = {
     properties: {
         type: { type: Type.STRING, enum: Object.values(EquipmentType), description: "Loại trang bị." },
         stats: { type: Type.ARRAY, items: equipmentStatSchema, description: "Các chỉ số mà trang bị này cộng thêm." },
-        effect: { type: Type.STRING, description: "Mô tả hiệu ứng đặc biệt của trang bị.", nullable: true }
+        effect: { type: Type.STRING, description: "Mô tả hiệu ứng đặc biệt của trang bị." }
     },
     required: ["type", "stats"]
 };
@@ -106,9 +101,9 @@ export const itemSchema = {
         type: { type: Type.STRING, enum: Object.values(ItemType), description: "Loại vật phẩm." },
         quality: { type: Type.STRING, description: "Phẩm chất của vật phẩm, dựa trên worldSettings.qualityTiers." },
         quantity: { type: Type.NUMBER, description: "Số lượng vật phẩm." },
-        value: { type: Type.NUMBER, description: "Giá trị tham khảo của vật phẩm bằng tiền tệ trong game.", nullable: true },
-        equipmentDetails: { ...equipmentDetailsSchema, nullable: true, description: "Chi tiết nếu vật phẩm là một trang bị." },
-        effectsDescription: { type: Type.STRING, description: "Mô tả hiệu ứng cụ thể của vật phẩm nếu nó là 'Dược Phẩm'. Ví dụ: 'Hồi phục 500 sinh lực', 'Tăng 10% tấn công trong 3 lượt', 'Gây trúng độc, giảm 100 sinh lực mỗi lượt trong 5 lượt.'", nullable: true }
+        value: { type: Type.NUMBER, description: "Giá trị tham khảo của vật phẩm bằng tiền tệ trong game." },
+        equipmentDetails: { ...equipmentDetailsSchema, description: "Chi tiết nếu vật phẩm là một trang bị." },
+        effectsDescription: { type: Type.STRING, description: "Mô tả hiệu ứng cụ thể của vật phẩm nếu nó là 'Dược Phẩm'. Ví dụ: 'Hồi phục 500 sinh lực', 'Tăng 10% tấn công trong 3 lượt', 'Gây trúng độc, giảm 100 sinh lực mỗi lượt trong 5 lượt.'" }
     },
     required: ["id", "name", "description", "type", "quality", "quantity"]
 };
@@ -133,26 +128,22 @@ export const locationSchema = {
         parentId: {
             type: Type.STRING,
             description: "ID của địa điểm cha. Null nếu là địa điểm cấp cao nhất (THẾ GIỚI).",
-            nullable: true,
         },
         ownerId: {
             type: Type.STRING,
             description: "ID của nhân vật sở hữu địa điểm. Dùng giá trị 'player' nếu người chơi là chủ sở hữu. Null nếu không có chủ.",
-            nullable: true,
         },
         rules: {
             type: Type.ARRAY,
             description: "Một mảng các chuỗi mô tả luật lệ hoặc đặc tính vật lý/siêu nhiên của địa điểm này (ví dụ: 'Không thể bay trong thành', 'Linh khí ở đây dày đặc gấp đôi').",
             items: { type: Type.STRING },
-            nullable: true,
         },
         isDestroyed: {
             type: Type.BOOLEAN,
             description: "Đặt thành true nếu địa điểm này (và tất cả các địa điểm con của nó) đã bị phá hủy. Không thể di chuyển đến địa điểm đã bị phá hủy.",
-            nullable: true,
         },
     },
-    required: ["id", "name", "description", "type", "coordinates", "parentId", "ownerId", "rules"]
+    required: ["id", "name", "description", "type", "coordinates", "rules"]
 };
 
 export const mienLucSchema = {
@@ -173,7 +164,7 @@ export const npcRelationshipSchema = {
     properties: {
         targetNpcId: { type: Type.STRING, description: "ID của NPC mục tiêu." },
         value: { type: Type.NUMBER, description: "Giá trị quan hệ, từ -1000 (kẻ thù) đến 1000 (tri kỷ)." },
-        relationshipType: { type: Type.STRING, enum: ['FAMILY', 'ROMANTIC', 'FRIENDLY', 'RIVAL'], description: "Loại mối quan hệ.", nullable: true }
+        relationshipType: { type: Type.STRING, enum: ['FAMILY', 'ROMANTIC', 'FRIENDLY', 'RIVAL'], description: "Loại mối quan hệ." }
     },
     required: ["targetNpcId", "value"]
 };
@@ -202,24 +193,24 @@ export const newNpcSchema = {
     properties: {
         id: { type: Type.STRING, description: "ID duy nhất cho NPC." },
         name: { type: Type.STRING, description: "Tên của NPC." },
-        aliases: { type: Type.STRING, description: "Các biệt danh hoặc tên gọi khác của NPC.", nullable: true },
+        aliases: { type: Type.STRING, description: "Các biệt danh hoặc tên gọi khác của NPC." },
         gender: { type: Type.STRING, enum: Object.values(CharacterGender), description: "Giới tính của NPC." },
         race: { type: Type.STRING, description: "Chủng tộc của NPC." },
         personality: { type: Type.STRING, description: "Mô tả tính cách của NPC." },
         description: { type: Type.STRING, description: "Mô tả ngoại hình và tiểu sử của NPC." },
-        avatarUrl: { type: Type.STRING, description: "URL ảnh đại diện cho NPC (tùy chọn).", nullable: true },
+        avatarUrl: { type: Type.STRING, description: "URL ảnh đại diện cho NPC (tùy chọn)." },
         level: { type: Type.NUMBER, description: "Cấp độ khởi đầu của NPC." },
         powerSystem: { type: Type.STRING, description: "Tên hệ thống tu luyện NPC theo." },
         aptitude: { type: Type.STRING, description: "Tên tư chất của NPC." },
         mienLuc: { ...mienLucSchema, description: "Thang điểm vẻ đẹp (Mị Lực) của NPC." },
-        locationId: { type: Type.STRING, description: "ID của địa điểm nơi NPC sinh sống ban đầu.", nullable: true },
-        specialConstitution: { ...specialConstitutionSchema, nullable: true, description: "Thể chất đặc biệt của NPC (nếu có)." },
-        innateTalent: { ...talentSchema, nullable: true, description: "Thiên phú bẩm sinh của NPC (nếu có)." },
-        statusEffects: { type: Type.ARRAY, items: statusEffectSchema, nullable: true, description: "Các trạng thái ban đầu của NPC." },
-        npcRelationships: { type: Type.ARRAY, items: npcRelationshipSchema, nullable: true, description: "Mối quan hệ ban đầu của NPC này với các NPC khác." },
-        isDaoLu: { type: Type.BOOLEAN, description: "Trạng thái Đạo Lữ với người chơi (luôn là false khi khởi tạo).", nullable: true }
+        locationId: { type: Type.STRING, description: "ID của địa điểm nơi NPC sinh sống ban đầu." },
+        specialConstitution: { ...specialConstitutionSchema, description: "Thể chất đặc biệt của NPC (nếu có)." },
+        innateTalent: { ...talentSchema, description: "Thiên phú bẩm sinh của NPC (nếu có)." },
+        statusEffects: { type: Type.ARRAY, items: statusEffectSchema, description: "Các trạng thái ban đầu của NPC." },
+        npcRelationships: { type: Type.ARRAY, items: npcRelationshipSchema, description: "Mối quan hệ ban đầu của NPC này với các NPC khác." },
+        isDaoLu: { type: Type.BOOLEAN, description: "Trạng thái Đạo Lữ với người chơi (luôn là false khi khởi tạo)." }
     },
-    required: ["id", "name", "gender", "race", "personality", "description", "level", "powerSystem", "aptitude", "mienLuc", "locationId", "statusEffects"]
+    required: ["id", "name", "gender", "race", "personality", "description", "level", "powerSystem", "aptitude", "mienLuc", "statusEffects"]
 };
 
 export const monsterSchema = {
@@ -262,7 +253,7 @@ export const characterProfileSchema = {
         goal: { type: Type.STRING, description: "Mục tiêu chính của nhân vật." },
         specialConstitution: specialConstitutionSchema,
         talent: talentSchema,
-        avatarUrl: { type: Type.STRING, nullable: true, description: "URL ảnh đại diện." },
+        avatarUrl: { type: Type.STRING, description: "URL ảnh đại diện." },
         skills: { type: Type.ARRAY, items: skillSchema, description: "Các kỹ năng khởi đầu." },
         initialItems: { type: Type.ARRAY, items: itemSchema, description: "Các vật phẩm và trang bị khởi đầu. BẮT BUỘC phải có." },
         initialNpcs: { type: Type.ARRAY, items: newNpcSchema, description: "Danh sách NPC khởi đầu." },
@@ -321,22 +312,22 @@ export const updatedNpcSchema = {
     description: "Các trường để cập nhật một NPC đã tồn tại. Chỉ bao gồm ID và các trường đã thay đổi.",
     properties: {
         id: { type: Type.STRING, description: "ID của NPC cần cập nhật." },
-        gainedExperience: { type: Type.NUMBER, description: "Kinh nghiệm NPC nhận được. Hệ thống sẽ tự xử lý việc lên cấp.", nullable: true },
-        breakthroughToRealm: { type: Type.STRING, description: "Tên cảnh giới MỚI mà NPC đột phá đến. Hệ thống sẽ tự tính toán và cộng dồn toàn bộ kinh nghiệm. Bỏ qua gainedExperience khi dùng trường này.", nullable: true },
-        relationship: { type: Type.NUMBER, description: "Giá trị quan hệ mới với người chơi. Chỉ cung cấp nếu có thay đổi.", nullable: true },
-        memories: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Toàn bộ danh sách ký ức MỚI của NPC (bao gồm cả cũ và mới).", nullable: true },
-        health: { type: Type.NUMBER, description: "Sinh lực hiện tại của NPC.", nullable: true },
-        mana: { type: Type.NUMBER, description: "Linh lực hiện tại của NPC.", nullable: true },
-        gender: { type: Type.STRING, enum: Object.values(CharacterGender), description: "Giới tính mới của NPC nếu bị thay đổi bởi phép thuật hoặc sự kiện.", nullable: true },
-        personality: { type: Type.STRING, description: "Tính cách mới của NPC nếu có sự thay đổi lớn.", nullable: true },
-        description: { type: Type.STRING, description: "Mô tả mới của NPC nếu có sự thay đổi.", nullable: true },
-        locationId: { type: Type.STRING, description: "ID vị trí mới của NPC.", nullable: true },
-        aptitude: { type: Type.STRING, description: "Tư chất mới của NPC nếu bị thay đổi bởi độc dược hoặc sự kiện.", nullable: true },
-        updatedNpcRelationships: { type: Type.ARRAY, items: npcRelationshipSchema, description: "Toàn bộ danh sách mối quan hệ MỚI của NPC này với các NPC khác.", nullable: true },
-        isDaoLu: { type: Type.BOOLEAN, description: "Đặt thành true nếu NPC trở thành Đạo Lữ của người chơi.", nullable: true },
-        isDead: { type: Type.BOOLEAN, description: "Đặt thành true nếu NPC đã chết.", nullable: true },
-        newStatusEffects: { type: Type.ARRAY, items: statusEffectSchema, nullable: true },
-        removedStatusEffects: { type: Type.ARRAY, items: { type: Type.STRING }, nullable: true }
+        gainedExperience: { type: Type.NUMBER, description: "Kinh nghiệm NPC nhận được. Hệ thống sẽ tự xử lý việc lên cấp." },
+        breakthroughToRealm: { type: Type.STRING, description: "Tên cảnh giới MỚI mà NPC đột phá đến. Hệ thống sẽ tự tính toán và cộng dồn toàn bộ kinh nghiệm. Bỏ qua gainedExperience khi dùng trường này." },
+        relationship: { type: Type.NUMBER, description: "Giá trị quan hệ mới với người chơi. Chỉ cung cấp nếu có thay đổi." },
+        memories: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Toàn bộ danh sách ký ức MỚI của NPC (bao gồm cả cũ và mới)." },
+        health: { type: Type.NUMBER, description: "Sinh lực hiện tại của NPC." },
+        mana: { type: Type.NUMBER, description: "Linh lực hiện tại của NPC." },
+        gender: { type: Type.STRING, enum: Object.values(CharacterGender), description: "Giới tính mới của NPC nếu bị thay đổi bởi phép thuật hoặc sự kiện." },
+        personality: { type: Type.STRING, description: "Tính cách mới của NPC nếu có sự thay đổi lớn." },
+        description: { type: Type.STRING, description: "Mô tả mới của NPC nếu có sự thay đổi." },
+        locationId: { type: Type.STRING, description: "ID vị trí mới của NPC." },
+        aptitude: { type: Type.STRING, description: "Tư chất mới của NPC nếu bị thay đổi bởi độc dược hoặc sự kiện." },
+        updatedNpcRelationships: { type: Type.ARRAY, items: npcRelationshipSchema, description: "Toàn bộ danh sách mối quan hệ MỚI của NPC này với các NPC khác." },
+        isDaoLu: { type: Type.BOOLEAN, description: "Đặt thành true nếu NPC trở thành Đạo Lữ của người chơi." },
+        isDead: { type: Type.BOOLEAN, description: "Đặt thành true nếu NPC đã chết." },
+        newStatusEffects: { type: Type.ARRAY, items: statusEffectSchema },
+        removedStatusEffects: { type: Type.ARRAY, items: { type: Type.STRING } }
     },
     required: ["id"]
 };
@@ -364,104 +355,118 @@ export const storyWorldKnowledgeSchema = {
     required: ["id", "title", "content", "category"]
 };
 
+const fullResponseProperties = {
+    story: { type: Type.STRING, description: "Phần tiếp theo của câu chuyện, được viết theo phong cách đã chọn." },
+    choices: {
+        type: Type.ARRAY,
+        description: "Một mảng gồm chính xác BỐN (4) đối tượng lựa chọn, mỗi lựa chọn đại diện cho một hành động/nhiệm vụ mà người chơi có thể thực hiện. Các lựa chọn phải đa dạng và hấp dẫn.",
+        items: choiceSchema
+    },
+    updatedStats: updatedStatsSchema,
+    updatedGameTime: {
+        type: Type.STRING,
+        description: "Một chuỗi ISO 8601 cho thời gian mới trong game, chỉ sử dụng cho các bước nhảy thời gian dài hoặc không xác định (ví dụ: 'tu luyện trăm năm', 'chờ đến khi con sinh ra'). Bỏ qua trường này cho các hành động ngắn. Nếu được cung cấp, nó sẽ ghi đè 'durationInMinutes' từ lựa chọn.",
+    },
+    updatedGender: { type: Type.STRING, enum: Object.values(CharacterGender), description: "Giới tính mới của nhân vật chính nếu có sự thay đổi." },
+    newSkills: {
+        type: Type.ARRAY,
+        description: "Một mảng các kỹ năng MỚI mà nhân vật đã học được hoặc ngộ ra. Bỏ qua nếu không có.",
+        items: newSkillSchema,
+    },
+    updatedSkills: {
+        type: Type.ARRAY,
+        description: "Một mảng các kỹ năng đã tồn tại nhận được kinh nghiệm. Chỉ bao gồm các kỹ năng đã được sử dụng hoặc có liên quan.",
+        items: {
+            type: Type.OBJECT,
+            properties: {
+                skillName: { type: Type.STRING, description: "Tên chính xác của kỹ năng đã được sử dụng." },
+                gainedExperience: { type: Type.NUMBER, description: "Lượng kinh nghiệm kỹ năng nhận được." }
+            },
+            required: ["skillName", "gainedExperience"]
+        },
+    },
+    newLocations: {
+        type: Type.ARRAY,
+        description: "Các địa điểm mới được khám phá trong lượt này. Chỉ bao gồm nếu có.",
+        items: locationSchema,
+    },
+    updatedLocations: {
+        type: Type.ARRAY,
+        description: "Các địa điểm đã tồn tại nhưng có sự thay đổi (ví dụ: thay đổi chủ sở hữu, thêm luật lệ, bị phá hủy). Chỉ bao gồm nếu có.",
+        items: locationSchema,
+    },
+    updatedPlayerLocationId: {
+        type: Type.STRING,
+        description: "ID của địa điểm mới của người chơi nếu họ đã di chuyển. Cung cấp giá trị null nếu người chơi di chuyển vào không gian hỗn độn.",
+    },
+    newNPCs: {
+        type: Type.ARRAY,
+        description: "Các NPC mới mà người chơi gặp trong lượt này. Chỉ bao gồm nếu có.",
+        items: newNpcSchema,
+    },
+    updatedNPCs: {
+        type: Type.ARRAY,
+        description: "Các NPC đã tồn tại có sự thay đổi (kinh nghiệm, quan hệ, ký ức...). Chỉ bao gồm nếu có.",
+        items: updatedNpcSchema,
+    },
+    newItems: {
+        type: Type.ARRAY,
+        description: "Vật phẩm mới nhận được.",
+        items: itemSchema,
+    },
+    updatedItems: {
+        type: Type.ARRAY,
+        description: "Cập nhật số lượng vật phẩm đã có. Tìm vật phẩm theo tên và ghi đè số lượng.",
+        items: {
+            type: Type.OBJECT,
+            properties: {
+                name: { type: Type.STRING, description: "Tên chính xác của vật phẩm cần cập nhật." },
+                quantity: { type: Type.NUMBER, description: "Số lượng mới của vật phẩm." },
+            },
+            required: ["name", "quantity"],
+        },
+    },
+    removedItemIds: {
+        type: Type.ARRAY,
+        description: "ID của các vật phẩm bị xóa hoàn toàn khỏi túi đồ.",
+        items: { type: Type.STRING },
+    },
+    newWorldKnowledge: {
+        type: Type.ARRAY,
+        description: "Các tri thức mới được khám phá trong lượt này (ví dụ: một Bang Phái mới). Chỉ bao gồm nếu có.",
+        items: storyWorldKnowledgeSchema,
+    },
+};
+
+const stateUpdateProperties = { ...fullResponseProperties };
+delete stateUpdateProperties.story;
+delete stateUpdateProperties.choices;
+
 export const responseSchema = {
     type: Type.OBJECT,
     properties: {
-        story: { type: Type.STRING, description: "Phần tiếp theo của câu chuyện, được viết theo phong cách đã chọn." },
-        choices: {
-            type: Type.ARRAY,
-            description: "Một mảng gồm chính xác BỐN (4) đối tượng lựa chọn, mỗi lựa chọn đại diện cho một hành động/nhiệm vụ mà người chơi có thể thực hiện. Các lựa chọn phải đa dạng và hấp dẫn.",
-            items: choiceSchema
-        },
-        updatedStats: updatedStatsSchema,
-        updatedGameTime: {
-            type: Type.STRING,
-            description: "Một chuỗi ISO 8601 cho thời gian mới trong game, chỉ sử dụng cho các bước nhảy thời gian dài hoặc không xác định (ví dụ: 'tu luyện trăm năm', 'chờ đến khi con sinh ra'). Bỏ qua trường này cho các hành động ngắn. Nếu được cung cấp, nó sẽ ghi đè 'durationInMinutes' từ lựa chọn.",
-            nullable: true,
-        },
-        updatedGender: { type: Type.STRING, enum: Object.values(CharacterGender), description: "Giới tính mới của nhân vật chính nếu có sự thay đổi.", nullable: true },
-        newSkills: {
-            type: Type.ARRAY,
-            description: "Một mảng các kỹ năng MỚI mà nhân vật đã học được hoặc ngộ ra. Bỏ qua nếu không có.",
-            items: newSkillSchema,
-            nullable: true,
-        },
-        updatedSkills: {
-            type: Type.ARRAY,
-            description: "Một mảng các kỹ năng đã tồn tại nhận được kinh nghiệm. Chỉ bao gồm các kỹ năng đã được sử dụng hoặc có liên quan.",
-            items: {
-                type: Type.OBJECT,
-                properties: {
-                    skillName: { type: Type.STRING, description: "Tên chính xác của kỹ năng đã được sử dụng." },
-                    gainedExperience: { type: Type.NUMBER, description: "Lượng kinh nghiệm kỹ năng nhận được." }
-                },
-                required: ["skillName", "gainedExperience"]
-            },
-            nullable: true,
-        },
-        newLocations: {
-            type: Type.ARRAY,
-            description: "Các địa điểm mới được khám phá trong lượt này. Chỉ bao gồm nếu có.",
-            items: locationSchema,
-            nullable: true,
-        },
-        updatedLocations: {
-            type: Type.ARRAY,
-            description: "Các địa điểm đã tồn tại nhưng có sự thay đổi (ví dụ: thay đổi chủ sở hữu, thêm luật lệ, bị phá hủy). Chỉ bao gồm nếu có.",
-            items: locationSchema,
-            nullable: true,
-        },
-        updatedPlayerLocationId: {
-            type: Type.STRING,
-            description: "ID của địa điểm mới của người chơi nếu họ đã di chuyển. Cung cấp giá trị null nếu người chơi di chuyển vào không gian hỗn độn.",
-            nullable: true,
-        },
-        newNPCs: {
-            type: Type.ARRAY,
-            description: "Các NPC mới mà người chơi gặp trong lượt này. Chỉ bao gồm nếu có.",
-            items: newNpcSchema,
-            nullable: true,
-        },
-        updatedNPCs: {
-            type: Type.ARRAY,
-            description: "Các NPC đã tồn tại có sự thay đổi (kinh nghiệm, quan hệ, ký ức...). Chỉ bao gồm nếu có.",
-            items: updatedNpcSchema,
-            nullable: true,
-        },
-        newItems: {
-            type: Type.ARRAY,
-            description: "Vật phẩm mới nhận được.",
-            items: itemSchema,
-            nullable: true,
-        },
-        updatedItems: {
-            type: Type.ARRAY,
-            description: "Cập nhật số lượng vật phẩm đã có. Tìm vật phẩm theo tên và ghi đè số lượng.",
-            items: {
-                type: Type.OBJECT,
-                properties: {
-                    name: { type: Type.STRING, description: "Tên chính xác của vật phẩm cần cập nhật." },
-                    quantity: { type: Type.NUMBER, description: "Số lượng mới của vật phẩm." },
-                },
-                required: ["name", "quantity"],
-            },
-            nullable: true,
-        },
-        removedItemIds: {
-            type: Type.ARRAY,
-            description: "ID của các vật phẩm bị xóa hoàn toàn khỏi túi đồ.",
-            items: { type: Type.STRING },
-            nullable: true,
-        },
-        newWorldKnowledge: {
-            type: Type.ARRAY,
-            description: "Các tri thức mới được khám phá trong lượt này (ví dụ: một Bang Phái mới). Chỉ bao gồm nếu có.",
-            items: storyWorldKnowledgeSchema,
-            nullable: true,
-        },
+        ...stateUpdateProperties,
+        // The full response schema for initial story generation still needs story/choices
+        story: fullResponseProperties.story,
+        choices: fullResponseProperties.choices,
     },
     required: ["story", "choices"]
 };
+
+export const stateUpdateSchema = {
+    type: Type.OBJECT,
+    properties: stateUpdateProperties,
+};
+
+export const narrativeSchema = {
+    type: Type.OBJECT,
+    properties: {
+        story: fullResponseProperties.story,
+        choices: fullResponseProperties.choices,
+    },
+    required: ["story", "choices"],
+};
+
 
 export const newSkillDescriptionSchema = {
     type: Type.OBJECT,

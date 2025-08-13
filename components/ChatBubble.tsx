@@ -37,8 +37,8 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({ speakerName, speakerAvat
         <div className={`flex items-end gap-2 my-4 ${alignmentClass} animate-fade-in`}>
             {!isPlayer && avatar}
             <div className={`flex flex-col max-w-5xl ${isPlayer ? 'items-end' : 'items-start'}`}>
-                <span className={`text-xs text-slate-400 mx-3 mb-1 ${nameAlignmentClass}`}>{speakerName}</span>
-                <div className={`p-3 text-white rounded-xl ${bubbleColorClass}`} style={{ fontSize: 'var(--story-font-size)' }}>
+                <span className={`text-xs text-slate-400 mx-3 mb-1 ${nameAlignmentClass} whitespace-nowrap`}>{speakerName}</span>
+                <div className={`p-3 text-white rounded-xl ${bubbleColorClass} break-words`} style={{ fontSize: 'var(--story-font-size)' }}>
                     {message}
                 </div>
             </div>

@@ -70,7 +70,7 @@ const KeywordTooltip: React.FC<{ keyword: string; description: string; isNew?: b
       return classes;
   };
     
-  const keywordClasses = "font-semibold text-yellow-400 border-b border-yellow-400/50 border-dotted cursor-pointer whitespace-nowrap";
+  const keywordClasses = "font-semibold text-amber-300 hover:text-amber-200 transition-colors cursor-pointer";
 
   return (
     <span 
@@ -125,7 +125,7 @@ const NotificationBlock: React.FC<{ notifications: string[] }> = ({ notification
         <div className="px-4 pb-4 border-t border-slate-700/50">
           <ul className="list-disc list-inside space-y-1.5 text-slate-300 text-sm">
             {notifications.map((note, index) => (
-              <li key={index} dangerouslySetInnerHTML={{ __html: note }}></li>
+              <li key={index} className="break-words" dangerouslySetInnerHTML={{ __html: note }}></li>
             ))}
           </ul>
         </div>
@@ -352,10 +352,13 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
                                         return null;
                                     }
                                     return (
-                                        <div key={`${part.id}-${segmentIndex}-${paragraphIndex}`} className="flex items-start gap-3 my-3 text-slate-300 leading-relaxed animate-fade-in" style={{ fontSize: 'var(--story-font-size)' }}>
-                                           <span className="text-slate-600 text-2xl leading-tight mt-1 select-none">➤</span>
-                                           <p className="flex-1 whitespace-pre-wrap">{linkifyStory(paragraph)}</p>
-                                        </div>
+                                        <p
+                                            key={`${part.id}-${segmentIndex}-${paragraphIndex}`}
+                                            className="text-slate-300 my-4 animate-fade-in break-words"
+                                            style={{ fontSize: 'var(--story-font-size)' }}
+                                        >
+                                            {linkifyStory(paragraph)}
+                                        </p>
                                     );
                                 })}
                             </React.Fragment>
@@ -378,7 +381,7 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
               )}
             </>
           ) : (
-            <p className="font-sans text-amber-400 italic text-right border-t border-slate-700 pt-4 mt-4 animate-fade-in" style={{ fontSize: 'var(--story-font-size-large)' }}>
+            <p className="font-sans text-amber-400 italic text-right border-t border-slate-700 pt-4 mt-4 animate-fade-in break-words" style={{ fontSize: 'var(--story-font-size-large)' }}>
               &gt; {linkifyStory(part.text)}
             </p>
           )}

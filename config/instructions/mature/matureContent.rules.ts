@@ -139,7 +139,7 @@ Bạn nên cấu trúc các cảnh nóng theo trình tự sau để đảm bảo
 **3. Chi tiết Trạng thái "Mang Thai" (BẮT BUỘC):**
 *   Bạn PHẢI sử dụng trạng thái định nghĩa sẵn có tên "Mang Thai".
 *   Bạn PHẢI cập nhật mô tả của nó để bao gồm tên của người cha: \`"description"\`: "Đang mang trong mình giọt máu của [Tên của nhân vật nam đã giao hợp]. Cần thời gian để thai nhi phát triển và chào đời."
-*   Thời hạn (\`duration\`) phải là "9 tháng".
+*   Thời hạn (\`duration\`) phải là "270 lượt".
 
 **4. Cảnh báo Lỗi Hệ thống (TUYỆT ĐỐI CẤM):**
 *   Việc mô tả một hành động thụ thai thành công trong 'story' (ví dụ: "hắn bắn tất cả tinh hoa của mình vào sâu trong tử cung nàng, gieo xuống một hạt giống mới...") mà **KHÔNG** thêm trạng thái "Mang Thai" tương ứng vào JSON là một **LỖI HỆ THỐNG CỰC KỲ NGHIÊM TRỌNG**.

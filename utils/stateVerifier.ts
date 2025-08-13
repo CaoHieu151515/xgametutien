@@ -20,8 +20,12 @@ export const verifyStoryResponse = (
 
     // Kiểm tra updatedNPCs
     if (response.updatedNPCs) {
+        const newNpcIdsInThisResponse = new Set((response.newNPCs || []).map(n => n.id));
         for (const update of response.updatedNPCs) {
-            if (!npcs.some(npc => npc.id === update.id)) {
+            const existsInCurrentState = npcs.some(npc => npc.id === update.id);
+            const isCreatedInThisResponse = newNpcIdsInThisResponse.has(update.id);
+
+            if (!existsInCurrentState && !isCreatedInThisResponse) {
                 const errorMsg = `AI đã cố gắng cập nhật NPC không tồn tại với ID: ${update.id}`;
                 log(verificationName, errorMsg, 'ERROR');
                 throw new Error(errorMsg);

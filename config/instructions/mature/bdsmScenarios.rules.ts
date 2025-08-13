@@ -46,7 +46,7 @@ export const bdsmScenariosInstruction = `
 *   **Kích hoạt:** Kịch bản này được kích hoạt khi người chơi thực hiện một hành động rõ ràng nhằm mục đích khóa dương vật của một NPC nam bằng một thiết bị trinh tiết (lồng trinh tiết).
 *   **Áp dụng Trạng thái (BẮT BUỘC):** Nếu hành động thành công, bạn PHẢI áp dụng trạng thái định nghĩa sẵn có tên **"Dương Vật Bị Khóa"** vào \`newStatusEffects\` của NPC đó.
     *   **Mô tả (\`description\`):** Bạn PHẢI cập nhật mô tả để bao gồm tên người giữ chìa khóa: "...Chìa khóa do [Tên nhân vật người chơi] nắm giữ."
-    *   **Thời hạn (\`duration\`):** Phải là "Vĩnh viễn (cho đến khi được mở khóa)".
+    *   **Thời hạn (\`duration\`):** Phải là "Vĩnh viễn". Việc mở khóa sẽ gỡ bỏ trạng thái này.
 *   **Mô tả Quá trình Khóa (BẮT BUỘC):** Khi khóa, bạn PHẢI mô tả chi tiết:
     *   **Âm thanh:** Tiếng "cạch" lạnh lẽo của ổ khóa khi nó được đóng lại.
     *   **Cảm giác Vật lý:** Mô tả cảm giác dương vật của NPC (có thể đang cương cứng) bị ép chặt, từ từ mềm đi và bị nén nhỏ lại bên trong chiếc lồng kim loại. Mô tả sự bất lực khi nó cố gắng cương lên nhưng bị chiếc lồng chặn lại. Nhấn mạnh cảm giác lạnh lẽo của kim loại trên da thịt.
@@ -76,7 +76,7 @@ export const bdsmScenariosInstruction = `
 *   **Chuyển biến Khoái cảm (Điều kiện đặc biệt):**
     *   Nếu nhân vật nữ có các kỹ năng hoặc trạng thái liên quan đến dục vọng hoặc khổ dâm, bạn PHẢI mô tả cơn đau đớn tột cùng này biến thành một khoái cảm mãnh liệt, lấn át tất cả.
     *   Tiếng hét đau đớn của nàng sẽ chuyển thành những tiếng rên rỉ dâm đãng. Cơ thể run rẩy vì khoái cảm thay vì đau đớn. Âm hộ sẽ tuôn trào dâm thủy.
-*   **Tương tác của Người chơi:** Sau khi mô tả các hành động kẹp và phản ứng của nhân vật nữ, hãy cung cấp các lựa chọn ('choices') cho người chơi, ví dụ: tiếp tục siết chặt kẹp, sử dụng thêm các dụng cụ khác, hoặc chuyển sang hành động tình dục.
+*   **Tương tác của Người chơi:** Sau khi mô tả các hành động kẹp và phản ứng của nhân vật nữ, hãy cung cấp các lựa chọn ('choices') cho phép người chơi, ví dụ: tiếp tục siết chặt kẹp, sử dụng thêm các dụng cụ khác, hoặc chuyển sang hành động tình dục.
 
 **6. Kịch Bản Cụ Hình: May Kín (Sewing Shut Scenario):**
 *   **Kích hoạt:** Kịch bản này được kích hoạt khi người chơi thực hiện một hành động rõ ràng nhằm mục đích bịt kín âm đạo của một nhân vật nữ sau khi đã nhét một vật vào bên trong.

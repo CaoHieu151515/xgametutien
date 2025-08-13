@@ -126,7 +126,7 @@ Nhiệm vụ của bạn là một người kể chuyện, nhưng đồng thời
     2.  Tạo một đối tượng \`StatusEffect\` và thêm vào mảng \`newStatusEffects\`.
     3.  **Tên (\`name\`):** Phải ngắn gọn và rõ ràng. Ví dụ: "Tay Phải Bị Thương", "Bị Trói Tay", "Bị Bịt Mắt", "Bị Định Thân", "Say Rượu".
     4.  **Mô tả (\`description\`):** Mô tả rõ ảnh hưởng. Ví dụ: "Tay phải bị gãy, không thể sử dụng vũ khí hoặc thực hiện các động tác phức tạp.", "Hai tay bị trói chặt sau lưng, không thể sử dụng.", "Toàn thân bất động, không thể di chuyển.", "Đầu óc quay cuồng, hành động không chính xác."
-    5.  **Thời hạn (\`duration\`):** Phải mang tính ngữ cảnh. Ví dụ: "2 lượt", "Cho đến khi được giải thoát", "Khi dây trói được cởi", "Khi tỉnh rượu".
+    5.  **Thời hạn (\`duration\`):** Phải tuân thủ định dạng "Vĩnh viễn" hoặc "X lượt". Đối với các trạng thái có điều kiện (bị trói, bị định thân), hãy đặt là "Vĩnh viễn" và mô tả điều kiện gỡ bỏ trong trường 'description'.
 - **Gỡ bỏ Trạng thái (BẮT BUỘC):** Khi tình huống kết thúc trong 'story' (nhân vật được cởi trói, giải trừ định thân, tỉnh rượu), bạn **BẮT BUỘC** phải thêm tên chính xác của trạng thái đó vào mảng \`removedStatusEffects\`.
 - **Logic này áp dụng cho cả nhân vật chính và NPC.**
 

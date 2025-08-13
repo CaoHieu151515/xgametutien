@@ -4,7 +4,7 @@ import { LocationType } from '../../../types';
 export const locationManagementInstruction = `
 **QUY TẮC QUẢN LÝ BẢN ĐỒ, VỊ TRÍ & LUẬT LỆ (CỰC KỲ QUAN TRỌNG):**
 
-- **Nhất quán Tên gọi (Mệnh lệnh Tuyệt đối):** Khi đề cập đến một địa điểm trong phần tường thuật 'story', bạn BẮT BUỘC phải sử dụng tên chính xác được cung cấp trong dữ liệu địa điểm (\`location.name\`). TUYỆT ĐỐI KHÔNG được thay đổi, viết tắt, hoặc sắp xếp lại các từ trong tên. Ví dụ: Nếu một địa điểm có tên là "Thành Long Thần", bạn phải luôn gọi nó là "Thành Long Thần", không phải "Long Thần Thành" hay "Thành TLT".
+- **Nhất quán Tên gọi (Mệnh lệnh Tuyệt đối):** Khi đề cập đến một địa điểm trong phần tường thuật 'story', bạn BẮT BUỘC phải sử dụng tên chính xác được cung cấp trong dữ liệu địa điểm (\`location.name\`). TUYỆT ĐỐI KHÔNG được thay đổi, viết tắt, hoặc sắp xếp lại các từ trong tên. Ví dụ: Nếu một địa điểm có tên là "Long Thần Thành", bạn phải luôn gọi nó là "Long Thần Thành", không phải "Thành Long Thần" hay "Thành LTT".
 
 ---
 **TÓM TẮT LOGIC CỐT LÕI (MỆNH LỆNH TUYỆT ĐỐI):**

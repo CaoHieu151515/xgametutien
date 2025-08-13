@@ -1,4 +1,5 @@
-import { CharacterProfile, WorldSettings, NPC, Location, Skill } from '../types';
+
+import { CharacterProfile, WorldSettings, NPC, Location, Skill, StoryResponse } from '../types';
 import { buildContextForPrompt } from './promptUtils';
 
 export const buildWorldGenPrompt = (storyIdea: string, openingScene: string): string => {
@@ -11,6 +12,12 @@ ${storyIdea}
 **Cảnh Mở Đầu (tùy chọn):**
 ${openingScene || "Không có."}
 
+**MỆNH LỆNH TUYỆT ĐỐI: GIỚI HẠN KÝ TỰ (LỖI HỆ THỐNG SẼ XẢY RA NẾU VI PHẠM)**
+Đây là quy tắc quan trọng nhất. Việc vi phạm sẽ khiến JSON không hợp lệ và phá hỏng trò chơi.
+-   **Tất cả các trường TÊN (\`name\`):** TUYỆT ĐỐI KHÔNG quá 50 ký tự.
+-   **Tất cả các trường MÔ TẢ (\`description\`, \`backstory\`, \`goal\`, \`personality\`):** TUYỆT ĐỐI KHÔNG quá 300 ký tự.
+-   **Lý do:** Đây là một giới hạn kỹ thuật. Việc tạo ra một chuỗi văn bản quá dài sẽ khiến toàn bộ phản hồi JSON bị cắt cụt và gây ra lỗi hệ thống nghiêm trọng. SỰ SÚC TÍCH LÀ BẮT BUỘC.
+
 **YÊU CẦU:**
 Bạn PHẢI trả về một đối tượng JSON duy nhất tuân thủ nghiêm ngặt schema được cung cấp. Đối tượng này chứa hai khóa chính: 'characterProfile' và 'worldSettings'.
 
@@ -18,60 +25,63 @@ Bạn PHẢI trả về một đối tượng JSON duy nhất tuân thủ nghiê
 
 1.  **Chủ đề & Thể loại (Quan trọng):**
     *   Ưu tiên các chủ đề và thể loại phương Đông như Tiên Hiệp, Huyền Huyễn, Tu Chân.
-    *   Chỉ sử dụng các chủ đề thần thoại hoặc bối cảnh phương Tây (ví dụ: fantasy trung cổ, thần thoại Hy Lạp) nếu người dùng yêu cầu rõ ràng trong **Ý Tưởng Cốt Truyện**.
+    *   Chỉ sử dụng các chủ đề thần thoại hoặc bối cảnh phương Tây nếu người dùng yêu cầu rõ ràng.
 
 2.  **Hệ Thống Sức Mạnh (\`powerSystems\`):**
-    *   Thiết kế ít nhất BA (3) hệ thống sức mạnh.
-    *   **Tên Hệ Thống:** Tên phải bao quát và cụ thể về bản chất của nó (ví dụ: 'Tiên Đạo Tu Luyện', 'Ma Đạo Tu Luyện', 'Thần Đạo Tu Luyện', 'Dục Đạo Tu Luyện').
-    *   **Cảnh Giới:** Mỗi hệ thống sức mạnh **BẮT BUỘC** phải có chính xác MƯỜI (10) cảnh giới. Chuỗi cảnh giới (\`realms\`) cho mọi hệ thống **BẮT BUỘC** phải bắt đầu bằng \`Phàm Nhân - \`. Tổng cộng sẽ có 10 tên cảnh giới, được phân cách bởi ' - '.
-    *   Các hệ thống này phải đồng bộ với chủ đề chính. Ví dụ, nếu là thế giới phương Đông, hãy tạo các hệ thống như 'Tiên Đạo Tu Luyện', 'Ma Đạo Tu Luyện', 'Yêu Tộc Tu Luyện', 'Kiếm Đạo Tu Luyện'.
-    *   Không kết hợp các hệ thống phương Đông và phương Tây trừ khi được yêu cầu.
+    *   Thiết kế ít nhất HAI (2) hệ thống sức mạnh.
+    *   **Tên Hệ Thống:** Tên phải bao quát và cụ thể (ví dụ: 'Tiên Đạo Tu Luyện', 'Ma Đạo Tu Luyện').
+    *   **Cảnh Giới:** Mỗi hệ thống **BẮT BUỘC** phải có chính xác MƯỜI (10) cảnh giới, bắt đầu bằng \`Phàm Nhân - \`.
 
 3.  **Nhân vật chính (\`characterProfile\`):**
-    *   Tạo ra một nhân vật chính có tiểu sử, tính cách và mục tiêu phù hợp với cốt truyện.
-    *   **Chủng tộc (\`race\`):** Tên Chủng tộc của nhân vật chính phải ngắn gọn và mang tính thần thoại phương Đông (ví dụ: Nhân Tộc, Long Tộc, Thần Tộc, Ma Tộc, Tiên Tộc, Yêu Tộc).
-    *   **Cấp độ khởi đầu (\`level\`):** Gán cho nhân vật một cấp độ khởi đầu từ 1 đến 5. Cấp độ này sẽ tự động đặt nhân vật vào cảnh giới đầu tiên (Phàm Nhân).
-    *   **Kỹ năng khởi đầu (\`skills\`):** Nhân vật chính PHẢI bắt đầu với ít nhất SÁU (6) kỹ năng, mỗi kỹ năng thuộc một loại khác nhau (Công Kích, Phòng Ngự, Thân Pháp, Tu Luyện, Hỗ Trợ, Đặc Biệt).
+    *   Tạo ra một nhân vật chính có tiểu sử, tính cách và mục tiêu phù hợp.
+    *   **Chủng tộc (\`race\`):** Tên Chủng tộc phải ngắn gọn và mang tính thần thoại phương Đông (ví dụ: Nhân Tộc, Long Tộc, Ma Tộc).
+    *   **Cấp độ khởi đầu (\`level\`):** Gán cho nhân vật một cấp độ khởi đầu từ 1 đến 5.
+    *   **Kỹ năng khởi đầu (\`skills\`):** Nhân vật chính PHẢI bắt đầu với ít nhất BA (3) kỹ năng đa dạng.
 
 4.  **Yếu tố ban đầu (\`initialNpcs\`, \`initialLocations\`, \`initialItems\`, \`initialMonsters\`):**
-    *   **NPC Khởi đầu:** Tạo ít nhất NĂM (5) NPC nữ và HAI (2) NPC nam phù hợp với cốt truyện.
-    *   **Quan hệ NPC ban đầu (Mới):** Hãy tạo ra một vài mối quan hệ ban đầu giữa các NPC bạn tạo ra (ví dụ: một cặp sư đồ, hai người là đối thủ, một gia đình). Thể hiện điều này trong trường \`npcRelationships\` của mỗi NPC liên quan. Cung cấp 'id' của NPC mục tiêu và một giá trị quan hệ từ -1000 đến 1000.
-    *   **Sinh Vật Khởi Đầu (\`initialMonsters\`):** Tạo ít nhất NĂM (5) loại sinh vật, yêu thú hoặc quái vật phù hợp với bối cảnh và chủ đề của thế giới.
+    *   **NPC Khởi đầu (QUAN TRỌNG):** Tạo ít nhất BA (3) NPC có vai trò quan trọng và phù hợp. **BẮT BUỘC** phải bao gồm: một sư phụ hoặc trưởng bối, một đối thủ, và một nhân vật bí ẩn. Giới tính có thể linh hoạt.
+    *   **Chủng tộc NPC:** Khi tạo NPC thuộc chủng tộc người, BẮT BUỘC sử dụng "Nhân Tộc" hoặc "Nhân Loại", TUYỆT ĐỐI KHÔNG sử dụng "Con người".
+    *   **Quan hệ NPC ban đầu:** Tạo một vài mối quan hệ ban đầu giữa các NPC trong trường \`npcRelationships\`.
+    *   **Sinh Vật Khởi Đầu (\`initialMonsters\`):** Tạo ít nhất HAI (2) loại sinh vật hoặc yêu thú phù hợp.
+        *   **QUY TẮC ĐẶT TÊN SINH VẬT (MỆNH LỆNH TUYỆT ĐỐI):**
+        *   Mỗi sinh vật PHẢI có một tên NGẮN GỌN, CỤ THỂ và ĐỘC NHẤT. Trường \`name\` là để chứa MỘT tên, không phải một danh sách.
+        *   **VÍ DỤ:**
+            *   \`"name": "Huyết Lang"\` -> **ĐÚNG**
+            *   \`"name": "Ma Dơi"\` -> **ĐÚNG**
+            *   \`"name": "Xà Tinh Địa Long Xà Hổ Mang Bạch Hổ..."\` -> **SAI (LỖI NGHIÊM TRỌNG - SẼ PHÁ HỎNG GAME!)**
     *   **Địa điểm Khởi đầu:**
-        *   Tạo ít nhất MƯỜI (10) địa điểm khởi đầu.
-        *   **Bắt buộc:** PHẢI có một địa điểm gốc loại 'THẾ GIỚỚI' làm cấp cao nhất (có \`parentId\` là \`null\`). Đây là nền tảng của toàn bộ bản đồ.
-        *   **Thế Lực (Bang Phái):** Tạo ít nhất HAI (2) địa điểm loại 'THẾ LỰC'. Đây là các tông môn, hoàng triều, giáo phái, v.v.
-        *   **Đồng bộ Tri Thức (Quan trọng):** Với MỖI địa điểm loại 'THẾ LỰC' bạn tạo, bạn PHẢI tạo một mục 'initialKnowledge' tương ứng với 'category' là 'Bang Phái'. Tiêu đề của tri thức phải là tên của thế lực, và nội dung mô tả về thế lực đó.
-        *   Xây dựng một cấu trúc phân cấp (đa tầng) hợp lý cho các địa điểm còn lại (ví dụ: thành phố trong thế giới, cửa hàng trong thành phố).
-        *   **Phân bổ Tọa độ (Rất Quan Trọng):** Tọa độ (\`coordinates\`) là một điểm trên bản đồ 1000x1000. Khi tạo các địa điểm, hãy đảm bảo các địa điểm trong cùng một khu vực (có cùng \`parentId\`) được phân bổ cách xa nhau một cách hợp lý. Tăng khoảng cách cho các địa điểm ở cấp cao hơn. Ví dụ: Các thành phố (con của THẾ GIỚI) nên cách nhau 150-250 đơn vị. Các cửa hàng (con của một THÀNH PHỐ) nên cách nhau 30-60 đơn vị. Mục tiêu là tạo một bản đồ rõ ràng, không bị chồng chéo.
-        *   **Vị trí bắt đầu:** Địa điểm đầu tiên trong mảng \`initialLocations\` phải là nơi nhân vật bắt đầu.
-    *   **Trang bị khởi đầu (\`initialItems\`):** BẮT BUỘC phải tạo ít nhất BA (3) trang bị khởi đầu. Các trang bị này phải **phù hợp tuyệt đối** với bối cảnh, tiểu sử, và hệ thống sức mạnh của nhân vật mà bạn cũng đang tạo ra. Ví dụ, một nhân vật tu tiên không nên bắt đầu với một khẩu súng laser. Bao gồm ít nhất một vũ khí. Trường này là bắt buộc.
-        *   **BẮT BUỘC:** Đối với mỗi vật phẩm có \`type\` là 'Trang Bị' hoặc 'Đặc Thù', bạn PHẢI cung cấp đầy đủ đối tượng \`equipmentDetails\`.
-        *   **QUY TẮC CHỈ SỐ (CỰC KỲ QUAN TRỌNG):** Các chỉ số trong \`stats.key\` CHỈ ĐƯỢỢC PHÉP là một trong ba giá trị sau: \`'attack'\`, \`'maxHealth'\`, \`'maxMana'\`. Tuyệt đối KHÔNG được thêm bất kỳ chỉ số nào khác (ví dụ: critChance, defense, v.v.).
-        *   **LOGIC QUAN TRỌNG:** Giá trị chỉ số (\`stats.value\`) của trang bị PHẢI tương xứng với phẩm chất (\`quality\`) của nó. Hãy sử dụng chuỗi \`qualityTiers\` làm thang đo.
-            *   Ví dụ cho chỉ số 'attack' của một vũ khí:
-                *   Phàm Phẩm: +5 đến +20
-                *   Linh Phẩm: +25 đến +100
-                *   Tiên Phẩm: +120 đến +500
-                *   Thánh Phẩm: +600 đến +2000
-                *   Thần Phẩm: +2500 đến +10000
-                *   Hỗn Độn Phẩm: +12000 trở lên
-            *   Hãy áp dụng logic tương tự cho các chỉ số khác như 'maxHealth', 'maxMana'. Chỉ số phải tăng mạnh theo mỗi bậc phẩm chất.
+        *   Tạo ít nhất NĂM (5) địa điểm khởi đầu đa dạng.
+        *   **Bắt buộc:** PHẢI có một địa điểm gốc loại 'THẾ GIỚỚỚI' có \`parentId\` là \`null\`.
+        *   **Thế Lực (Bang Phái):** Tạo ít nhất MỘT (1) địa điểm loại 'THẾ LỰC'.
+        *   **Quy tắc Đặt tên (Rất Quan trọng):** Tuân thủ cấu trúc '[Tên Riêng] [Loại Địa Điểm]'. Ví dụ: 'Long Thần Thành' (ĐÚNG), không phải 'Thành Long Thần' (SAI). 'Vô Cực Tông' (ĐÚNG), không phải 'Tông Môn Vô Cực' (SAI).
+        *   **Đồng bộ Tri Thức:** Với MỖI địa điểm loại 'THẾ LỰC', bạn PHẢI tạo một mục 'initialKnowledge' tương ứng với 'category' là 'Bang Phái'.
+        *   **Phân bổ Tọa độ:** Phân bổ tọa độ (\`coordinates\`) trên bản đồ 1000x1000 một cách hợp lý, tránh chồng chéo.
+        *   **QUAN TRỌNG VỀ DỮ LIỆU:** Đối với mỗi địa điểm, trường \`rules\` PHẢI là một mảng (có thể rỗng \`[]\`), TUYỆT ĐỐI KHÔNG được là \`null\`. Trường \`isDestroyed\` mặc định phải là \`false\` nếu không bị phá hủy, không được là \`null\`.
+    *   **Trang bị khởi đầu (\`initialItems\`):** BẮT BUỘC phải tạo ít nhất HAI (2) vật phẩm khởi đầu phù hợp, bao gồm một vũ khí.
+        *   **BẮT BUỘC:** Đối với vật phẩm có \`type\` là 'Trang Bị' hoặc 'Đặc Thù', bạn PHẢI cung cấp đầy đủ đối tượng \`equipmentDetails\`. Trường \`value\` PHẢI là một con số (có thể là 0 nếu vô giá), TUYỆT ĐỐI KHÔNG được là \`null\`. Nếu một vật phẩm không có hiệu ứng (\`effectsDescription\`), hãy **BỎ QUA HOÀN TOÀN** trường đó, không đặt là \`null\`.
+        *   **QUY TẮC CHỈ SỐ (CỰC KỲ QUAN TRỌNG):** Các chỉ số trong \`stats.key\` CHỈ ĐƯỢỢC PHÉP là: \`'attack'\`, \`'maxHealth'\`, \`'maxMana'\`.
+        *   **LOGIC QUAN TRỌNG:** Giá trị chỉ số (\`stats.value\`) của trang bị PHẢI tương xứng với phẩm chất (\`quality\`).
 
 5.  **Tri Thức Thế Giới (\`initialKnowledge\`) - Cốt lõi:**
     *   Tạo ra các mục tri thức phong phú để giải thích các khái niệm của thế giới.
     *   **Bắt buộc** phải có các mục tri thức RIÊNG BIỆT cho:
+        *   Chủng tộc (\`race\`) của nhân vật chính. Mục tri thức này phải mô tả về nguồn gốc, đặc điểm và vị thế của chủng tộc đó trong thế giới.
         *   Thể Chất Đặc Biệt (\`specialConstitution\`) của nhân vật chính.
         *   Thiên Phú (\`talent\`) của nhân vật chính.
         *   Loại Tiền Tệ (\`currencyName\`).
-        *   Hệ Thống Năng Lượng cốt lõi của thế giới (ví dụ: Linh Khí, Ma Khí, Nguyên Tố...).
-    *   **MỚI:** Với mỗi mục tri thức, hãy gán một \`category\` phù hợp ('Bang Phái', 'Lịch Sử', 'Nhân Vật', 'Khác').
-    *   Thêm các mục tri thức khác để làm rõ về lịch sử, chủng tộc, địa lý, hoặc các yếu tố độc đáo.
+    *   Gán một \`category\` phù hợp cho mỗi mục tri thức.
+
+6.  **Kết Nối Sâu (MỆNH LỆNH SÁNG TẠO):**
+    *   **Nguyên tắc:** Tạo ra các liên kết có ý nghĩa giữa các yếu tố.
+    *   **Liên kết Tiểu sử:** Tiểu sử (\`backstory\`) của nhân vật chính **PHẢI** liên quan trực tiếp đến ít nhất **MỘT NPC** và **MỘT Địa điểm** khởi đầu.
+    *   **Liên kết NPC & Địa điểm:** Ít nhất **MỘT NPC** khởi đầu phải có vai trò hoặc mối liên kết mạnh mẽ với một địa điểm khởi đầu cụ thể.
+    *   **Vật phẩm Mồi truyện:** Một trong các \`initialItems\` **PHẢI** là một vật phẩm bí ẩn, đóng vai trò là mồi cho cốt truyện (plot hook).
+    *   **Mục tiêu Tích hợp:** Mục tiêu (\`goal\`) của nhân vật **PHẢI** liên quan trực tiếp đến một yếu tố trong thế giới.
 
 Hãy bắt đầu!`;
 };
 
-export const buildNextStepPrompt = (
+export const buildStateUpdatePrompt = (
     historyText: string,
     actionText: string,
     characterProfile: CharacterProfile,
@@ -187,9 +197,80 @@ ${historyText}
 **Hành động mới nhất của người chơi:**
 ${actionText}
 
-Bây giờ, hãy tiếp tục câu chuyện.
+Dựa trên hành động của người chơi và toàn bộ bối cảnh, hãy tính toán các thay đổi logic của game.
 `;
 };
+
+function generateChangeSummary(stateChanges: StoryResponse, worldSettings: WorldSettings): string {
+    const summary: string[] = [];
+    if (stateChanges.updatedStats?.gainedExperience) {
+        summary.push(`- Bạn đã nhận được kinh nghiệm.`);
+    }
+    if (stateChanges.updatedStats?.breakthroughToRealm) {
+        summary.push(`- Bạn đã đột phá đến cảnh giới ${stateChanges.updatedStats.breakthroughToRealm}.`);
+    }
+    if (stateChanges.newNPCs?.length) {
+        summary.push(`- Bạn đã gặp gỡ NPC mới: ${stateChanges.newNPCs.map(n => n.name).join(', ')}.`);
+    }
+    if (stateChanges.updatedNPCs?.length) {
+        summary.push(`- Mối quan hệ hoặc trạng thái với ${stateChanges.updatedNPCs.map(n => n.id).join(', ')} đã thay đổi.`);
+    }
+    if (stateChanges.newItems?.length) {
+        summary.push(`- Bạn đã nhận được vật phẩm mới: ${stateChanges.newItems.map(i => `${i.name} (x${i.quantity})`).join(', ')}.`);
+    }
+    if (stateChanges.updatedPlayerLocationId) {
+        const newLoc = worldSettings.initialKnowledge.find(k => k.id === stateChanges.updatedPlayerLocationId);
+        summary.push(`- Bạn đã di chuyển đến một địa điểm mới${newLoc ? `: ${newLoc.title}` : ''}.`);
+    }
+     if (stateChanges.newLocations?.length) {
+        summary.push(`- Bạn đã khám phá ra địa điểm mới: ${stateChanges.newLocations.map(l => l.name).join(', ')}.`);
+    }
+
+    if (summary.length === 0) {
+        return "Tương tác đã diễn ra, dẫn đến các diễn biến mới.";
+    }
+    return "Những sự kiện quan trọng sau đã xảy ra:\n" + summary.join('\n');
+}
+
+
+export const buildNarrativePrompt = (
+    playerAction: string,
+    stateChanges: StoryResponse,
+    characterProfile: CharacterProfile,
+    worldSettings: WorldSettings,
+    npcs: NPC[]
+): string => {
+    const changeSummary = generateChangeSummary(stateChanges, worldSettings);
+    // We provide a minimal context of the NEW state for the narrative AI.
+    const { 
+        minimalCharacterProfile,
+        equippedItems,
+        summarizedBagItems
+    } = buildContextForPrompt(characterProfile, worldSettings, npcs, '');
+
+    return `
+**Hành động trước đó của người chơi:**
+${playerAction}
+
+**Tóm tắt kết quả của hành động:**
+${changeSummary}
+\`\`\`json
+${JSON.stringify(stateChanges, null, 2)}
+\`\`\`
+
+**Trạng thái hiện tại của nhân vật (để tham khảo văn phong):**
+\`\`\`json
+${JSON.stringify({ profile: minimalCharacterProfile, equipment: equippedItems, bag: summarizedBagItems }, null, 2)}
+\`\`\`
+
+**Nhiệm vụ của bạn:**
+Với vai trò là một người kể chuyện bậc thầy, hãy dệt nên một câu chuyện hấp dẫn tường thuật lại các sự kiện trên.
+1.  Bắt đầu bằng cách mô tả lại **Hành động trước đó của người chơi** một cách văn học.
+2.  Sau đó, kể lại câu chuyện về **Kết quả** đã xảy ra như thế nào. Hãy sáng tạo và làm cho các thay đổi trạng thái trở nên sống động.
+3.  Cuối cùng, tạo ra **BỐN (4) lựa chọn** đa dạng và hấp dẫn cho hành động tiếp theo của người chơi.
+`;
+};
+
 
 export const buildInitialStoryPrompt = (
     characterProfile: CharacterProfile,
