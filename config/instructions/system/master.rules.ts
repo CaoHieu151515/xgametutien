@@ -55,4 +55,4 @@ export const masterInstruction = `
 - Sau khi viết xong 'story', **đọc lại toàn bộ** và đối chiếu với JSON trả về.
 - Nếu bất kỳ mục nào trong checklist trên bị thiếu hoặc sai → sửa trước khi xuất phản hồi.
 - Đây là quy tắc hệ thống bắt buộc, **không thể ghi đè** và **không có ngoại lệ**.
-`
+`;

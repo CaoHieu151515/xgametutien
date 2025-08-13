@@ -16,10 +16,12 @@ import { creationInstruction } from './gameplay/creation.rules';
 import { itemManagementInstruction } from './management/itemManagement.rules';
 import { locationManagementInstruction } from './management/locationManagement.rules';
 import { getNpcManagementInstruction } from './management/npcManagement.rules';
+import { statusEffectManagementInstruction } from './management/statusEffectManagement.rules';
 
 // Mature
 import { matureContentInstruction } from './mature/matureContent.rules';
 import { matureEventsInstruction } from './mature/matureEvents.rules';
+import { bdsmScenariosInstruction } from './mature/bdsmScenarios.rules';
 
 
 /**
@@ -48,6 +50,7 @@ export const getSystemInstruction = (
         getWorldInstruction(worldSettings),
         choicesInstruction,
         statUpdatesInstruction,
+        statusEffectManagementInstruction,
         locationManagementInstruction,
         getNpcManagementInstruction(worldSettings, gender),
         itemManagementInstruction,
@@ -58,6 +61,7 @@ export const getSystemInstruction = (
     if (isMature) {
         instructionParts.push(matureContentInstruction);
         instructionParts.push(matureEventsInstruction);
+        instructionParts.push(bdsmScenariosInstruction);
     }
     
     // Nối các phần lại với nhau bằng hai dấu xuống dòng để dễ đọc hơn trong prompt

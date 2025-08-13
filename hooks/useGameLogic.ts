@@ -72,6 +72,13 @@ const findInconsistentNewEntities = (
     (profile.discoveredItems || []).forEach(i => allKnownNames.add(i.name));
     worldSettings.initialKnowledge.forEach(k => allKnownNames.add(k.title));
     allKnownNames.add(profile.name);
+    // Add character's talent and constitution names to known entities
+    if (profile.talent.name) {
+        allKnownNames.add(profile.talent.name);
+    }
+    if (profile.specialConstitution.name) {
+        allKnownNames.add(profile.specialConstitution.name);
+    }
 
     // 3. Build a set of all new names defined in the response
     const newNamesInResponse = new Set<string>();

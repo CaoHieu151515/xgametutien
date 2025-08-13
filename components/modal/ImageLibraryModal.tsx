@@ -1,12 +1,7 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
 
-interface AvatarData {
-    url: string;
-    type: 'character' | 'monster' | 'pet';
-    gender: 'male' | 'female' | 'none';
-    tags: string[];
-}
+import React, { useState, useEffect, useMemo } from 'react';
+import { AvatarData } from '../../types';
 
 interface ImageLibraryModalProps {
     isOpen: boolean;
@@ -29,12 +24,26 @@ export const ImageLibraryModal: React.FC<ImageLibraryModalProps> = ({ isOpen, on
     useEffect(() => {
         if (isOpen) {
             setIsLoading(true);
+            try {
+                const customDataString = localStorage.getItem('custom_avatar_data');
+                if (customDataString) {
+                    const customData: AvatarData[] = JSON.parse(customDataString);
+                    setAvatars(customData);
+                    setIsLoading(false);
+                    return; // Exit after loading custom data
+                }
+            } catch (error) {
+                console.error("Could not load custom avatar data from localStorage, falling back to default.", error);
+                // Fallback to default if parsing fails
+            }
+            
+            // Fallback to default if no custom data is found or if it fails to load
             fetch('/generated_avatar_data.json')
                 .then(res => res.json())
                 .then(data => {
                     setAvatars(data);
                 })
-                .catch(err => console.error("Could not load avatar data", err))
+                .catch(err => console.error("Could not load default avatar data", err))
                 .finally(() => setIsLoading(false));
         }
     }, [isOpen]);

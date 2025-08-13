@@ -32,9 +32,13 @@ export const verifyStoryResponse = (
     // Kiểm tra updatedSkills
     if (response.updatedSkills) {
         for (const update of response.updatedSkills) {
-            if (!profile.skills.some(skill => skill.name === update.skillName)) {
-                const errorMsg = `AI đã cố gắng cập nhật kỹ năng không tồn tại: "${update.skillName}"`;
-                 log(verificationName, errorMsg, 'ERROR');
+            const isActualSkill = profile.skills.some(skill => skill.name === update.skillName);
+            const isTalent = profile.talent?.name === update.skillName;
+            const isSpecialConstitution = profile.specialConstitution?.name === update.skillName;
+
+            if (!isActualSkill && !isTalent && !isSpecialConstitution) {
+                const errorMsg = `AI đã cố gắng cập nhật kỹ năng/năng lực không tồn tại: "${update.skillName}"`;
+                log(verificationName, errorMsg, 'ERROR');
                 throw new Error(errorMsg);
             }
         }

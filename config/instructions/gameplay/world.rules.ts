@@ -1,3 +1,4 @@
+
 import { WorldSettings } from '../../../types';
 
 const worldDetailsInstruction = (worldSettings: WorldSettings | null): string => {

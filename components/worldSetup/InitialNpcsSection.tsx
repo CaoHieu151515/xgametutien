@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { CharacterProfile, WorldSettings, NewNPCFromAI, CharacterGender, MienLuc, NpcRelationship } from '../../../types';
 import { FormInput, FormSelect, FormTextArea, FormLabel, RemoveIcon } from '../common';
@@ -182,7 +181,7 @@ export const InitialNpcsSection: React.FC<InitialNpcsSectionProps> = ({ profile,
                                                 onChange={e => handleRelationshipChange(otherNpc.id, e.target.value)}
                                                 className="w-24"
                                                 placeholder="0"
-                                                min="-100" max="100"
+                                                min="-1000" max="1000"
                                             />
                                         </div>
                                     );

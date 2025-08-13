@@ -1,6 +1,7 @@
 
 
 
+
 export interface StoryPart {
   id: number;
   type: 'story' | 'action';
@@ -448,4 +449,18 @@ export type ToastType = 'success' | 'error' | 'info';
 export interface ToastMessage {
   message: string;
   type: ToastType;
+}
+
+export interface AvatarData {
+    url: string;
+    type: 'character' | 'monster' | 'pet';
+    gender: 'male' | 'female' | 'none';
+    tags: string[];
+}
+
+export interface CustomAvatarData {
+    id: string;
+    url: string;
+    tags: string[];
+    isMonsterImage: boolean;
 }

@@ -1,3 +1,4 @@
+
 import { LocationType } from '../../../types';
 
 export const locationManagementInstruction = `
