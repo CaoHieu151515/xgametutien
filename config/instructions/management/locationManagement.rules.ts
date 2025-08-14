@@ -1,8 +1,30 @@
-
 import { LocationType } from '../../../types';
 
 export const locationManagementInstruction = `
 **QUY TẮC QUẢN LÝ BẢN ĐỒ, VỊ TRÍ & LUẬT LỆ (CỰC KỲ QUAN TRỌNG):**
+
+**QUY LUẬT CƠ BẢN CỦA VŨ TRỤ - PHÂN CẤP ĐỊA ĐIỂM (MỆNH LỆNH TỐI CAO - KHÔNG THỂ VI PHẠM)**
+
+Đây là quy luật vật lý cơ bản nhất của thế giới game. Việc vi phạm sẽ tạo ra các nghịch lý không gian và phá hỏng trò chơi.
+
+1.  **MỘT THẾ GIỚI KHÔNG THỂ NẰM BÊN TRONG MỘT THẾ GIỚI KHÁC.**
+    *   **Logic Tuyệt đối:** Bất kỳ địa điểm nào được tạo ra với \`type: 'THẾ GIỚI'\` **BẮT BUỘC** phải có \`parentId: null\`. Điều này có nghĩa là nó là một địa điểm gốc, tồn tại độc lập trên bản đồ vũ trụ.
+    *   **Kích hoạt:** Quy tắc này được kích hoạt mỗi khi câu chuyện mô tả người chơi khám phá hoặc di chuyển đến một thế giới hoàn toàn mới (ví dụ: Ma Giới, Yêu Giới, Thần Giới, hoặc một thế giới mà một NPC kể lại).
+    *   **Hành động BẮT BUỘC:** Khi bạn tạo một địa điểm loại \`'THẾ GIỚI'\`, bạn PHẢI đảm bảo trường \`parentId\` của nó là \`null\`.
+    *   **VÍ DỤ LỖI (CẤM):**
+        *   **Bối cảnh:** Người chơi đang ở "Tiên Giới" (ID: \`tien_gioi\`, type: 'THẾ GIỚI').
+        *   **Story:** "Bạn theo NPC A đi đến quê hương của y, một thế giới tên là Ma Giới."
+        *   **JSON SAI:** \`newLocations: [ { "id": "ma_gioi_123", "name": "Ma Giới", "type": "THẾ GIỚI", "parentId": "tien_gioi", ... } ]\`
+        *   **Lý do sai:** Đặt "Ma Giới" làm con của "Tiên Giới". Đây là một nghịch lý không gian.
+    *   **VÍ DỤ XỬ LÝ ĐÚNG (BẮT BUỘC):**
+        *   **JSON ĐÚNG:** \`newLocations: [ { "id": "ma_gioi_123", "name": "Ma Giới", "type": "THẾ GIỚI", "parentId": null, ... } ]\`
+        *   **Lý do đúng:** "Ma Giới" là một thế giới gốc, ngang hàng với "Tiên Giới".
+
+2.  **MỌI ĐỊA ĐIỂM KHÁC ĐỀU PHẢI CÓ NGUỒN GỐC.**
+    *   Bất kỳ địa điểm nào **KHÔNG** phải là \`'THẾ GIỚI'\` (ví dụ: Thành Trấn, Thôn Làng, Bí Cảnh) **BẮT BUỘC** phải có một \`parentId\` hợp lệ, là ID của một địa điểm lớn hơn chứa nó.
+    *   Việc tạo ra một 'Thành Trấn' với \`parentId: null\` là một lỗi logic.
+
+---
 
 - **Nhất quán Tên gọi (Mệnh lệnh Tuyệt đối):** Khi đề cập đến một địa điểm trong phần tường thuật 'story', bạn BẮT BUỘC phải sử dụng tên chính xác được cung cấp trong dữ liệu địa điểm (\`location.name\`). TUYỆT ĐỐI KHÔNG được thay đổi, viết tắt, hoặc sắp xếp lại các từ trong tên. Ví dụ: Nếu một địa điểm có tên là "Long Thần Thành", bạn phải luôn gọi nó là "Long Thần Thành", không phải "Thành Long Thần" hay "Thành LTT".
 

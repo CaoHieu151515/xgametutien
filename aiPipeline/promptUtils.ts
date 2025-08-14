@@ -1,4 +1,4 @@
-import { CharacterProfile, WorldSettings, NPC, Location, Item, Achievement, Monster } from '../types';
+import { CharacterProfile, WorldSettings, NPC, Location, Item, Achievement, Monster, LocationType } from '../types';
 
 interface ContextualPromptData {
     contextualNpcs: Partial<NPC>[];
@@ -68,7 +68,7 @@ export const buildContextForPrompt = (
             .map(({ id, name, description, type, isDestroyed }) => ({ id, name, description, type, isDestroyed }));
     }
     const globalLocations = characterProfile.discoveredLocations
-        .filter(loc => loc.type === 'THẾ LỰC' || loc.type === 'THÀNH TRẤN' || loc.type === 'THẾ GIỚỚI')
+        .filter(loc => loc.type === LocationType.THE_LUC || loc.type === LocationType.CITY || loc.type === LocationType.WORLD)
         .map(({ id, name }) => ({ id, name }));
 
     // 3. Xây dựng "Chuỗi Luật Lệ" từ vị trí hiện tại ngược lên.

@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Location, LocationType, CharacterProfile, WorldSettings, Choice } from '../../types';
 
@@ -225,7 +224,17 @@ export const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, locations, 
 
 
     const currentParentId = useMemo(() => path.length > 0 ? path[path.length - 1].id : null, [path]);
-    const locationsToList = useMemo(() => locations.filter(loc => loc.parentId === currentParentId), [locations, currentParentId]);
+    
+    const locationsToList = useMemo(() => {
+        // If we are at the root (world map), show all locations that are worlds.
+        if (currentParentId === null) {
+            return locations.filter(loc => loc.type === LocationType.WORLD);
+        }
+
+        // If we are inside a location, ONLY show its direct children.
+        return locations.filter(loc => loc.parentId === currentParentId);
+    }, [locations, currentParentId]);
+
 
     const handleNavigatePath = (index: number) => {
         setPath(prev => prev.slice(0, index + 1));
@@ -239,7 +248,13 @@ export const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, locations, 
 
     const handleViewContents = () => {
         if (selectedLocation) {
-            setPath(prev => [...prev, selectedLocation]);
+            // If the selected location is a world (a top-level item), reset the path to it.
+            if (selectedLocation.type === LocationType.WORLD) {
+                setPath([selectedLocation]);
+            } else {
+                // Otherwise, it's a deeper location, so append it to the current path.
+                setPath(prev => [...prev, selectedLocation]);
+            }
             setSelectedLocation(null);
         }
     };

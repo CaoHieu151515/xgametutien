@@ -51,7 +51,7 @@ Bạn PHẢI trả về một đối tượng JSON duy nhất tuân thủ nghiê
             *   \`"name": "Xà Tinh Địa Long Xà Hổ Mang Bạch Hổ..."\` -> **SAI (LỖI NGHIÊM TRỌNG - SẼ PHÁ HỎNG GAME!)**
     *   **Địa điểm Khởi đầu:**
         *   Tạo ít nhất NĂM (5) địa điểm khởi đầu đa dạng.
-        *   **Bắt buộc:** PHẢI có một địa điểm gốc loại 'THẾ GIỚỚỚI' có \`parentId\` là \`null\`.
+        *   **Bắt buộc:** PHẢI có một địa điểm gốc loại 'THẾ GIỚI' có \`parentId\` là \`null\`.
         *   **Thế Lực (Bang Phái):** Tạo ít nhất MỘT (1) địa điểm loại 'THẾ LỰC'.
         *   **Quy tắc Đặt tên (Rất Quan trọng):** Tuân thủ cấu trúc '[Tên Riêng] [Loại Địa Điểm]'. Ví dụ: 'Long Thần Thành' (ĐÚNG), không phải 'Thành Long Thần' (SAI). 'Vô Cực Tông' (ĐÚNG), không phải 'Tông Môn Vô Cực' (SAI).
         *   **Đồng bộ Tri Thức:** Với MỖI địa điểm loại 'THẾ LỰC', bạn PHẢI tạo một mục 'initialKnowledge' tương ứng với 'category' là 'Bang Phái'.
@@ -81,14 +81,13 @@ Bạn PHẢI trả về một đối tượng JSON duy nhất tuân thủ nghiê
 Hãy bắt đầu!`;
 };
 
-export const buildStateUpdatePrompt = (
+export const buildUnifiedPrompt = (
     historyText: string,
     actionText: string,
     characterProfile: CharacterProfile,
     worldSettings: WorldSettings,
     npcs: NPC[]
 ): string => {
-
     const {
         contextualNpcs,
         localLocations,
@@ -197,77 +196,14 @@ ${historyText}
 **Hành động mới nhất của người chơi:**
 ${actionText}
 
-Dựa trên hành động của người chơi và toàn bộ bối cảnh, hãy tính toán các thay đổi logic của game.
-`;
-};
+**NHIỆM VỤ:**
+Dựa trên hành động của người chơi và toàn bộ bối cảnh, hãy thực hiện ĐỒNG THỜI hai việc sau:
+1.  **Tính toán Logic:** Xác định tất cả các thay đổi logic của game (chỉ số, vật phẩm, NPC, vị trí, v.v.).
+2.  **Viết Câu chuyện:** Viết phần tiếp theo của câu chuyện một cách hấp dẫn, tường thuật lại hành động của người chơi và các kết quả logic đã xảy ra.
+3.  **Tạo Lựa chọn:** Đưa ra BỐN (4) lựa chọn mới đa dạng và hấp dẫn.
 
-function generateChangeSummary(stateChanges: StoryResponse, worldSettings: WorldSettings): string {
-    const summary: string[] = [];
-    if (stateChanges.updatedStats?.gainedExperience) {
-        summary.push(`- Bạn đã nhận được kinh nghiệm.`);
-    }
-    if (stateChanges.updatedStats?.breakthroughToRealm) {
-        summary.push(`- Bạn đã đột phá đến cảnh giới ${stateChanges.updatedStats.breakthroughToRealm}.`);
-    }
-    if (stateChanges.newNPCs?.length) {
-        summary.push(`- Bạn đã gặp gỡ NPC mới: ${stateChanges.newNPCs.map(n => n.name).join(', ')}.`);
-    }
-    if (stateChanges.updatedNPCs?.length) {
-        summary.push(`- Mối quan hệ hoặc trạng thái với ${stateChanges.updatedNPCs.map(n => n.id).join(', ')} đã thay đổi.`);
-    }
-    if (stateChanges.newItems?.length) {
-        summary.push(`- Bạn đã nhận được vật phẩm mới: ${stateChanges.newItems.map(i => `${i.name} (x${i.quantity})`).join(', ')}.`);
-    }
-    if (stateChanges.updatedPlayerLocationId) {
-        const newLoc = worldSettings.initialKnowledge.find(k => k.id === stateChanges.updatedPlayerLocationId);
-        summary.push(`- Bạn đã di chuyển đến một địa điểm mới${newLoc ? `: ${newLoc.title}` : ''}.`);
-    }
-     if (stateChanges.newLocations?.length) {
-        summary.push(`- Bạn đã khám phá ra địa điểm mới: ${stateChanges.newLocations.map(l => l.name).join(', ')}.`);
-    }
-
-    if (summary.length === 0) {
-        return "Tương tác đã diễn ra, dẫn đến các diễn biến mới.";
-    }
-    return "Những sự kiện quan trọng sau đã xảy ra:\n" + summary.join('\n');
-}
-
-
-export const buildNarrativePrompt = (
-    playerAction: string,
-    stateChanges: StoryResponse,
-    characterProfile: CharacterProfile,
-    worldSettings: WorldSettings,
-    npcs: NPC[]
-): string => {
-    const changeSummary = generateChangeSummary(stateChanges, worldSettings);
-    // We provide a minimal context of the NEW state for the narrative AI.
-    const { 
-        minimalCharacterProfile,
-        equippedItems,
-        summarizedBagItems
-    } = buildContextForPrompt(characterProfile, worldSettings, npcs, '');
-
-    return `
-**Hành động trước đó của người chơi:**
-${playerAction}
-
-**Tóm tắt kết quả của hành động:**
-${changeSummary}
-\`\`\`json
-${JSON.stringify(stateChanges, null, 2)}
-\`\`\`
-
-**Trạng thái hiện tại của nhân vật (để tham khảo văn phong):**
-\`\`\`json
-${JSON.stringify({ profile: minimalCharacterProfile, equipment: equippedItems, bag: summarizedBagItems }, null, 2)}
-\`\`\`
-
-**Nhiệm vụ của bạn:**
-Với vai trò là một người kể chuyện bậc thầy, hãy dệt nên một câu chuyện hấp dẫn tường thuật lại các sự kiện trên.
-1.  Bắt đầu bằng cách mô tả lại **Hành động trước đó của người chơi** một cách văn học.
-2.  Sau đó, kể lại câu chuyện về **Kết quả** đã xảy ra như thế nào. Hãy sáng tạo và làm cho các thay đổi trạng thái trở nên sống động.
-3.  Cuối cùng, tạo ra **BỐN (4) lựa chọn** đa dạng và hấp dẫn cho hành động tiếp theo của người chơi.
+**KẾT QUẢ:**
+Trả về MỘT đối tượng JSON DUY NHẤT chứa tất cả các trường cần thiết theo schema.
 `;
 };
 

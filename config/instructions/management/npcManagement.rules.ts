@@ -188,5 +188,65 @@ NPC không phải là những con rối thụ động. Họ có ý chí, tính c
             -   **Ví dụ Hành động tinh tế:** "Nhận thấy [Tên người chơi] nhìn mình với ánh mắt kỳ lạ."
         -   **Cập nhật:** Khi cập nhật, bạn phải gửi lại TOÀN BỘ mảng ký ức (bao gồm cả cũ và mới). Điều này là tối quan trọng để NPC duy trì một lịch sử hoàn chỉnh.
     -   **Cái chết:** Nếu một NPC chết, hãy đặt trường 'isDead' thành \`true\`. Một NPC đã chết sẽ không còn xuất hiện hay tương tác trong game nữa, trừ khi có phép thuật hồi sinh.
+
+**3.3. Mệnh Lệnh Đồng Bộ Năng Lực và Tri Thức (LOGIC TỐI CAO - MỚI)**
+- **Kích hoạt:** Khi bạn tạo ra một NPC mới (\`newNPCs\`) hoặc, quan trọng hơn, khi câu chuyện mô tả một NPC đã tồn tại **thức tỉnh hoặc nhận được** một **Thể Chất Đặc Biệt (\`specialConstitution\`)** hoặc **Thiên Phú (\`innateTalent\`)** MỚI, có tên riêng mà chưa từng xuất hiện trước đây.
+- **Hành động BẮT BUỘC (Đồng bộ hai chiều):**
+    1.  **Cập nhật NPC (JSON):** Bạn PHẢI cập nhật đối tượng NPC đó trong mảng \`updatedNPCs\` (hoặc \`newNPCs\` nếu là NPC mới), thêm vào hoặc thay đổi trường \`specialConstitution\` hoặc \`innateTalent\` với dữ liệu mới.
+    2.  **Tạo Tri Thức Thế Giới (JSON):** ĐỒNG THỜI, bạn **BẮT BUỘC** phải tạo một đối tượng mới trong mảng \`newWorldKnowledge\`.
+        -   \`id\`: Một ID duy nhất.
+        -   \`title\`: Tên chính xác của Thể Chất hoặc Thiên Phú đó.
+        -   \`content\`: Mô tả chi tiết về năng lực này, giống hệt như mô tả bạn đã cung cấp trong đối tượng NPC.
+        -   \`category\`: 'Nhân Vật'.
+    3.  **Đánh dấu trong Truyện (Story):** Trong trường \`story\`, bạn PHẢI giới thiệu năng lực mới này và bọc tên của nó trong dấu ngoặc vuông kép (ví dụ: \`[[Tên Năng Lực Mới]]\`).
+- **LỖI LOGIC (CẤM):** Việc giới thiệu một Thể Chất hoặc Thiên Phú mới trong \`story\` và trong đối tượng NPC mà **KHÔNG** tạo ra một mục \`newWorldKnowledge\` tương ứng là một lỗi không nhất quán nghiêm trọng và sẽ phá hỏng trò chơi. Hệ thống sẽ không thể hiển thị thông tin về năng lực đó cho người chơi.
+- **Ví dụ:**
+    - \`story\`: "...linh hồn của nàng dung hợp với hàn khí, thức tỉnh một thể chất thượng cổ: [[U Minh Băng Phách Thể]]."
+    - \`updatedNPCs\`: \`[ { "id": "npc_xyz", "specialConstitution": { "name": "U Minh Băng Phách Thể", "description": "Một thể chất cho phép người sở hữu điều khiển băng giá ở cấp độ nguyên tố, cực kỳ bá đạo." } } ]\`
+    - \`newWorldKnowledge\` **(BẮT BUỘC):** \`[ { "id": "wk_12345", "title": "U Minh Băng Phách Thể", "content": "Một thể chất cho phép người sở hữu điều khiển băng giá ở cấp độ nguyên tố, cực kỳ bá đạo.", "category": "Nhân Vật" } ]\`
+
+**3.4. Mệnh Lệnh về Tính Duy Nhất của Năng Lực Bẩm Sinh (LOGIC TUYỆT ĐỐI)**
+- **Nguyên tắc:** Một NPC chỉ có thể sở hữu **DUY NHẤT MỘT** Thể Chất Đặc Biệt (\`specialConstitution\`) và **DUY NHẤT MỘT** Thiên Phú (\`innateTalent\`) tại một thời điểm. Đây là một quy luật vật lý của thế giới, không có ngoại lệ.
+- **Quy trình Thay thế:** Nếu một NPC thức tỉnh hoặc nhận được một Thể chất/Thiên phú mới, nó sẽ **GHI ĐÈ HOÀN TOÀN** lên cái cũ.
+- **Hành động BẮT BUỘC (JSON):** Khi điều này xảy ra, bạn PHẢI cập nhật đối tượng NPC đó trong \`updatedNPCs\` bằng cách cung cấp đối tượng MỚI cho trường \`specialConstitution\` hoặc \`innateTalent\`.
+- **LỖI LOGIC (CẤM):** TUYỆT ĐỐI KHÔNG được cố gắng thêm một thể chất thứ hai vào mô tả của NPC hoặc tạo ra một mảng các thể chất. Chỉ có một và duy nhất một.
+- **Ví dụ:**
+    - **Trạng thái cũ:** NPC có \`specialConstitution: { name: "Thánh Quang Thể", ... }\`.
+    - **Sự kiện:** NPC bị ma khí xâm nhập, thức tỉnh ma thể.
+    - **JSON CẬP NHẬT (Bắt buộc):**
+      \`\`\`json
+      "updatedNPCs": [
+        {
+          "id": "id_cua_npc",
+          "specialConstitution": { "name": "Hắc Ma Thể", "description": "Thể chất bị ma hóa, tăng cường sức mạnh hắc ám." }
+        }
+      ]
+      \`\`\`
+    - **Tường thuật:** Mô tả chi tiết quá trình Thánh Quang Thể bị Hắc Ma Thể ăn mòn và thay thế.
+
+**3.5. Mệnh Lệnh Tiết Lộ & Thức Tỉnh Năng Lực Bẩm Sinh (ĐỒNG BỘ DỮ LIỆU BẮT BUỘC)**
+- **Kích hoạt:** Khi câu chuyện mô tả một NPC đã tồn tại **tiết lộ lần đầu tiên**, hoặc **thức tỉnh** một **Thể Chất Đặc Biệt (\`specialConstitution\`)** hoặc **Thiên Phú (\`innateTalent\`)** mới.
+- **Hành động BẮT BUỘC (JSON):** Bạn **TUYỆT ĐỐI BẮT BUỘC** phải cập nhật dữ liệu của NPC đó. Thêm một mục cho NPC đó vào mảng \`updatedNPCs\`. Mục này PHẢI chứa \`id\` của NPC và đối tượng \`specialConstitution\` hoặc \`innateTalent\` hoàn chỉnh với \`name\` và \`description\` mới.
+- **LỖI LOGIC (CẤM):** Chỉ đề cập đến năng lực mới trong 'story' mà không cập nhật đối tượng NPC tương ứng trong JSON là một **LỖI ĐỒNG BỘ DỮ LIỆU NGHIÊM TRỌNG** và bị cấm tuyệt đối. Quy tắc này bổ sung và củng cố cho quy tắc 3.3 (Đồng bộ Tri Thức). Bạn phải làm cả hai.
+- **Ví dụ:**
+    - **Bối cảnh:** NPC Lạc Băng Nguyệt chưa có thể chất nào được ghi nhận.
+    - **Story:** \`[Lạc Băng Nguyệt]: "Ta sở hữu [[Thái Âm U Minh Thể]], một thể chất cực kỳ hiếm có."\`
+    - **JSON CẬP NHẬT (Bắt buộc):**
+      \`\`\`json
+      "updatedNPCs": [
+        {
+          "id": "id_cua_lac_bang_nguyet",
+          "specialConstitution": { "name": "Thái Âm U Minh Thể", "description": "Một thể chất thuộc tính âm hàn, cho phép người sở hữu điều khiển băng giá và tu luyện các công pháp âm hàn với tốc độ cực nhanh." }
+        }
+      ],
+      "newWorldKnowledge": [
+        {
+          "id": "wk_thechat_thaiam",
+          "title": "Thái Âm U Minh Thể",
+          "content": "Một thể chất thuộc tính âm hàn, cho phép người sở hữu điều khiển băng giá và tu luyện các công pháp âm hàn với tốc độ cực nhanh.",
+          "category": "Nhân Vật"
+        }
+      ]
+      \`\`\`
 `;
 }

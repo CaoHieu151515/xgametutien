@@ -2,6 +2,7 @@
 
 
 
+
 export interface StoryPart {
   id: number;
   type: 'story' | 'action';
@@ -59,7 +60,7 @@ export interface SkillUpdate {
 }
 
 export enum LocationType {
-  WORLD = 'THẾ GIỚỚI',
+  WORLD = 'THẾ GIỚI',
   CITY = 'THÀNH TRẤN',
   THE_LUC = 'THẾ LỰC',
   TOWN = 'THÔN LÀNG',
@@ -158,6 +159,8 @@ export interface NPCUpdate {
     description?: string;
     locationId?: string;
     aptitude?: string;
+    specialConstitution?: { name: string; description: string };
+    innateTalent?: { name: string; description: string };
     updatedNpcRelationships?: NpcRelationship[];
     isDaoLu?: boolean; // Cập nhật trạng thái bạn đời
     isDead?: boolean; // Cập nhật trạng thái đã chết

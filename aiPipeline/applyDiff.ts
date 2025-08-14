@@ -131,14 +131,14 @@ export const applyStoryResponseToState = async ({
 
     if (response.newWorldKnowledge?.length) {
         const uniqueNewKnowledge = response.newWorldKnowledge.filter(
-            newK => !finalWorldSettings.initialKnowledge.some(existing => existing.id === newK.id)
+            newK => !finalWorldSettings.initialKnowledge.some(existing => existing.title.toLowerCase() === newK.title.toLowerCase())
         ).map(k => ({ ...k, isNew: true }));
 
         uniqueNewKnowledge.forEach(k => {
             if (k.category === 'Bang Phái') {
                 notifications.push(`🌍 Bạn đã khám phá ra thế lực mới: <b>${k.title}</b>.`);
             } else {
-                notifications.push(`🧠 Bạn đã học được tri thức mới: <b>${k.title}</b>.`);
+                notifications.push(`🧠 Phát hiện tri thức mới: <b>${k.title}</b>.`);
             }
         });
 
@@ -213,6 +213,15 @@ export const applyStoryResponseToState = async ({
             const existingNpc = npcsToUpdateMap.get(update.id);
             if (existingNpc) {
                 let modifiedNpc = { ...existingNpc };
+
+                 if (update.specialConstitution && update.specialConstitution.name !== existingNpc.specialConstitution?.name) {
+                    notifications.push(`✨ Phát hiện thể chất đặc biệt trên <b>${existingNpc.name}</b>: <b>${update.specialConstitution.name}</b>.`);
+                    modifiedNpc.specialConstitution = update.specialConstitution;
+                }
+                 if (update.innateTalent && update.innateTalent.name !== existingNpc.innateTalent?.name) {
+                    notifications.push(`🌟 <b>${existingNpc.name}</b> đã thức tỉnh thiên phú: <b>${update.innateTalent.name}</b>.`);
+                    modifiedNpc.innateTalent = update.innateTalent;
+                }
 
                 if (update.isDead === true) {
                     modifiedNpc.isDead = true;
