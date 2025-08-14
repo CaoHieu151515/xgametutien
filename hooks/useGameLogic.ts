@@ -622,7 +622,6 @@ export const useGameLogic = () => {
                 health: stats.maxHealth,
                 mana: stats.maxMana,
                 realm: getRealmDisplayName(newNpcData.level, npcPowerSystem, newWorldSettings),
-                relationship: 0,
                 memories: [],
                 npcRelationships: newNpcData.npcRelationships || [],
                 isDaoLu: false,

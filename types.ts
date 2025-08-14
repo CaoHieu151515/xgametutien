@@ -3,6 +3,7 @@
 
 
 
+
 export interface StoryPart {
   id: number;
   type: 'story' | 'action';
@@ -99,7 +100,7 @@ export interface MienLuc {
 export interface NpcRelationship {
   targetNpcId: string;
   value: number; // Quan hệ, -1000 to 1000
-  relationshipType?: 'FAMILY' | 'ROMANTIC' | 'FRIENDLY' | 'RIVAL'; // Loại mối quan hệ
+  relationshipType?: string; // Loại mối quan hệ, vd: "Phụ thân", "Sư phụ", "Nô lệ"
 }
 
 // Data NPC được AI cung cấp khi tạo mới
@@ -134,7 +135,7 @@ export interface NPC extends NewNPCFromAI {
   realm: string; // Cảnh giới (được tính toán)
 
   // Relationships & Memory
-  relationship: number; // Quan hệ với người chơi, -1000 to 1000
+  relationship?: number; // Quan hệ với người chơi, -1000 to 1000. Not set until first interaction.
   memories: string[]; 
   npcRelationships: NpcRelationship[];
   isDaoLu: boolean; // Trạng thái bạn đời

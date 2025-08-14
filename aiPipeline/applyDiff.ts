@@ -196,7 +196,6 @@ export const applyStoryResponseToState = async ({
                 health: stats.maxHealth,
                 mana: stats.maxMana,
                 realm: getRealmDisplayName(npcLevel, npcPowerSystem, finalWorldSettings),
-                relationship: 0,
                 memories: [],
                 npcRelationships: newNpcData.npcRelationships || [],
                 statusEffects: uniqueInitialEffects,
@@ -269,8 +268,8 @@ export const applyStoryResponseToState = async ({
                     } else if (existingNpc.isDaoLu) {
                         modifiedNpc.relationship = 1000;
                     } else if (update.relationship !== undefined) {
-                        const oldRelationship = existingNpc.relationship;
-                        const newRelationship = Math.max(-1000, Math.min(1000, update.relationship));
+                        const oldRelationship = existingNpc.relationship ?? 0;
+                        const newRelationship = Math.max(-1000, Math.min(1000, oldRelationship + (update.relationship || 0) ));
                         modifiedNpc.relationship = newRelationship;
                         const change = newRelationship - oldRelationship;
 

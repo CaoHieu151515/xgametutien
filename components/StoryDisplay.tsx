@@ -10,6 +10,26 @@ const KeywordTooltip: React.FC<{ keyword: string; description: string; isNew?: b
   const [horizontalAlign, setHorizontalAlign] = useState<'center' | 'left' | 'right'>('center');
   const ref = React.useRef<HTMLSpanElement>(null);
 
+  useEffect(() => {
+    // This effect ensures that if the user scrolls, any open tooltip will be closed.
+    // This improves user experience and prevents rendering glitches on some browsers.
+    if (!show) {
+      return;
+    }
+
+    const handleScroll = () => {
+      setShow(false);
+    };
+
+    const scrollContainer = ref.current?.closest('.custom-scrollbar');
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+      return () => {
+        scrollContainer.removeEventListener('scroll', handleScroll);
+      };
+    }
+  }, [show]); // Re-run this effect whenever the 'show' state changes.
+
   const handlePositionCalculation = () => {
     if (ref.current) {
       const rect = ref.current.getBoundingClientRect();
@@ -214,24 +234,29 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
 
     const linkifyStory = (text: string): React.ReactNode => {
         if (!text) return text;
-    
+
         const sortedKeywords = keywords
             .filter(k => k.keyword && k.keyword.trim() !== "")
             .sort((a, b) => b.keyword.length - a.keyword.length);
     
-        // Regex for new proper nouns: [[Some Name]] and for known keywords.
-        // It captures either a new noun pattern OR a known keyword.
         const keywordRegexPart = sortedKeywords.length > 0
             ? sortedKeywords.map(k => escapeRegExp(k.keyword)).join('|')
-            : '';
-        
-        // We create a regex that finds either a [[new noun]] or a known_keyword
-        const combinedRegex = new RegExp(`(\\[\\[[^\\]]+\\]\\])|(${keywordRegexPart})`, 'g');
+            : null;
 
-        // If there are no keywords and no new noun markers, just return the text
         if (!keywordRegexPart && !text.includes('[[')) {
             return text;
         }
+
+        const newNounPattern = '\\[\\[[^\\]]+\\]\\]';
+        let finalPattern = newNounPattern;
+        if (keywordRegexPart) {
+            finalPattern = `${newNounPattern}|${keywordRegexPart}`;
+        }
+        
+        // The key fix is to use a single capturing group for all patterns.
+        // This ensures the array from .split() is clean and doesn't contain `undefined` values,
+        // which was causing rendering glitches with inline elements.
+        const combinedRegex = new RegExp(`(${finalPattern})`, 'g');
 
         const parts = text.split(combinedRegex);
         

@@ -1,5 +1,4 @@
 
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { NPC, CharacterGender, StatusEffect, WorldSettings, CharacterProfile } from '../../types';
 import { calculateBaseStatsForLevel } from '../../services/progressionService';
@@ -16,12 +15,15 @@ interface NpcModalProps {
 
 const NewBadge = () => <span className="ml-2 px-1.5 py-0.5 text-[10px] font-bold text-slate-900 bg-yellow-300 rounded-full">NEW</span>;
 
-const getRelationshipText = (value: number) => {
-    if (value <= -750) return { text: 'Kẻ Thù', color: 'text-red-500' };
-    if (value <= -250) return { text: 'Ghét Bỏ', color: 'text-red-400' };
-    if (value < 250) return { text: 'Trung Lập', color: 'text-slate-400' };
-    if (value < 750) return { text: 'Thân Thiện', color: 'text-green-400' };
-    return { text: 'Tôn Trọng', color: 'text-green-300' };
+const getRelationshipText = (value: number | undefined) => {
+    if (value === undefined) return { text: 'Trung Lập', color: 'text-slate-400' };
+    if (value >= 1000) return { text: 'Tin tưởng tuyệt đối', color: 'text-emerald-400' };
+    if (value >= 500) return { text: 'Tin tưởng', color: 'text-green-300' };
+    if (value >= 100) return { text: 'Thân thiện', color: 'text-green-400' };
+    if (value >= -99) return { text: 'Trung Lập', color: 'text-slate-400' };
+    if (value >= -499) return { text: 'Căm Ghét', color: 'text-red-400' };
+    if (value >= -999) return { text: 'Kẻ Thù', color: 'text-red-500' };
+    return { text: 'Thâm thù đại hận', color: 'text-red-600' };
 };
 
 const FormSelect = (props: React.SelectHTMLAttributes<HTMLSelectElement>) => (
@@ -155,12 +157,13 @@ export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpd
     const allRelationships = useMemo(() => {
         if (!selectedNpc || !characterProfile) return [];
         
-        const relationships: { targetId: string; targetName: string; value: number; isPlayer: boolean; avatarUrl?: string; gender: CharacterGender; }[] = [];
+        const relationships: { targetId: string; targetName: string; value: number | undefined; relationshipType?: string; isPlayer: boolean; avatarUrl?: string; gender: CharacterGender; }[] = [];
 
         relationships.push({
             targetId: 'player', 
             targetName: characterProfile.name,
             value: selectedNpc.relationship,
+            relationshipType: selectedNpc.isDaoLu ? 'Đạo lữ' : undefined,
             isPlayer: true,
             avatarUrl: characterProfile.avatarUrl,
             gender: characterProfile.gender
@@ -174,6 +177,7 @@ export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpd
                         targetId: targetNpc.id,
                         targetName: targetNpc.name,
                         value: rel.value,
+                        relationshipType: rel.relationshipType,
                         isPlayer: false,
                         avatarUrl: targetNpc.avatarUrl,
                         gender: targetNpc.gender
@@ -181,7 +185,7 @@ export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpd
                 }
             });
         }
-        return relationships.sort((a, b) => b.value - a.value);
+        return relationships.sort((a, b) => (b.value ?? -Infinity) - (a.value ?? -Infinity));
     }, [selectedNpc, npcs, characterProfile]);
 
     const handleAvatarUrlUpdate = (url: string) => {
@@ -346,20 +350,25 @@ export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpd
                                             {allRelationships.length > 0 ? (
                                                 <div className="space-y-2">
                                                     {allRelationships.map((rel, index) => {
-                                                        const isDaoLuWithPlayer = rel.isPlayer && selectedNpc?.isDaoLu;
-                                                        const relationship = isDaoLuWithPlayer
-                                                            ? { text: '❤️ Đạo Lữ', color: 'text-pink-400' }
-                                                            : getRelationshipText(rel.value);
-                                                        
-                                                        const valueText = isDaoLuWithPlayer ? '1000' : rel.value;
-                                                        
+                                                        const score = rel.isPlayer && selectedNpc.isDaoLu ? 1000 : rel.value;
+                                                        const relationship = getRelationshipText(score);
+                                                        const valueText = rel.isPlayer && selectedNpc.isDaoLu ? '1000' : (rel.value !== undefined ? rel.value : '???');
                                                         const defaultAvatarForRel = getDefaultAvatar(rel.gender);
+                                                        const isDaoLuRel = rel.relationshipType === 'Đạo lữ';
 
                                                         return (
                                                             <div key={rel.targetId + index} className="flex justify-between items-center p-2.5 bg-slate-800/50 rounded-lg text-sm">
                                                                 <div className="flex items-center gap-3">
                                                                     <img src={rel.avatarUrl || defaultAvatarForRel} className="w-8 h-8 rounded-full object-cover" onError={(e) => { e.currentTarget.src = defaultAvatarForRel; }}/>
-                                                                    <span className={`font-semibold ${rel.isPlayer ? 'text-amber-300' : 'text-white'}`}>{rel.targetName}</span>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className={`font-semibold ${rel.isPlayer ? 'text-amber-300' : 'text-white'}`}>{rel.targetName}</span>
+                                                                        {isDaoLuRel && (
+                                                                            <span className="text-xs text-pink-300 bg-pink-900/50 px-2 py-0.5 rounded-full">❤️ Đạo lữ</span>
+                                                                        )}
+                                                                        {rel.relationshipType && !isDaoLuRel && (
+                                                                            <span className="text-xs text-cyan-300 bg-cyan-900/50 px-2 py-0.5 rounded-full">{rel.relationshipType}</span>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
                                                                 <div className="text-right">
                                                                     <span className={`font-bold ${relationship.color}`}>{relationship.text}</span>

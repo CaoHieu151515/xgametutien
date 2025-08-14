@@ -164,7 +164,7 @@ export const npcRelationshipSchema = {
     properties: {
         targetNpcId: { type: Type.STRING, description: "ID của NPC mục tiêu." },
         value: { type: Type.NUMBER, description: "Giá trị quan hệ, từ -1000 (kẻ thù) đến 1000 (tri kỷ)." },
-        relationshipType: { type: Type.STRING, enum: ['FAMILY', 'ROMANTIC', 'FRIENDLY', 'RIVAL'], description: "Loại mối quan hệ." }
+        relationshipType: { type: Type.STRING, description: "Loại mối quan hệ cụ thể (ví dụ: 'Phụ thân', 'Mẫu thân', 'Sư phụ', 'Nô lệ', 'Đạo lữ')." }
     },
     required: ["targetNpcId", "value"]
 };
@@ -314,7 +314,7 @@ export const updatedNpcSchema = {
         id: { type: Type.STRING, description: "ID của NPC cần cập nhật." },
         gainedExperience: { type: Type.NUMBER, description: "Kinh nghiệm NPC nhận được. Hệ thống sẽ tự xử lý việc lên cấp." },
         breakthroughToRealm: { type: Type.STRING, description: "Tên cảnh giới MỚI mà NPC đột phá đến. Hệ thống sẽ tự tính toán và cộng dồn toàn bộ kinh nghiệm. Bỏ qua gainedExperience khi dùng trường này." },
-        relationship: { type: Type.NUMBER, description: "Giá trị quan hệ mới với người chơi. Chỉ cung cấp nếu có thay đổi." },
+        relationship: { type: Type.NUMBER, description: "SỰ THAY ĐỔI trong quan hệ với người chơi (ví dụ: +20, -50), không phải giá trị tuyệt đối mới." },
         memories: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Toàn bộ danh sách ký ức MỚI của NPC (bao gồm cả cũ và mới)." },
         health: { type: Type.NUMBER, description: "Sinh lực hiện tại của NPC." },
         mana: { type: Type.NUMBER, description: "Linh lực hiện tại của NPC." },

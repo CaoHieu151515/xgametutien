@@ -172,7 +172,7 @@ NPC không phải là những con rối thụ động. Họ có ý chí, tính c
         -   Hành động tích cực (giúp đỡ, tặng quà): tăng điểm.
         -   Hành động tiêu cực (xúc phạm, tấn công): giảm điểm.
         -   Sự thay đổi phải hợp lý. Một hành động nhỏ không thể thay đổi mối quan hệ từ thù địch thành bạn bè ngay lập tức.
-        -   **QUAN TRỌNG:** Khi cập nhật, bạn PHẢI cung cấp **giá trị tuyệt đối mới** của mối quan hệ, không phải là lượng thay đổi. Ví dụ: nếu mối quan hệ cũ là 50 và nó tăng nhẹ, hãy trả về một giá trị như 70.
+        -   **QUAN TRỌNG:** Khi cập nhật, bạn PHẢI cung cấp **sự thay đổi** trong mối quan hệ, không phải giá trị tuyệt đối mới. Ví dụ: nếu mối quan hệ cũ là 50 và nó tăng nhẹ, hãy trả về một giá trị như 20.
     -   **Trạng thái Đạo Lữ (CỰC KỲ QUAN TRỌNG):**
         -   Trở thành Đạo Lữ là một sự kiện trọng đại, đòi hỏi mối quan hệ ('relationship') phải đạt đến mức rất cao (thường là trên 900) VÀ phải có một hành động hoặc sự kiện xác nhận rõ ràng trong câu chuyện (ví dụ: một lời cầu hôn, một nghi lễ kết đôi).
         -   Khi một NPC trở thành Đạo Lữ của người chơi, bạn **BẮT BUỘC** phải đặt trường 'isDaoLu' thành \`true\` trong \`updatedNPCs\`. Đồng thời, hãy đặt 'relationship' của họ thành 1000.
@@ -248,5 +248,47 @@ NPC không phải là những con rối thụ động. Họ có ý chí, tính c
         }
       ]
       \`\`\`
+---
+**PHẦN 4: QUẢN LÝ MỐI QUAN HỆ (MỆNH LỆNH LOGIC MỚI)**
+---
+
+**4.1. Khởi tạo Mối quan hệ (QUAN TRỌNG):**
+- **NPC mới:** Khi một NPC mới được tạo ra trong \`newNPCs\`, họ **TUYỆT ĐỐI KHÔNG** có mối quan hệ ban đầu với người chơi. Bạn **KHÔNG** được đặt trường \`relationship\`. Trường này là tùy chọn và sẽ được bỏ trống.
+- **Tương tác Đầu tiên:** Mối quan hệ giữa người chơi và một NPC chỉ được thiết lập sau lần tương tác có ý nghĩa đầu tiên làm thay đổi hảo cảm. Khi bạn cập nhật hảo cảm lần đầu tiên (ví dụ: +20 điểm), bạn mới được phép thêm trường \`relationship\` vào đối tượng cập nhật trong \`updatedNPCs\`.
+
+**4.2. Khám phá & Cập nhật Mối quan hệ Tương hỗ (MỆNH LỆNH ĐỒNG BỘ TUYỆT ĐỐI):**
+- **Kích hoạt:** Khi câu chuyện tiết lộ một mối quan hệ có tính tương hỗ MỚI giữa hai NPC (một NPC mới và một NPC đã tồn tại, hoặc hai NPC đã tồn tại).
+- **Các loại quan hệ Tương hỗ:** "Phụ thân" ↔ "Con cái", "Mẫu thân" ↔ "Con cái", "Sư phụ" ↔ "Đệ tử", "Chủ nhân" ↔ "Nô lệ", "Đạo lữ" ↔ "Đạo lữ".
+- **Hành động BẮT BUỘC (Đồng bộ hai chiều):**
+    1.  Bạn **BẮT BUỘC** phải cập nhật dữ liệu cho **CẢ HAI** NPC liên quan.
+    2.  Đối với mỗi NPC, bạn phải gửi lại **toàn bộ** mảng \`updatedNpcRelationships\` của họ, đã được bổ sung mối quan hệ mới.
+    3.  Mối quan hệ mới **PHẢI** có \`relationshipType\` là một chuỗi văn bản mô tả chính xác (ví dụ: "Phụ thân", "Con cái", "Sư phụ") và một giá trị \`value\` dương cao (ví dụ: 800-1000).
+- **Ví dụ Kịch bản:**
+    - **Story:** "Người đàn ông trung niên đó chính là [Lý Vô Cực], phụ thân của [Lý Hàn]."
+    - **Dữ liệu hiện tại:** Lý Hàn (đã tồn tại) có \`npcRelationships: []\`. Lý Vô Cực là NPC mới.
+    - **JSON CẬP NHẬT (Bắt buộc):**
+      \`\`\`json
+      "newNPCs": [
+        {
+          "id": "id_ly_vo_cuc",
+          "name": "Lý Vô Cực",
+          "npcRelationships": [
+            { "targetNpcId": "id_ly_han", "value": 900, "relationshipType": "Con cái" }
+          ]
+        }
+      ],
+      "updatedNPCs": [
+        {
+          "id": "id_ly_han",
+          "updatedNpcRelationships": [
+            { "targetNpcId": "id_ly_vo_cuc", "value": 900, "relationshipType": "Phụ thân" }
+          ]
+        }
+      ]
+      \`\`\`
+- **LỖI LOGIC (CẤM):** Chỉ cập nhật một chiều hoặc chỉ đề cập trong 'story' mà không cập nhật JSON là một lỗi nghiêm trọng.
+
+**4.3. Khám phá Nhóm NPC:**
+- Khi bạn tạo ra một nhóm NPC mới cùng lúc trong \`newNPCs\` và câu chuyện cho thấy họ đã quen biết nhau từ trước (ví dụ: một nhóm bạn, một gia đình), bạn **PHẢI** định nghĩa các mối quan hệ tương hỗ của họ với nhau trong trường \`npcRelationships\` của mỗi NPC ngay từ đầu.
 `;
 }
