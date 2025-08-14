@@ -220,6 +220,12 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
         allKeywords.push({ keyword: characterProfile.talent.name, description: `Thiên phú: ${characterProfile.talent.description}` });
     }
 
+    // Achievements
+    (characterProfile.achievements || []).forEach(achievement => {
+        const description = `Thành Tích: ${achievement.description}${achievement.tier ? ` (Bậc: ${achievement.tier})` : ''}`;
+        allKeywords.push({ keyword: achievement.name, description: description, isNew: achievement.isNew });
+    });
+
     // Player name
     allKeywords.push({ keyword: characterProfile.name, description: "Đây là bạn!" });
 

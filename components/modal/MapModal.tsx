@@ -33,18 +33,23 @@ const LocationPin: React.FC<{
     isCurrent: boolean;
     isSelected: boolean;
     isDestroyed: boolean;
+    isEditing: boolean;
+    isDragged: boolean;
     onClick: () => void;
-}> = ({ location, isCurrent, isSelected, isDestroyed, onClick }) => {
+    onMouseDown: (e: React.MouseEvent) => void;
+}> = ({ location, isCurrent, isSelected, isDestroyed, isEditing, isDragged, onClick, onMouseDown }) => {
     const details = locationTypeDetails[location.type] || { icon: '📍', color: 'text-white' };
     const pinSize = location.type === LocationType.WORLD ? 'text-3xl' : 'text-2xl';
     const selectedClass = isSelected ? 'scale-150' : 'group-hover:scale-125';
     const destroyedClass = isDestroyed ? 'opacity-30 grayscale' : '';
+    const editingClass = isEditing && !isDestroyed ? (isDragged ? 'cursor-grabbing' : 'cursor-grab') : 'cursor-pointer';
 
     return (
         <div
-            className={`absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group flex flex-col items-center justify-center ${destroyedClass}`}
+            className={`absolute transform -translate-x-1/2 -translate-y-1/2 group flex flex-col items-center justify-center z-10 ${destroyedClass} ${editingClass}`}
             style={{ left: `${location.coordinates.x / 10}%`, top: `${location.coordinates.y / 10}%` }}
             onClick={onClick}
+            onMouseDown={onMouseDown}
         >
             <div className={`relative flex items-center justify-center transition-transform duration-300 ${selectedClass}`}>
                  {isCurrent && !isDestroyed && (
@@ -64,18 +69,19 @@ const Breadcrumb: React.FC<{
     onNavigate: (index: number) => void;
 }> = ({ path, onNavigate }) => {
     return (
-        <nav className="flex items-center text-sm text-slate-400 mb-4 flex-wrap">
-            <button onClick={() => onNavigate(-1)} className="hover:text-amber-300 hover:underline">
+        <nav className="flex items-center text-sm text-slate-400 flex-wrap flex-grow min-w-0">
+            <button onClick={() => onNavigate(-1)} className="hover:text-amber-300 hover:underline flex-shrink-0">
                 Bản Đồ Thế Giới
             </button>
             {path.map((loc, index) => (
                 <React.Fragment key={loc.id}>
-                    <span className="mx-2">/</span>
+                    <span className="mx-2 flex-shrink-0">/</span>
                     <button
                         onClick={() => onNavigate(index)}
-                        className={`hover:text-amber-300 hover:underline ${
+                        className={`hover:text-amber-300 hover:underline truncate ${
                             index === path.length - 1 ? 'text-amber-300 font-semibold' : ''
                         }`}
+                        title={loc.name}
                     >
                         {loc.name}
                     </button>
@@ -137,47 +143,41 @@ const RulesEditor: React.FC<{
 export const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, locations, currentLocationId, characterProfile, onAction, onUpdateLocation, isLoading, worldSettings }) => {
     const [path, setPath] = useState<Location[]>([]);
     const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editableLocations, setEditableLocations] = useState<Location[]>([]);
+    const [draggedLocationId, setDraggedLocationId] = useState<string | null>(null);
     const mapContainerRef = useRef<HTMLDivElement>(null);
+    const mapRef = useRef<HTMLDivElement>(null);
 
     const locationMap = useMemo(() => new Map(locations.map(loc => [loc.id, loc])), [locations]);
 
     const isLocationOrAncestorDestroyed = useCallback((loc: Location | null): boolean => {
         if (!loc) return false;
-
         let current: Location | undefined = loc;
         while (current) {
-            if (current.isDestroyed) {
-                return true;
-            }
+            if (current.isDestroyed) return true;
             current = current.parentId ? locationMap.get(current.parentId) : undefined;
         }
         return false;
     }, [locationMap]);
 
     const centerMapOnLocation = useCallback((location: Location | null, behavior: 'smooth' | 'auto' = 'smooth') => {
-        if (location && mapContainerRef.current) {
+        if (location && mapContainerRef.current && mapRef.current) {
             const container = mapContainerRef.current;
-            if (container.clientWidth === 0 || container.clientHeight === 0) return;
-
-            const targetX = location.coordinates.x;
-            const targetY = location.coordinates.y;
-
             const containerWidth = container.clientWidth;
             const containerHeight = container.clientHeight;
 
-            const mapMargin = 16; // from m-4 which is 1rem = 16px
-
-            const scrollLeft = (targetX + mapMargin) - (containerWidth / 2);
-            const scrollTop = (targetY + mapMargin) - (containerHeight / 2);
+            const targetX = (location.coordinates.x / 1000) * mapRef.current.offsetWidth;
+            const targetY = (location.coordinates.y / 1000) * mapRef.current.offsetHeight;
 
             container.scrollTo({
-                left: scrollLeft,
-                top: scrollTop,
+                left: targetX - containerWidth / 2,
+                top: targetY - containerHeight / 2,
                 behavior: behavior,
             });
         }
     }, []);
-
+    
     useEffect(() => {
         if (isOpen) {
             const getPathForLocation = (locId: string | null): Location[] => {
@@ -190,9 +190,7 @@ export const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, locations, 
                     if (parent) {
                         fullPath.unshift(parent);
                         parentId = parent.parentId;
-                    } else {
-                        break;
-                    }
+                    } else break;
                 }
                 return fullPath;
             };
@@ -202,193 +200,177 @@ export const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, locations, 
             const currentLoc = locations.find(l => l.id === currentLocationId);
             setSelectedLocation(currentLoc || null);
             
-            if (currentLoc) {
-                // Delay to ensure the modal and its contents are rendered and sized correctly.
-                setTimeout(() => centerMapOnLocation(currentLoc, 'auto'), 150);
-            }
-
+            setTimeout(() => centerMapOnLocation(currentLoc, 'auto'), 150);
         } else {
             setPath([]);
             setSelectedLocation(null);
+            setIsEditing(false);
         }
     }, [isOpen, currentLocationId, locations, locationMap, centerMapOnLocation]);
-
-    useEffect(() => {
-        if (selectedLocation) {
-            const updatedSelected = locations.find(l => l.id === selectedLocation.id);
-            if (updatedSelected) {
-                setSelectedLocation(updatedSelected);
-            }
-        }
-    }, [locations, selectedLocation?.id]);
-
 
     const currentParentId = useMemo(() => path.length > 0 ? path[path.length - 1].id : null, [path]);
     
     const locationsToList = useMemo(() => {
-        // If we are at the root (world map), show all locations that are worlds.
-        if (currentParentId === null) {
-            return locations.filter(loc => loc.type === LocationType.WORLD);
-        }
-
-        // If we are inside a location, ONLY show its direct children.
-        return locations.filter(loc => loc.parentId === currentParentId);
+        const list = currentParentId === null
+            ? locations.filter(loc => loc.type === LocationType.WORLD)
+            : locations.filter(loc => loc.parentId === currentParentId);
+        return list.sort((a,b) => a.name.localeCompare(b.name));
     }, [locations, currentParentId]);
+    
+    const locationsToRenderOnMap = isEditing ? editableLocations : locationsToList;
 
-
-    const handleNavigatePath = (index: number) => {
-        setPath(prev => prev.slice(0, index + 1));
-        setSelectedLocation(null);
-    };
-
-    const handleSelectLocationFromList = (location: Location) => {
-        setSelectedLocation(location);
-        centerMapOnLocation(location, 'smooth');
-    };
-
+    const handleNavigatePath = (index: number) => { setPath(prev => prev.slice(0, index + 1)); setSelectedLocation(null); };
+    const handleSelectLocationFromList = (location: Location) => { setSelectedLocation(location); centerMapOnLocation(location, 'smooth'); };
     const handleViewContents = () => {
         if (selectedLocation) {
-            // If the selected location is a world (a top-level item), reset the path to it.
-            if (selectedLocation.type === LocationType.WORLD) {
-                setPath([selectedLocation]);
-            } else {
-                // Otherwise, it's a deeper location, so append it to the current path.
-                setPath(prev => [...prev, selectedLocation]);
-            }
+            setPath(prev => [...prev, selectedLocation]);
             setSelectedLocation(null);
         }
     };
 
     const handleMoveTo = () => {
         if (!selectedLocation || isLoading) return;
-        const moveChoice: Choice = {
-            title: `Di chuyển đến ${selectedLocation.name}`,
-            benefit: 'Khám phá khu vực mới.',
-            risk: 'Có thể gặp nguy hiểm trên đường đi.',
-            successChance: 100,
-            durationInMinutes: 30, // Default travel time, can be improved later
-        };
+        const moveChoice: Choice = { title: `Di chuyển đến ${selectedLocation.name}`, benefit: 'Khám phá khu vực mới.', risk: 'Có thể gặp nguy hiểm trên đường đi.', successChance: 100, durationInMinutes: 30 };
         onAction(moveChoice);
         onClose();
     };
 
-    const hasChildren = useMemo(() => {
-        if (!selectedLocation) return false;
-        return locations.some(loc => loc.parentId === selectedLocation.id);
-    }, [selectedLocation, locations]);
-
+    const hasChildren = useMemo(() => selectedLocation ? locations.some(loc => loc.parentId === selectedLocation.id) : false, [selectedLocation, locations]);
     const isSelectedLocationDestroyed = isLocationOrAncestorDestroyed(selectedLocation);
     const isOwner = selectedLocation?.ownerId === characterProfile.id;
+
+    // --- Edit Mode Logic ---
+    const handleStartEditing = () => {
+        setEditableLocations(JSON.parse(JSON.stringify(locationsToList)));
+        setIsEditing(true);
+        setSelectedLocation(null);
+    };
+
+    const handleCancelEditing = () => setIsEditing(false);
+
+    const handleSaveChanges = () => {
+        const originalMap = new Map(locationsToList.map(l => [l.id, l.coordinates]));
+        editableLocations.forEach(editedLoc => {
+            const originalCoords = originalMap.get(editedLoc.id);
+            if (originalCoords && (originalCoords.x !== editedLoc.coordinates.x || originalCoords.y !== editedLoc.coordinates.y)) {
+                onUpdateLocation(editedLoc);
+            }
+        });
+        setIsEditing(false);
+    };
+
+    const handlePinMouseDown = (e: React.MouseEvent, locationId: string) => {
+        if (!isEditing) return;
+        e.preventDefault();
+        setDraggedLocationId(locationId);
+    };
+
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!draggedLocationId || !mapRef.current || !mapContainerRef.current) return;
+
+            const mapRect = mapRef.current.getBoundingClientRect();
+            const container = mapContainerRef.current;
+            
+            const mouseX = e.clientX - mapRect.left + container.scrollLeft;
+            const mouseY = e.clientY - mapRect.top + container.scrollTop;
+
+            let newX = Math.round((mouseX / mapRef.current.offsetWidth) * 1000);
+            let newY = Math.round((mouseY / mapRef.current.offsetHeight) * 1000);
+
+            newX = Math.max(10, Math.min(990, newX)); // Clamp to avoid pins being on the very edge
+            newY = Math.max(10, Math.min(990, newY));
+
+            setEditableLocations(prev =>
+                prev.map(loc =>
+                    loc.id === draggedLocationId
+                        ? { ...loc, coordinates: { x: newX, y: newY } }
+                        : loc
+                )
+            );
+        };
+
+        const handleMouseUp = () => setDraggedLocationId(null);
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [draggedLocationId, isEditing]);
 
     if (!isOpen) return null;
 
     return (
-        <div
-            className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="map-title"
-        >
-            <div
-                className="bg-slate-800 border border-slate-700 rounded-lg shadow-2xl w-full max-w-7xl m-4 flex flex-col max-h-[90vh] h-[90vh]"
-                onClick={(e) => e.stopPropagation()}
-            >
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in" role="dialog" aria-modal="true" aria-labelledby="map-title">
+            <div className="bg-slate-800 border border-slate-700 rounded-lg shadow-2xl w-full max-w-7xl m-4 flex flex-col max-h-[90vh] h-[90vh]" onClick={(e) => e.stopPropagation()}>
                  <div className="flex-shrink-0 px-6 py-4 flex justify-between items-center border-b border-slate-700">
                     <h2 id="map-title" className="text-xl font-bold text-amber-300">Bản Đồ</h2>
-                    <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors" aria-label="Đóng">
-                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
+                    <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors" aria-label="Đóng"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
                 </div>
-
                 <div className="flex-grow flex flex-col md:flex-row overflow-hidden">
-                    {/* Bảng điều khiển bên trái */}
-                    <div className="w-full md:w-80 lg:w-96 flex-shrink-0 h-1/2 md:h-full bg-slate-900/30 p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800 flex flex-col">
-                        <Breadcrumb path={path} onNavigate={handleNavigatePath} />
-                        
-                        <div className="flex-grow flex flex-col">
-                            {selectedLocation ? (
-                                <div className="animate-fade-in flex-grow flex flex-col">
-                                    <div className="flex-grow">
-                                        <button onClick={() => setSelectedLocation(null)} className="text-sm text-slate-400 hover:text-white mb-4">&larr; Quay lại danh sách</button>
-                                        <h4 className={`text-xl font-bold break-words flex items-center ${isSelectedLocationDestroyed ? 'text-red-500 line-through' : 'text-amber-300'}`}>
-                                            {selectedLocation.name}
-                                            {selectedLocation.isNew && <NewBadge/>}
-                                        </h4>
-                                        <div className="mt-2 mb-4 flex items-center gap-2">
-                                            <span className="text-lg">{isSelectedLocationDestroyed ? '💥' : (locationTypeDetails[selectedLocation.type]?.icon)}</span>
-                                            <span className={`font-semibold ${isSelectedLocationDestroyed ? 'text-red-400' : locationTypeDetails[selectedLocation.type]?.color}`}>{isSelectedLocationDestroyed ? 'Đã Hủy Diệt' : (locationTypeDetails[selectedLocation.type]?.name || selectedLocation.type)}</span>
-                                        </div>
-                                        <div className="text-slate-300 text-sm whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
-                                            {selectedLocation.description}
-                                        </div>
-                                        {isOwner && !isSelectedLocationDestroyed && <RulesEditor location={selectedLocation} onUpdateLocation={onUpdateLocation} />}
+                    <div className="w-full md:w-80 lg:w-96 flex-shrink-0 h-1/2 md:h-full bg-slate-900/30 p-4 overflow-y-auto custom-scrollbar flex flex-col">
+                        <div className="flex justify-between items-center gap-2 mb-4">
+                            <Breadcrumb path={path} onNavigate={handleNavigatePath} />
+                            <div className="flex-shrink-0">
+                                {!isEditing ? (
+                                    <button onClick={handleStartEditing} className="px-3 py-1.5 bg-slate-600 text-slate-200 text-xs font-semibold rounded-md hover:bg-slate-500 transition-colors">Sửa Vị Trí</button>
+                                ) : (
+                                    <div className="flex gap-2">
+                                        <button onClick={handleSaveChanges} className="px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-md hover:bg-green-500 transition-colors">Lưu</button>
+                                        <button onClick={handleCancelEditing} className="px-3 py-1.5 bg-slate-700 text-slate-300 text-xs font-semibold rounded-md hover:bg-slate-600 transition-colors">Hủy</button>
                                     </div>
-                                    <div className="mt-6 flex-shrink-0 space-y-3">
-                                        {isOwner && !isSelectedLocationDestroyed && (
-                                            <div className="p-3 bg-yellow-900/50 border border-yellow-500/50 rounded-lg text-center">
-                                                <p className="font-bold text-yellow-300">Bạn là chủ sở hữu</p>
-                                            </div>
-                                        )}
-                                        {selectedLocation.id === currentLocationId ? (
-                                             <div className="p-3 bg-green-900/50 border border-green-500/50 rounded-lg text-center">
-                                                <p className="font-bold text-green-300">Bạn đang ở đây</p>
-                                            </div>
-                                        ) : (
-                                            <button onClick={handleMoveTo} disabled={isLoading || isSelectedLocationDestroyed} className="w-full p-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                                                {isSelectedLocationDestroyed ? 'Không thể di chuyển' : 'Di chuyển tới'}
-                                            </button>
-                                        )}
-                                         {hasChildren && !isSelectedLocationDestroyed && (
-                                            <button onClick={handleViewContents} className="w-full p-3 bg-amber-700 text-white font-bold rounded-lg hover:bg-amber-600 transition-colors">
-                                                Xem các địa điểm bên trong &rarr;
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="flex-grow space-y-1">
-                                    {locationsToList.length > 0 ? locationsToList.map(loc => {
-                                        const details = locationTypeDetails[loc.type] || { icon: '?', name: loc.type };
-                                        const isDestroyed = isLocationOrAncestorDestroyed(loc);
-                                        return (
-                                            <button 
-                                                key={loc.id} 
-                                                onClick={() => handleSelectLocationFromList(loc)}
-                                                className={`w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-slate-700/50 transition-colors ${isDestroyed ? 'opacity-50' : ''}`}
-                                            >
-                                                <span className="text-xl">{isDestroyed ? '💥' : details.icon}</span>
-                                                <div className="flex-grow">
-                                                    <p className={`font-semibold flex items-center ${isDestroyed ? 'text-red-500 line-through' : 'text-slate-200'}`}>
-                                                        {loc.name}
-                                                        {loc.isNew && <NewBadge />}
-                                                    </p>
-                                                    <p className="text-xs text-slate-400">{isDestroyed ? 'Đã Hủy Diệt' : details.name}</p>
-                                                </div>
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-500" viewBox="0 0 20 20" fill="currentColor">
-                                                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                                                </svg>
-                                            </button>
-                                        );
-                                    }) : (
-                                        <p className="text-slate-500 text-center py-8">Không có địa điểm con nào ở đây.</p>
-                                    )}
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
+                        {isEditing ? (
+                             <div className="flex-grow flex items-center justify-center text-center p-4 bg-slate-800/50 rounded-lg border-2 border-dashed border-slate-600">
+                                <p className="text-slate-400">Chế độ chỉnh sửa đang bật. Kéo và thả các địa điểm trên bản đồ để thay đổi vị trí của chúng.</p>
+                            </div>
+                        ) : (
+                            <div className="flex-grow flex flex-col">
+                                {selectedLocation ? (
+                                    <div className="animate-fade-in flex-grow flex flex-col">
+                                        <div className="flex-grow">
+                                            <button onClick={() => setSelectedLocation(null)} className="text-sm text-slate-400 hover:text-white mb-4">&larr; Quay lại danh sách</button>
+                                            <h4 className={`text-xl font-bold break-words flex items-center ${isSelectedLocationDestroyed ? 'text-red-500 line-through' : 'text-amber-300'}`}>{selectedLocation.name}{selectedLocation.isNew && <NewBadge/>}</h4>
+                                            <div className="mt-2 mb-4 flex items-center gap-2"><span className="text-lg">{isSelectedLocationDestroyed ? '💥' : (locationTypeDetails[selectedLocation.type]?.icon)}</span><span className={`font-semibold ${isSelectedLocationDestroyed ? 'text-red-400' : locationTypeDetails[selectedLocation.type]?.color}`}>{isSelectedLocationDestroyed ? 'Đã Hủy Diệt' : (locationTypeDetails[selectedLocation.type]?.name || selectedLocation.type)}</span></div>
+                                            <div className="text-slate-300 text-sm whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">{selectedLocation.description}</div>
+                                            {isOwner && !isSelectedLocationDestroyed && <RulesEditor location={selectedLocation} onUpdateLocation={onUpdateLocation} />}
+                                        </div>
+                                        <div className="mt-6 flex-shrink-0 space-y-3">
+                                            {isOwner && !isSelectedLocationDestroyed && (<div className="p-3 bg-yellow-900/50 border border-yellow-500/50 rounded-lg text-center"><p className="font-bold text-yellow-300">Bạn là chủ sở hữu</p></div>)}
+                                            {selectedLocation.id === currentLocationId ? (<div className="p-3 bg-green-900/50 border border-green-500/50 rounded-lg text-center"><p className="font-bold text-green-300">Bạn đang ở đây</p></div>) : (<button onClick={handleMoveTo} disabled={isLoading || isSelectedLocationDestroyed} className="w-full p-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{isSelectedLocationDestroyed ? 'Không thể di chuyển' : 'Di chuyển tới'}</button>)}
+                                            {hasChildren && !isSelectedLocationDestroyed && (<button onClick={handleViewContents} className="w-full p-3 bg-amber-700 text-white font-bold rounded-lg hover:bg-amber-600 transition-colors">Xem các địa điểm bên trong &rarr;</button>)}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex-grow space-y-1">
+                                        {locationsToList.length > 0 ? locationsToList.map(loc => {
+                                            const details = locationTypeDetails[loc.type] || { icon: '?', name: loc.type };
+                                            const isDestroyed = isLocationOrAncestorDestroyed(loc);
+                                            return (
+                                                <button key={loc.id} onClick={() => handleSelectLocationFromList(loc)} className={`w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-slate-700/50 transition-colors ${isDestroyed ? 'opacity-50' : ''}`}><span className="text-xl">{isDestroyed ? '💥' : details.icon}</span><div className="flex-grow"><p className={`font-semibold flex items-center ${isDestroyed ? 'text-red-500 line-through' : 'text-slate-200'}`}>{loc.name}{loc.isNew && <NewBadge />}</p><p className="text-xs text-slate-400">{isDestroyed ? 'Đã Hủy Diệt' : details.name}</p></div><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-500" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" /></svg></button>
+                                            );
+                                        }) : (<p className="text-slate-500 text-center py-8">Không có địa điểm con nào ở đây.</p>)}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
-                     {/* Khu vực bản đồ */}
-                    <div ref={mapContainerRef} className="flex-grow overflow-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800 relative">
-                        <div className="relative w-[1000px] h-[1000px] bg-slate-900 m-4 border-2 border-slate-700 bg-grid">
-                           {locationsToList.map(loc => (
+                    <div ref={mapContainerRef} className="flex-grow overflow-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800 relative bg-slate-900">
+                        <div ref={mapRef} className={`relative w-[1000px] h-[1000px] bg-slate-900 m-4 border-2 border-slate-700 bg-grid ${draggedLocationId ? 'cursor-grabbing' : ''}`}>
+                           {locationsToRenderOnMap.map(loc => (
                                <LocationPin
                                    key={loc.id}
                                    location={loc}
                                    isCurrent={loc.id === currentLocationId}
                                    isSelected={loc.id === selectedLocation?.id}
                                    isDestroyed={isLocationOrAncestorDestroyed(loc)}
-                                   onClick={() => handleSelectLocationFromList(loc)}
+                                   isEditing={isEditing}
+                                   isDragged={draggedLocationId === loc.id}
+                                   onClick={() => !isEditing && handleSelectLocationFromList(loc)}
+                                   onMouseDown={(e) => handlePinMouseDown(e, loc.id)}
                                />
                            ))}
                            <style>{`.bg-grid { background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 20px 20px; }`}</style>

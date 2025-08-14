@@ -79,6 +79,7 @@ const findInconsistentNewEntities = (
     if (profile.specialConstitution.name) {
         allKnownNames.add(profile.specialConstitution.name);
     }
+    (profile.achievements || []).forEach(a => allKnownNames.add(a.name));
 
     // 3. Build a set of all new names defined in the response
     const newNamesInResponse = new Set<string>();

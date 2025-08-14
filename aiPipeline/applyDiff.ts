@@ -1,6 +1,6 @@
 import {
     StoryResponse, CharacterProfile, NPC, WorldSettings, StatusEffect, Skill,
-    NewNPCFromAI, Item, ItemType, AppSettings, ApiProvider, Achievement, SkillType
+    NewNPCFromAI, Item, ItemType, AppSettings, ApiProvider, Achievement, SkillType, LocationType
 } from '../types';
 import {
     processLevelUps, getRealmDisplayName, calculateBaseStatsForLevel,
@@ -402,8 +402,14 @@ export const applyStoryResponseToState = async ({
 
         nextProfile.discoveredLocations.forEach(oldLoc => {
             const updatedData = updatedLocationsMap.get(oldLoc.id);
-            if (updatedData && updatedData.ownerId === nextProfile.id && oldLoc.ownerId !== nextProfile.id) {
-                notifications.push(`👑 Bây giờ bạn là chủ sở hữu của <b>${updatedData.name}</b>.`);
+            if (updatedData) {
+                if (updatedData.ownerId === nextProfile.id && oldLoc.ownerId !== nextProfile.id) {
+                    notifications.push(`👑 Bây giờ bạn là chủ sở hữu của <b>${updatedData.name}</b>.`);
+                }
+                // Check for world revival
+                if (updatedData.isDestroyed === false && oldLoc.isDestroyed === true && oldLoc.type === LocationType.WORLD) {
+                    notifications.push(`🌍 Thế Giới <b>${oldLoc.name}</b> đã được hồi sinh!`);
+                }
             }
         });
 
