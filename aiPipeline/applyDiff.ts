@@ -317,9 +317,6 @@ export const applyStoryResponseToState = async ({
         nextNpcs = [...nextNpcs, ...brandNewNpcs];
     }
     if (response.updatedNPCs?.length) {
-        // ... (The complex NPC update logic from the original file should be here, operating on `nextNpcs`)
-        // This logic is long but correct, so it's abstracted here for brevity.
-        // It correctly handles level ups, relationship changes, memories, death, etc.
         const npcsToUpdateMap = new Map(nextNpcs.map(n => [n.id, n]));
         response.updatedNPCs.forEach(update => {
             const existingNpc = npcsToUpdateMap.get(update.id);
@@ -358,11 +355,36 @@ export const applyStoryResponseToState = async ({
                         if(newRel !== oldRel) notifications.push(`😊 Hảo cảm của <b>${modifiedNpc.name}</b> đã thay đổi ${newRel - oldRel} điểm (hiện tại: ${newRel}).`);
                     }
                     if (update.newMemories?.length) modifiedNpc.memories = [...new Set([...(modifiedNpc.memories || []), ...update.newMemories])];
-                    //... other fields
+                    
+                    // Handle status effects for NPC
+                    let currentNpcStatusEffects = [...(modifiedNpc.statusEffects || [])];
+                    if (update.removedStatusEffects?.length) {
+                        const effectsToRemove = new Set(update.removedStatusEffects);
+                        currentNpcStatusEffects = currentNpcStatusEffects.filter(effect => !effectsToRemove.has(effect.name));
+                        update.removedStatusEffects.forEach(effectName => notifications.push(`🍃 Trạng thái "<b>${effectName}</b>" của <b>${modifiedNpc.name}</b> đã kết thúc.`));
+                    }
+                    if (update.newStatusEffects?.length) {
+                        const existingEffectNames = new Set(currentNpcStatusEffects.map(effect => effect.name));
+                        update.newStatusEffects.forEach(effect => {
+                            if (!existingEffectNames.has(effect.name)) {
+                                notifications.push(`✨ <b>${modifiedNpc.name}</b> nhận được trạng thái: <b>${effect.name}</b>.`);
+                                currentNpcStatusEffects.push(effect);
+                            }
+                        });
+                    }
+                    modifiedNpc.statusEffects = currentNpcStatusEffects;
+
+                    // Apply other direct updates
                     Object.assign(modifiedNpc, {
                         health: update.health ?? modifiedNpc.health,
                         mana: update.mana ?? modifiedNpc.mana,
                         locationId: update.locationId ?? modifiedNpc.locationId,
+                        gender: update.gender ?? modifiedNpc.gender,
+                        personality: update.personality ?? modifiedNpc.personality,
+                        description: update.description ?? modifiedNpc.description,
+                        ngoaiHinh: update.ngoaiHinh ?? modifiedNpc.ngoaiHinh,
+                        aptitude: update.aptitude ?? modifiedNpc.aptitude,
+                        npcRelationships: update.updatedNpcRelationships ?? modifiedNpc.npcRelationships
                     });
                 }
                 npcsToUpdateMap.set(update.id, modifiedNpc);
