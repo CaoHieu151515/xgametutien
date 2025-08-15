@@ -31,7 +31,7 @@ const TabButton = ({ isActive, onClick, children }: { isActive: boolean, onClick
 
 const AccordionItem = ({ title, name, description }: { title: string, name: string, description: string }) => {
     const [isOpen, setIsOpen] = useState(true);
-    if (!name && !description) return null;
+    const hasContent = (name && name.toLowerCase() !== 'null') || (description && description.toLowerCase() !== 'null');
 
     return (
         <div className="border-t border-slate-700/50 pt-4">
@@ -46,8 +46,14 @@ const AccordionItem = ({ title, name, description }: { title: string, name: stri
             </button>
             {isOpen && (
                  <div className="mt-2 bg-slate-800/50 p-3 rounded-lg animate-fade-in">
-                     <p className="text-amber-300 font-bold">{name}</p>
-                     <p className="text-slate-300 whitespace-pre-wrap mt-1 text-sm">{description}</p>
+                    {hasContent ? (
+                        <>
+                            {(name && name.toLowerCase() !== 'null') && <p className="text-amber-300 font-bold">{name}</p>}
+                            {(description && description.toLowerCase() !== 'null') && <p className="text-slate-300 whitespace-pre-wrap mt-1 text-sm">{description}</p>}
+                        </>
+                    ) : (
+                        <p className="text-slate-400 italic">Chưa rõ</p>
+                    )}
                  </div>
             )}
         </div>
@@ -751,4 +757,4 @@ export const PlayerInfoModal: React.FC<PlayerInfoModalProps> = ({ isOpen, onClos
             />
         </>
     );
-}
+};

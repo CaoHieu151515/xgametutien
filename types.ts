@@ -112,6 +112,7 @@ export interface NewNPCFromAI {
   race: string;
   personality: string;
   description: string; 
+  ngoaiHinh?: string; // Mô tả ngoại hình chi tiết
   avatarUrl?: string;
   level: number;
   powerSystem: string; // Tên của hệ thống tu luyện
@@ -148,7 +149,7 @@ export interface NPCUpdate {
     id: string;
     gainedExperience?: number;
     relationship?: number;
-    memories?: string[]; // Gửi toàn bộ mảng ký ức đã cập nhật
+    newMemories?: string[]; // Mảng CHỈ chứa các ký ức MỚI.
     health?: number; // Cập nhật sinh lực hiện tại
     mana?: number; // Cập nhật linh lực hiện tại
     newStatusEffects?: StatusEffect[];
@@ -158,6 +159,7 @@ export interface NPCUpdate {
     gender?: CharacterGender;
     personality?: string;
     description?: string;
+    ngoaiHinh?: string;
     locationId?: string;
     aptitude?: string;
     specialConstitution?: { name: string; description: string };

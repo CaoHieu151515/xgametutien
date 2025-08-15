@@ -171,4 +171,4 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ hasSaves, onContinue, on
             <div className="absolute bottom-0 left-0 w-full h-1/4 bg-gradient-to-t from-black to-transparent pointer-events-none"></div>
         </div>
     );
-}
+};

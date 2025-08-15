@@ -198,6 +198,7 @@ export const newNpcSchema = {
         race: { type: Type.STRING, description: "Chủng tộc của NPC." },
         personality: { type: Type.STRING, description: "Mô tả tính cách của NPC." },
         description: { type: Type.STRING, description: "Mô tả ngoại hình và tiểu sử của NPC." },
+        ngoaiHinh: { type: Type.STRING, description: "Mô tả chi tiết ngoại hình của NPC, bao gồm khuôn mặt, mái tóc, vóc dáng, trang phục. Trường này là BẮT BUỘC." },
         avatarUrl: { type: Type.STRING, description: "URL ảnh đại diện cho NPC (tùy chọn)." },
         level: { type: Type.NUMBER, description: "Cấp độ khởi đầu của NPC." },
         powerSystem: { type: Type.STRING, description: "Tên hệ thống tu luyện NPC theo." },
@@ -210,7 +211,7 @@ export const newNpcSchema = {
         npcRelationships: { type: Type.ARRAY, items: npcRelationshipSchema, description: "Mối quan hệ ban đầu của NPC này với các NPC khác." },
         isDaoLu: { type: Type.BOOLEAN, description: "Trạng thái Đạo Lữ với người chơi (luôn là false khi khởi tạo)." }
     },
-    required: ["id", "name", "gender", "race", "personality", "description", "level", "powerSystem", "aptitude", "mienLuc", "statusEffects"]
+    required: ["id", "name", "gender", "race", "personality", "description", "ngoaiHinh", "level", "powerSystem", "aptitude", "mienLuc", "statusEffects"]
 };
 
 export const monsterSchema = {
@@ -315,12 +316,13 @@ export const updatedNpcSchema = {
         gainedExperience: { type: Type.NUMBER, description: "Kinh nghiệm NPC nhận được. Hệ thống sẽ tự xử lý việc lên cấp." },
         breakthroughToRealm: { type: Type.STRING, description: "Tên cảnh giới MỚI mà NPC đột phá đến. Hệ thống sẽ tự tính toán và cộng dồn toàn bộ kinh nghiệm. Bỏ qua gainedExperience khi dùng trường này." },
         relationship: { type: Type.NUMBER, description: "SỰ THAY ĐỔI trong quan hệ với người chơi (ví dụ: +20, -50), không phải giá trị tuyệt đối mới." },
-        memories: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Toàn bộ danh sách ký ức MỚI của NPC (bao gồm cả cũ và mới)." },
+        newMemories: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Một mảng CHỈ chứa các ký ức MỚI mà NPC có được trong lượt này. KHÔNG gửi lại toàn bộ lịch sử ký ức." },
         health: { type: Type.NUMBER, description: "Sinh lực hiện tại của NPC." },
         mana: { type: Type.NUMBER, description: "Linh lực hiện tại của NPC." },
         gender: { type: Type.STRING, enum: Object.values(CharacterGender), description: "Giới tính mới của NPC nếu bị thay đổi bởi phép thuật hoặc sự kiện." },
         personality: { type: Type.STRING, description: "Tính cách mới của NPC nếu có sự thay đổi lớn." },
         description: { type: Type.STRING, description: "Mô tả mới của NPC nếu có sự thay đổi." },
+        ngoaiHinh: { type: Type.STRING, description: "Mô tả ngoại hình mới của NPC nếu có thay đổi." },
         locationId: { type: Type.STRING, description: "ID vị trí mới của NPC." },
         aptitude: { type: Type.STRING, description: "Tư chất mới của NPC nếu bị thay đổi bởi độc dược hoặc sự kiện." },
         updatedNpcRelationships: { type: Type.ARRAY, items: npcRelationshipSchema, description: "Toàn bộ danh sách mối quan hệ MỚI của NPC này với các NPC khác." },

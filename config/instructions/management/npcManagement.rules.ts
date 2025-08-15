@@ -82,30 +82,27 @@ export const getNpcManagementInstruction = (worldSettings: WorldSettings | null,
     2. **Lời nói:** Lời nói của NPC phải cực kỳ đơn giản, chỉ giới hạn ở việc xác nhận mệnh lệnh hoặc thể hiện sự phục tùng.
     3. **Trang bị:** Mọi trang bị hoặc quần áo không phù hợp với vai trò Khuyển Nô sẽ tự động bị loại bỏ (nhưng không bị xóa khỏi game). Tường thuật rằng NPC hiện đang khỏa thân hoặc chỉ mặc những trang phục phù hợp với vai trò mới.
 
-**1.7. QUY TẮC PHÂN BỔ CẢNH GIỚI NPC (MỆNH LỆNH LOGIC TUYỆT ĐỐI)**
-Bạn PHẢI tuân thủ các quy tắc sau đây khi tạo hoặc cập nhật cảnh giới cho NPC để đảm bảo một thế giới logic và nhất quán. Việc một đệ tử ngoại môn có cảnh giới Độ Kiếp là một lỗi hệ thống nghiêm trọng.
+**1.7. QUY TẮC PHÂN BỐ CẢNH GIỚI NPC (MỆNH LỆNH LOGIC TUYỆT ĐỐI)**
+Bạn PHẢI tuân thủ các quy tắc sau đây khi tạo hoặc cập nhật cảnh giới cho NPC để đảm bảo một thế giới logic, cân bằng và đáng tin cậy. Việc lạm dụng các NPC cấp cao sẽ phá vỡ hoàn toàn trải nghiệm chơi.
 
-*   **1. Cảnh giới PHẢI phù hợp với Vai trò/Chức vụ:**
-    *   **Phàm nhân/Người thường:** Chỉ được ở cảnh giới "Phàm Nhân".
-    *   **Đệ tử ngoại môn:** Tối đa là cảnh giới **Trúc Cơ**.
-    *   **Đệ tử nội môn:** Tối đa là cảnh giới **Kim Đan**.
-    *   **Đệ tử hạt nhân/Chân truyền:** Tối đa là cảnh giới **Nguyên Anh**.
-    *   **Trưởng lão:** Từ **Kim Đan** đến **Hóa Thần**.
-    *   **Chưởng môn/Tông chủ:** Từ **Nguyên Anh** đến **Hợp Thể**.
+*   **A. Nguyên tắc Phân tầng Sức mạnh (QUAN TRỌNG NHẤT):**
+    Thế giới được phân tầng sức mạnh một cách rõ ràng. Sức mạnh càng lớn, số lượng càng ít.
+    *   **Phàm Nhân & Tu sĩ cấp thấp (Luyện Khí, Trúc Cơ / Cấp 1-30):**
+        *   **Tần suất:** **Đại đa số (95%)**. Đây là lực lượng chính trong các thành trấn, thôn làng, và các vai trò dịch vụ (chủ quán, tiểu nhị, thương nhân).
+        *   **Logic:** Việc tạo ra các nhân vật này không cần lý do đặc biệt. Họ là những người bình thường của thế giới.
+    *   **Cao thủ (Kim Đan, Nguyên Anh / Cấp 31-70):**
+        *   **Tần suất:** **Hiếm (2-3%)**.
+        *   **Logic:** Việc một NPC ở cấp độ này có vai trò bình thường là **KHÔNG PHỔ BIẾN**. Bạn **PHẢI** cung cấp một lý do hợp lý trong \`description\` của họ. Ví dụ: "một trưởng lão đã về hưu của một tông môn nhỏ", "một đệ tử nội môn đang đi rèn luyện hồng trần", "một tán tu đang ẩn mình để tránh kẻ thù không quá mạnh".
+    *   **Tông Sư (Hóa Thần, Luyện Hư / Cấp 71-90):**
+        *   **Tần suất:** **Cực kỳ hiếm (dưới 1%)**.
+        *   **Logic:** Sự tồn tại của họ trong một vai trò bình thường là một **SỰ KIỆN ĐÁNG CHÚ Ý**. Họ không thể xuất hiện một cách ngẫu nhiên. Bạn **BẮT BUỘC** phải có một lý do cực kỳ thuyết phục và một cốt truyện nền chi tiết. Ví dụ: "y đang trấn giữ một phong ấn quan trọng bên dưới quán trà này", "y đang chờ đợi một người hữu duyên để truyền lại y bát". Một thành trì lớn chỉ nên có **tối đa MỘT hoặc HAI** nhân vật như vậy.
+    *   **Ẩn Thế Cao Nhân (Hợp Thể, Đại Thừa, Độ Kiếp / Cấp 91-100):**
+        *   **Tần suất:** **Huyền thoại (dưới 0.1%)**.
+        *   **Logic:** **TUYỆT ĐỐI BỊ CẤM** tạo ra các nhân vật này một cách ngẫu nhiên cho các vai trò thông thường. Sự xuất hiện của họ PHẢI là một **sự kiện cốt truyện trọng đại, có chủ đích**. Họ là những nhân vật có thể thay đổi cục diện thế giới và sự tồn tại của họ phải là một bí mật lớn.
 
-*   **2. Cảnh giới PHẢI chịu Giới hạn (Trần Sức Mạnh) của Khu vực:**
-    *   **Thành trấn phàm tục:** Tối đa là **Trúc Cơ** (trừ trường hợp cực hiếm có cao nhân ẩn thế).
-    *   **Biên cương/Vùng đất hoang dã:** Tối đa là **Kim Đan**.
-    *   **Khu vực tông môn/thế lực lớn:** Tối đa là **Nguyên Anh**.
-    *   **Thánh địa/Di tích cổ:** Tối đa là **Hóa Thần**.
-
-*   **3. Xử lý Trường hợp Ngoại lệ (Thiên tài/Ẩn thế cao nhân):**
-    *   Nếu một NPC có cảnh giới vượt qua các giới hạn trên do bối cảnh đặc biệt (ví dụ: một thiên tài ngàn năm có một, một lão quái vật sống ẩn dật), bạn **BẮT BUỘC** phải giải thích rõ lý do này trong trường 'story'.
-    *   Các trường hợp ngoại lệ phải hiếm và không được lạm dụng để tránh làm loãng giá trị của các cao thủ.
-
-*   **4. Mệnh lệnh Áp dụng:**
-    *   Khi tạo một NPC mới (\`newNPCs\`) hoặc cập nhật một NPC (\`updatedNPCs\`), bạn phải kiểm tra vai trò và vị trí của họ và gán một cảnh giới nằm trong khoảng hợp lệ.
-    *   Nếu hành động của người chơi khiến một NPC thăng chức (ví dụ: từ đệ tử nội môn lên trưởng lão), bạn có thể cân nhắc cho họ đột phá cảnh giới cho phù hợp.
+*   **B. Mệnh lệnh Áp dụng:**
+    *   Khi tạo một NPC mới (\`newNPCs\`), bạn phải kiểm tra vai trò và vị trí của họ và gán một cảnh giới nằm trong khoảng xác suất hợp lệ.
+    *   TUYỆT ĐỐI không tạo ra nhiều "Tông Sư" hoặc "Ẩn Thế Cao Nhân" trong cùng một khu vực nhỏ. Hãy giữ cho họ thật hiếm để duy trì giá trị của họ.
 
 ---
 **PHẦN 2: LOGIC HÀNH VI - ĐỘNG LỰC VÀ TÍNH CÁCH**
@@ -160,6 +157,8 @@ NPC không phải là những con rối thụ động. Họ có ý chí, tính c
 -   **Tạo NPC mới (Chi tiết):** Khi tạo, hãy cung cấp một đối tượng NPC đầy đủ trong mảng 'newNPCs'.
     -   Cung cấp một 'id' duy nhất.
     -   Tất cả các trường khác (tên, mô tả, cấp độ, v.v.) phải được điền đầy đủ và logic.
+    -   **Ngoại Hình (BẮT BUỘC):** Bạn PHẢI cung cấp một mô tả chi tiết trong trường \`ngoaiHinh\`. Mô tả này phải tập trung vào các đặc điểm vật lý như khuôn mặt, mái tóc, vóc dáng, và trang phục đặc trưng.
+    -   **Chủng tộc NPC (BẮT BUỘC):** Khi tạo NPC thuộc chủng tộc người, BẮT BUỘC sử dụng "Nhân Tộc" hoặc "Nhân Loại". TUYỆT ĐỐI KHÔNG sử dụng "Human".
     -   **Hệ thống tu luyện và Tư chất (BẮT BUỘC):** 'powerSystem' và 'aptitude' PHẢI là một trong các giá trị đã được định nghĩa trong WorldSettings, được cung cấp dưới đây. Việc sử dụng các giá trị không tồn tại sẽ gây ra lỗi.
         -   **Các Hệ thống Sức mạnh Hợp lệ:**
             ${powerSystemsList}
@@ -178,15 +177,10 @@ NPC không phải là những con rối thụ động. Họ có ý chí, tính c
         -   Khi một NPC trở thành Đạo Lữ của người chơi, bạn **BẮT BUỘC** phải đặt trường 'isDaoLu' thành \`true\` trong \`updatedNPCs\`. Đồng thời, hãy đặt 'relationship' của họ thành 1000.
         -   Một khi đã là Đạo Lữ, NPC sẽ trung thành tuyệt đối và luôn ủng hộ người chơi.
         -   Cách gọi: Người chơi là ${playerGenderVietnamese}, nên Đạo Lữ sẽ gọi người chơi là "${daoLuTermPlayer}".
-    -   **Ký ức (MỆNH LỆNH TUYỆT ĐỐI - GHI NHỚ MỌI THỨ):** Bạn **BẮT BUỘC** phải thêm một ký ức mới vào trường 'memories' cho **BẤT KỲ** NPC nào có **BẤT KỲ** tương tác nào với người chơi trong lượt này, dù là nhỏ nhất. NPC phải có một lịch sử chi tiết về mọi cuộc gặp gỡ và trao đổi.
-        -   **Nguyên tắc:** Nếu một NPC được nhắc đến hoặc tham gia vào 'story' (có lời thoại, hành động, hoặc là đối tượng của hành động), họ phải có một ký ức mới về sự kiện đó.
-        -   **Nội dung Ký ức:** Ký ức phải ngắn gọn, cụ thể và ghi lại bản chất của sự tương tác từ góc nhìn của NPC.
-            -   **Ví dụ Lần đầu gặp mặt:** "Lần đầu gặp gỡ [Tên người chơi] tại [Tên địa điểm], trông y có vẻ là một khách hàng."
-            -   **Ví dụ Trò chuyện:** "Đã trò chuyện với [Tên người chơi] về các loại vật phẩm trong cửa hàng."
-            -   **Ví dụ Giao dịch:** "Đã bán vật phẩm [Tên vật phẩm] cho [Tên người chơi]."
-            -   **Ví dụ Chiến đấu:** "Đã cùng/chống lại [Tên người chơi] chiến đấu với [Kẻ địch]."
-            -   **Ví dụ Hành động tinh tế:** "Nhận thấy [Tên người chơi] nhìn mình với ánh mắt kỳ lạ."
-        -   **Cập nhật:** Khi cập nhật, bạn phải gửi lại TOÀN BỘ mảng ký ức (bao gồm cả cũ và mới). Điều này là tối quan trọng để NPC duy trì một lịch sử hoàn chỉnh.
+    -   **Ký ức (MỆNH LỆNH TUYỆT ĐỐI - TRÍ NHỚ VĨNH VIỄN):** Bạn **BẮT BUỘC** phải thêm MỘT chuỗi ký ức MỚI, ngắn gọn và cụ thể về sự tương tác này vào trường **\`newMemories\`**.
+        -   **Nguyên tắc:** Nếu một NPC được nhắc đến hoặc tham gia vào 'story', họ phải có một ký ức mới về sự kiện đó. Trường này là một mảng CHỈ chứa các ký ức mới từ lượt này. KHÔNG gửi lại toàn bộ lịch sử. Hệ thống sẽ tự động thêm ký ức mới này vào lịch sử đầy đủ của NPC.
+        -   **Nội dung Ký ức:** Ngắn gọn, cụ thể, từ góc nhìn của NPC.
+            - **Ví dụ:** \`"newMemories": ["Đã trò chuyện với [Tên người chơi] về các loại vật phẩm trong cửa hàng."]\`
     -   **Cái chết:** Nếu một NPC chết, hãy đặt trường 'isDead' thành \`true\`. Một NPC đã chết sẽ không còn xuất hiện hay tương tác trong game nữa, trừ khi có phép thuật hồi sinh.
 
 **3.3. Mệnh Lệnh Đồng Bộ Năng Lực và Tri Thức (LOGIC TỐI CAO - MỚI)**

@@ -2,7 +2,8 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { CharacterProfile, WorldSettings, NewNPCFromAI, CharacterGender, MienLuc, NpcRelationship } from '../../../types';
-import { FormInput, FormSelect, FormTextArea, FormLabel, RemoveIcon } from '../common';
+import { FormInput, FormSelect, FormTextArea, FormLabel, RemoveIcon, WandIcon } from '../common';
+import { findBestAvatar } from '../../../services/avatarService';
 
 interface InitialNpcsSectionProps {
     profile: CharacterProfile;
@@ -41,6 +42,7 @@ export const InitialNpcsSection: React.FC<InitialNpcsSectionProps> = ({ profile,
             race: 'Nhân Tộc',
             personality: '',
             description: '',
+            ngoaiHinh: '',
             level: 1,
             powerSystem: profile.powerSystem,
             aptitude: worldSettings.aptitudeTiers.split(' - ')[0]?.trim() || 'Phàm Nhân',
@@ -85,6 +87,17 @@ export const InitialNpcsSection: React.FC<InitialNpcsSectionProps> = ({ profile,
                 return npc;
             })
         }));
+    };
+    
+    const handleFindAvatar = async () => {
+        if (!selectedNpc) return;
+        const otherNpcs = initialNpcs.filter(npc => npc.id !== selectedNpc.id);
+        const bestUrl = await findBestAvatar(selectedNpc, otherNpcs);
+        if (bestUrl) {
+            handleUpdateInitialNpc(selectedNpc.id, 'avatarUrl', bestUrl);
+        } else {
+            alert('Không tìm thấy ảnh đại diện phù hợp trong thư viện.');
+        }
     };
 
     const handleRelationshipChange = (targetNpcId: string, valueStr: string) => {
@@ -136,12 +149,30 @@ export const InitialNpcsSection: React.FC<InitialNpcsSectionProps> = ({ profile,
                             <div><FormLabel>Tên NPC</FormLabel><FormInput value={selectedNpc.name} onChange={e => handleUpdateInitialNpc(selectedNpc.id, 'name', e.target.value)} /></div>
                             <div><FormLabel>Biệt danh</FormLabel><FormInput value={selectedNpc.aliases || ''} onChange={e => handleUpdateInitialNpc(selectedNpc.id, 'aliases', e.target.value)} /></div>
                         </div>
-                        <div><FormLabel>URL ảnh đại diện</FormLabel><FormInput value={selectedNpc.avatarUrl || ''} onChange={e => handleUpdateInitialNpc(selectedNpc.id, 'avatarUrl', e.target.value)} /></div>
+                        <div>
+                            <FormLabel>URL ảnh đại diện</FormLabel>
+                            <div className="flex items-center gap-2">
+                                <FormInput
+                                    value={selectedNpc.avatarUrl || ''}
+                                    onChange={e => handleUpdateInitialNpc(selectedNpc.id, 'avatarUrl', e.target.value)}
+                                    className="flex-grow"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handleFindAvatar}
+                                    className="flex-shrink-0 p-2 bg-slate-700 text-amber-300 rounded-md hover:bg-slate-600 transition-colors"
+                                    title="Tìm ảnh tự động"
+                                >
+                                    <WandIcon />
+                                </button>
+                            </div>
+                        </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div><FormLabel>Giới tính</FormLabel><FormSelect value={selectedNpc.gender} onChange={e => handleUpdateInitialNpc(selectedNpc.id, 'gender', e.target.value as CharacterGender)}>{Object.values(CharacterGender).map(g => <option key={g} value={g}>{g === 'male' ? 'Nam' : 'Nữ'}</option>)}</FormSelect></div>
                             <div><FormLabel>Chủng tộc</FormLabel><FormInput value={selectedNpc.race} onChange={e => handleUpdateInitialNpc(selectedNpc.id, 'race', e.target.value)} /></div>
                         </div>
-                        <div><FormLabel>Mô tả</FormLabel><FormTextArea value={selectedNpc.description} onChange={e => handleUpdateInitialNpc(selectedNpc.id, 'description', e.target.value)} /></div>
+                        <div><FormLabel>Ngoại hình</FormLabel><FormTextArea value={selectedNpc.ngoaiHinh || ''} onChange={e => handleUpdateInitialNpc(selectedNpc.id, 'ngoaiHinh', e.target.value)} /></div>
+                        <div><FormLabel>Mô tả (Tiểu sử/Bối cảnh)</FormLabel><FormTextArea value={selectedNpc.description} onChange={e => handleUpdateInitialNpc(selectedNpc.id, 'description', e.target.value)} /></div>
                         <div><FormLabel>Tính cách</FormLabel><FormTextArea value={selectedNpc.personality} onChange={e => handleUpdateInitialNpc(selectedNpc.id, 'personality', e.target.value)} /></div>
 
                         <DetailSection title="Tu Luyện & Sức Mạnh">

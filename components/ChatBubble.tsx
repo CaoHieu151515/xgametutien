@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { CharacterGender } from '../types';
 
@@ -45,4 +46,4 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({ speakerName, speakerAvat
             {isPlayer && avatar}
         </div>
     );
-}
+};

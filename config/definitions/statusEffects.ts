@@ -22,6 +22,10 @@ export const PREDEFINED_STATUS_EFFECTS: readonly PredefinedStatusEffect[] = [
     { name: 'Bị Giam Cầm', description: 'Bị giam giữ, không thể tự do di chuyển.' },
     { name: 'Tẩu Hỏa Nhập Ma', description: 'Linh lực trong cơ thể vận hành sai lệch, gây ra sát thương nội tạng nghiêm trọng và có thể dẫn đến mất đi lý trí.' },
     { name: 'Linh Lực Hỗn Loạn', description: 'Dòng chảy linh lực trong cơ thể không ổn định, khiến việc thi triển kỹ năng trở nên khó khăn và thiếu chính xác.' },
+    { name: 'Phong Bế Tu Vi', description: 'Toàn bộ tu vi đã bị niêm phong, tạm thời trở thành phàm nhân, không thể sử dụng linh lực.' },
+    { name: 'Tâm Ma Quấy Nhiễu', description: 'Nội tâm bất ổn, tâm ma trỗi dậy, có thể dẫn đến hành động mất kiểm soát hoặc tẩu hỏa nhập ma.' },
+    { name: 'Khí Huyết Suy Bại', description: 'Khí huyết trong cơ thể suy kiệt, sinh lực và sức mạnh giảm mạnh.' },
+    { name: 'Bị Khống Chế', description: 'Tâm trí hoặc cơ thể bị người khác điều khiển, không thể hành động theo ý muốn.' },
 
 
     // === Positive Effects (Buffs) ===
@@ -36,8 +40,8 @@ export const PREDEFINED_STATUS_EFFECTS: readonly PredefinedStatusEffect[] = [
     { name: 'Bị Thiến', description: 'Đã mất đi bộ phận sinh dục nam. Giọng nói trở nên thanh mảnh hơn, tính cách có thể thay đổi, không còn khả năng sinh sản hoặc thực hiện các hành vi tình dục của nam giới.' },
     { name: 'Dương Vật Bị Khóa', description: 'Dương vật đã bị khóa trong một chiếc lồng trinh tiết, không thể tự chủ cương cứng hay xuất tinh. Chìa khóa do chủ nhân nắm giữ.' },
     { name: 'Mang Thai', description: 'Đang mang trong mình một sinh mệnh mới. Cần thời gian để thai nhi phát triển.' },
-    { name: 'Khế Ước Nô Lệ', description: 'Bị ràng buộc bởi một khế ước, phải tuyệt đối phục tùng chủ nhân.' },
-    { name: 'Khuyển Nô', description: 'Đã bị huấn luyện thành chó. Vĩnh viễn không được mặc quần, phải luôn bò bốn chân như chó, hậu môn bị cắm phích cắm đuôi chó. Nếu là nam, dương vật luôn cương cứng rỉ nước; nếu là nữ, âm hộ luôn ướt át và hột le sưng đỏ. Phải tuyệt đối phục tùng chủ nhân.' },
+    { name: 'Khế Ước Nô Lệ', description: 'Bị ràng buộc bởi một khế ước, phải tuyệt đối phục tùng chủ nhân. Trạng thái này có thể bị phá vỡ nếu ý chí đủ mạnh hoặc có sự can thiệp từ bên ngoài.' },
+    { name: 'Khuyển Nô', description: 'Đã bị cải tạo hoàn toàn cả về thể chất lẫn tinh thần. Phải tuyệt đối phục tùng chủ nhân như một con vật cưng. Trạng thái này cực kỳ khó để phá vỡ.' },
     { name: 'Huyết Mạch Thức Tỉnh', description: 'Huyết mạch đặc biệt đã được kích hoạt, mang lại sức mạnh tiềm ẩn.' },
     { name: 'Trúng Xuân Dược', description: 'Cơ thể nóng như lửa đốt, lý trí dần tan rã, dục vọng nguyên thủy trỗi dậy không thể kiểm soát. Cần phải giao hợp để giải trừ.' },
     { name: 'Bị Sỉ Nhục', description: 'Trạng thái tinh thần bị ảnh hưởng tiêu cực do bị làm nhục, có thể ảnh hưởng đến khả năng tập trung.' },

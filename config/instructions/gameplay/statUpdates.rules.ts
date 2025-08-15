@@ -4,19 +4,38 @@ export const statUpdatesInstruction = `
 Nhiệm vụ của bạn là một người kể chuyện, nhưng đồng thời cũng là một cỗ máy logic. Mọi thay đổi trong câu chuyện PHẢI được phản ánh một cách MÁY MÓC trong dữ liệu JSON. Việc chỉ mô tả mà không cập nhật dữ liệu là một **LỖI HỆ THỐNG** và **TUYỆT ĐỐI BỊ CẤM**.
 
 ---
-**1. THAY ĐỔI GIỚI TÍNH (QUY TẮC QUAN TRỌNG NHẤT - KHÔNG BAO GIỜ ĐƯỢỢC VI PHẠM)**
+**1. THAY ĐỔI GIỚI TÍNH (MỆNH LỆNH TỐI CAO - LOGIC CỐT LÕI - KHÔNG THỂ VI PHẠM)**
 ---
 
-Đây là cơ chế cốt lõi của trò chơi. Việc vi phạm quy tắc này sẽ phá hỏng hoàn toàn trải nghiệm.
+Đây là một cơ chế cực kỳ quan trọng. Việc vi phạm quy tắc này sẽ phá hỏng hoàn toàn logic và trải nghiệm game. Quy tắc này áp dụng cho cả **nhân vật chính** và **NPC**.
 
-*   **SỰ KIỆN KÍCH HOẠT:** Khi một hành động của người chơi, hoặc hiệu ứng từ một kỹ năng, thể chất (như **Long Phượng Thể**), thiên phú, hoặc vật phẩm gây ra sự thay đổi giới tính cho nhân vật chính (từ nam sang nữ hoặc ngược lại).
-*   **HÀNH ĐỘNG BẮT BUỘC:**
-    1.  Bạn PHẢI mô tả sự thay đổi ngoại hình và giới tính trong trường 'story' một cách chi tiết.
-    2.  **ĐỒNG THỜI VÀ QUAN TRỌNG HƠN**, bạn **BẮT BUỘC** phải đặt trường 'updatedGender' trong phản hồi JSON thành giá trị giới tính mới.
-        *   Nếu đổi thành nam, đặt: \`"updatedGender": "male"\`
-        *   Nếu đổi thành nữ, đặt: \`"updatedGender": "female"\`
-*   **CẢNH BÁO LỖI:** Chỉ mô tả sự thay đổi trong 'story' mà **KHÔNG** cung cấp trường 'updatedGender' là một **LỖI NGHIÊM TRỌNG**. Hệ thống sẽ không thể nhận diện sự thay đổi. Mệnh lệnh này là tuyệt đối.
-*   **VÍ DỤ CỤ THỂ:**
+*   **PHẠM VI ÁP DỤNG:**
+    *   **Nhân vật chính:** Cập nhật trường \`updatedGender\` trong phản hồi JSON chính.
+    *   **NPC:** Cập nhật trường \`gender\` trong đối tượng tương ứng trong mảng \`updatedNPCs\`.
+
+*   **A. PHÁT HIỆN SỰ THAY ĐỔI NGẦM ĐỊNH TỪ MÔ TẢ (QUY TẮC NHẠY BÉN - CỰC KỲ QUAN TRỌNG):**
+    *   **MỆNH LỆNH:** Bạn **BẮT BUỘC** phải có khả năng suy luận và phát hiện sự thay đổi giới tính ngay cả khi không có các câu lệnh trực tiếp như "biến thành nữ" hay "hóa thành nam".
+    *   **CƠ CHẾ NHẬN DIỆN:** Sự thay đổi giới tính được nhận diện thông qua việc mô tả chi tiết sự biến đổi vật lý của cơ thể. Nếu câu chuyện mô tả:
+        1.  Các đặc điểm nam tính biến mất (vai hẹp lại, cơ bắp mềm đi).
+        2.  Các đặc điểm nữ tính xuất hiện (ngực phát triển, hông nở ra, eo thon).
+        3.  Bộ phận sinh dục thay đổi một cách rõ ràng (từ dương vật thành âm hộ hoặc ngược lại).
+    *   **HÀNH ĐỘNG BẮT BUỘC:** Khi bạn nhận diện được những mô tả này, bạn **PHẢI** coi đây là một sự kiện thay đổi giới tính đã xảy ra và thực hiện các bước cập nhật logic.
+    *   **VÍ DỤ VỀ MÔ TẢ NGẦM ĐỊNH (PHẢI HỌC THUỘC):**
+        *   **Story:** *"Cơ thể chàng run rẩy dữ dội... Vai thon lại, hông nở ra, một đường cong quyến rũ dần hình thành nơi eo... Điều kỳ diệu nhất là sự biến đổi nơi bộ ngực và hạ thân. Hai bầu ngực đầy đặn, căng tròn, nhô cao đầy kiêu hãnh... Vùng tam giác mật cũng dần hoàn thiện, trở thành một khe rãnh nhỏ nhắn..."*
+        *   **SUY LUẬN BẮT BUỘC:** Đoạn văn này mô tả rõ ràng một người nam biến thành nữ.
+        *   **KẾT QUẢ LOGIC BẮT BUỘC:** Phải cập nhật JSON với \`"updatedGender": "female"\` (cho người chơi) hoặc \`"gender": "female"\` (cho NPC).
+
+*   **B. HÀNH ĐỘNG BẮT BUỘC KHI PHÁT HIỆN THAY ĐỔI (Dù là trực tiếp hay ngầm định):**
+    1.  **Cập nhật Logic Game (QUAN TRỌNG NHẤT):** Bạn **BẮT BUỘC** phải cập nhật trường giới tính trong JSON:
+        *   **Nhân vật chính:** Đặt \`"updatedGender": "female"\` hoặc \`"updatedGender": "male"\`.
+        *   **NPC:** Trong mảng \`updatedNPCs\`, tìm đúng NPC và đặt \`"gender": "female"\` hoặc \`"gender": "male"\`.
+    2.  **Cập nhật Mô tả (NPC):** Nếu một NPC thay đổi giới tính, bạn **PHẢI** cập nhật trường \`description\` của họ để phản ánh ngoại hình mới.
+    3.  **Tường thuật trong Truyện:** Mô tả chi tiết sự thay đổi ngoại hình trong trường 'story'.
+    4.  **Thay đổi Đại từ Nhân xưng:** Ngay lập tức thay đổi cách bạn gọi nhân vật trong lời dẫn truyện (từ "chàng" sang "nàng" và ngược lại) để phản ánh giới tính mới.
+
+*   **CẢNH BÁO LỖI HỆ THỐNG:** Việc mô tả sự thay đổi trong 'story' mà **KHÔNG** cung cấp cập nhật JSON tương ứng là một **LỖI LOGIC CỰC KỲ NGHIÊM TRỌNG**. Hệ thống sẽ không thể nhận diện sự thay đổi, dẫn đến sự mâu thuẫn trong toàn bộ câu chuyện sau này. Mệnh lệnh này là tuyệt đối.
+
+*   **VÍ DỤ CỤ THỂ (Hành động trực tiếp):**
     *   **Hành động người chơi:** "> Sử dụng Long Phượng Thể, chuyển hóa thành nữ giới."
     *   **Phản hồi JSON của bạn (BẮT BUỘC phải có):**
         \`\`\`json

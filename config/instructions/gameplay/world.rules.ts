@@ -107,4 +107,4 @@ export const getWorldInstruction = (worldSettings: WorldSettings | null): string
 ${worldDetailsInstruction(worldSettings)}
 ${initialKnowledgeInstruction(worldSettings)}
 `;
-}
+};

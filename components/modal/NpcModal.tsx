@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { NPC, CharacterGender, StatusEffect, WorldSettings, CharacterProfile } from '../../types';
 import { calculateBaseStatsForLevel } from '../../services/progressionService';
@@ -14,6 +13,43 @@ interface NpcModalProps {
 }
 
 const NewBadge = () => <span className="ml-2 px-1.5 py-0.5 text-[10px] font-bold text-slate-900 bg-yellow-300 rounded-full">NEW</span>;
+
+const FistIcon = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M15.992 5.122a.75.75 0 0 1 0 1.06l-5.992 6a.75.75 0 0 1-1.122.063l-2.5-3a.75.75 0 1 1 1.122-1.004l1.91 2.288 5.53-5.53a.75.75 0 0 1 1.054-.078Z" clipRule="evenodd" /><path d="M4.5 9.5a5 5 0 1 1 10 0 5 5 0 0 1-10 0Z" /></svg>;
+const DragonIcon = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10.02 6.539a1.5 1.5 0 0 0-2.04 0l-.13.13a1.5 1.5 0 0 0 0 2.04l.13.13a1.5 1.5 0 0 0 2.04 0l.13-.13a1.5 1.5 0 0 0 0-2.04l-.13-.13zM11.5 9a1.5 1.5 0 0 1 2.04 0l.13.13a1.5 1.5 0 0 1 0 2.04l-.13.13a1.5 1.5 0 0 1-2.04 0l-.13-.13a1.5 1.5 0 0 1 0-2.04l.13-.13z" /><path fillRule="evenodd" d="M15.65 4.35a8 8 0 1 0-11.3 0 8 8 0 0 0 11.3 0ZM6.53 7.89a.75.75 0 0 0-1.06-1.06L2.94 9.36a.75.75 0 0 0 0 1.06l2.53 2.53a.75.75 0 0 0 1.06-1.06L4.56 10.44l1.97-1.97v-.58ZM13.47 7.89a.75.75 0 0 1 1.06-1.06l2.53 2.53a.75.75 0 0 1 0 1.06l-2.53 2.53a.75.75 0 0 1-1.06-1.06L15.44 10.44l-1.97-1.97v-.58Z" clipRule="evenodd" /></svg>;
+
+const getPowerTier = (level: number) => {
+    if (level >= 90) {
+        return {
+            name: 'Ẩn Thế Cao Nhân',
+            color: 'text-purple-300 border-purple-500 bg-purple-900/40',
+            icon: <DragonIcon />,
+            description: 'Đỉnh cao của tu luyện, một huyền thoại sống có thể thay đổi cục diện thế giới. Sự tồn tại của họ thường là bí mật.'
+        };
+    }
+    if (level >= 70) {
+        return {
+            name: 'Tông Sư',
+            color: 'text-amber-400 border-amber-500 bg-amber-900/40',
+            icon: <FistIcon />,
+            description: 'Một cường giả có thể là trưởng lão của một tông môn hạng trung hoặc một bá chủ một phương. Sở hữu sức mạnh đáng kinh ngạc.'
+        };
+    }
+     if (level >= 40) {
+        return {
+            name: 'Cao Thủ',
+            color: 'text-sky-400 border-sky-500 bg-sky-900/40',
+            icon: null,
+            description: 'Một tu sĩ có thực lực, đã có được vị thế nhất định trong giới tu luyện.'
+        };
+    }
+    return {
+        name: 'Bình Thường',
+        color: 'text-slate-400 border-slate-600 bg-slate-800/40',
+        icon: null,
+        description: 'Tu vi không đáng kể hoặc chỉ là một phàm nhân.'
+    };
+};
+
 
 const getRelationshipText = (value: number | undefined) => {
     if (value === undefined) return { text: 'Trung Lập', color: 'text-slate-400' };
@@ -203,6 +239,8 @@ export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpd
         return calculateBaseStatsForLevel(selectedNpc.level);
     }, [selectedNpc]);
     
+    const powerTier = useMemo(() => selectedNpc ? getPowerTier(selectedNpc.level) : null, [selectedNpc]);
+
     if (!isOpen) return null;
 
     return (
@@ -269,7 +307,7 @@ export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpd
                         </div>
 
                         <div className="flex-grow p-6 overflow-y-auto custom-scrollbar">
-                            {selectedNpc && npcStats ? (
+                            {selectedNpc && npcStats && powerTier ? (
                                 <div className="relative animate-fade-in space-y-6">
                                     {selectedNpc.isDead && (
                                         <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
@@ -290,13 +328,20 @@ export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpd
                                             </button>
                                         </div>
                                         <div className="flex-grow space-y-4 text-center md:text-left">
-                                            <div>
+                                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center md:justify-start gap-x-4 gap-y-2">
                                                 <h2 className="text-3xl font-bold text-amber-300 flex items-center justify-center md:justify-start">
                                                     {selectedNpc.name}
                                                     {selectedNpc.isNew && <NewBadge />}
                                                 </h2>
-                                                {selectedNpc.aliases && <p className="text-sm text-slate-400">Biệt danh: {selectedNpc.aliases}</p>}
+                                                {powerTier.name !== 'Bình Thường' && (
+                                                     <div className={`flex items-center gap-2 px-3 py-1 border rounded-full text-sm font-semibold ${powerTier.color} ${powerTier.name === 'Ẩn Thế Cao Nhân' ? 'shadow-[0_0_15px_rgba(192,132,252,0.5)]' : ''}`}>
+                                                        {powerTier.icon}
+                                                        <span>{powerTier.name}</span>
+                                                    </div>
+                                                )}
                                             </div>
+                                             <p className="text-sm text-slate-400">Biệt danh: {(selectedNpc.aliases && selectedNpc.aliases.toLowerCase() !== 'null') ? selectedNpc.aliases : 'Chưa rõ'}</p>
+                                           
                                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                                                 <DetailCard label="Giới tính" value={selectedNpc.gender === CharacterGender.MALE ? 'Nam' : 'Nữ'} />
                                                 <DetailCard label="Chủng Tộc" value={selectedNpc.race} />
@@ -316,15 +361,22 @@ export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpd
                                     
                                     {/* MERGED CONTENT */}
                                     <div className="border-t border-slate-700/50 pt-6 space-y-8">
+                                        <Section title="Đánh giá sức mạnh">
+                                            <p>{powerTier.description}</p>
+                                        </Section>
+
                                         <Section title="Tổng Quan & Đặc Điểm">
                                             <p className="font-bold text-amber-200">Mô tả</p>
                                             <p>{selectedNpc.description || 'Chưa có mô tả.'}</p>
                                             
+                                            <p className="font-bold text-amber-200 mt-4">Ngoại hình</p>
+                                            <p>{(selectedNpc.ngoaiHinh && selectedNpc.ngoaiHinh.toLowerCase() !== 'null') ? selectedNpc.ngoaiHinh : 'Chưa rõ'}</p>
+
                                             <p className="font-bold text-amber-200 mt-4">Tính cách</p>
                                             <p>{selectedNpc.personality || 'Chưa có mô tả.'}</p>
                                             
-                                            {selectedNpc.innateTalent?.name && <p className="mt-4"><span className="font-bold text-amber-200">Thiên phú:</span> {selectedNpc.innateTalent.name} - {selectedNpc.innateTalent.description}</p>}
-                                            {selectedNpc.specialConstitution?.name && <p className="mt-2"><span className="font-bold text-amber-200">Thể chất:</span> {selectedNpc.specialConstitution.name} - {selectedNpc.specialConstitution.description}</p>}
+                                            <p className="mt-4"><span className="font-bold text-amber-200">Thiên phú:</span> {(selectedNpc.innateTalent?.name && selectedNpc.innateTalent.name.toLowerCase() !== 'null') ? `${selectedNpc.innateTalent.name} - ${selectedNpc.innateTalent.description}` : 'Chưa rõ'}</p>
+                                            <p className="mt-2"><span className="font-bold text-amber-200">Thể chất:</span> {(selectedNpc.specialConstitution?.name && selectedNpc.specialConstitution.name.toLowerCase() !== 'null') ? `${selectedNpc.specialConstitution.name} - ${selectedNpc.specialConstitution.description}` : 'Chưa rõ'}</p>
                                         </Section>
 
                                         <Section title="Trạng Thái Hiện Tại">

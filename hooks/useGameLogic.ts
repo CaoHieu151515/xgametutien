@@ -206,6 +206,25 @@ export const useGameLogic = () => {
 
     const handleAction = useCallback(async (choice: Choice) => {
         if (!characterProfile || !worldSettings) return;
+
+        // TỰ ĐỘNG LƯU VÀO ĐẦU LƯỢT CHƠI
+        try {
+            await saveService.saveGame(
+                characterProfile,
+                worldSettings,
+                npcs,
+                history,
+                choices, // Lưu các lựa chọn có sẵn tại thời điểm bắt đầu lượt
+                gameLog
+            );
+            log('useGameLogic.ts', 'Autosave successful at turn start.', 'INFO');
+        } catch(e) {
+            log('useGameLogic.ts', `Autosave failed: ${(e as Error).message}`, 'ERROR');
+            setToast({ message: `Lỗi tự động lưu game: ${(e as Error).message}`, type: 'error' });
+            // Không dừng game, chỉ thông báo lỗi
+        }
+        // KẾT THÚC TỰ ĐỘNG LƯU
+
         log('useGameLogic.ts', `Player action: "${choice.title}"`, 'FUNCTION');
 
         setIsLoading(true);
@@ -237,7 +256,14 @@ export const useGameLogic = () => {
             const summaryLines: string[] = [];
             if (summaryHistory.length > 0) {
                 summaryLines.push("Tóm tắt các sự kiện trước đó:");
-                for (let i = 0; i < summaryHistory.length; i += 2) {
+                
+                let startIndex = 0;
+                // If the summary part starts with a story (S0), skip it and start pairing from A1.
+                if (summaryHistory.length > 0 && summaryHistory[0].type === 'story') {
+                    startIndex = 1;
+                }
+        
+                for (let i = startIndex; i < summaryHistory.length; i += 2) {
                     const actionPart = summaryHistory[i];
                     const storyPart = summaryHistory[i + 1];
         
@@ -420,7 +446,7 @@ export const useGameLogic = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [characterProfile, worldSettings, npcs, history, gameLog, settings, api, apiKeyForService]);
+    }, [characterProfile, worldSettings, npcs, history, choices, gameLog, settings, api, apiKeyForService]);
     
     const handleUseItem = useCallback((item: Item) => {
         log('useGameLogic.ts', `Player uses item: "${item.name}"`, 'FUNCTION');
@@ -642,11 +668,26 @@ export const useGameLogic = () => {
                     type: 'info',
                 });
             }
+
+            // Unify the logic by using applyStoryResponseToState for the initial turn as well.
+            const { nextProfile, nextNpcs, finalWorldSettings, notifications } = await applyStoryResponseToState({
+                storyResponse,
+                characterProfile: finalProfile,
+                npcs: initialNpcs,
+                worldSettings: newWorldSettings,
+                settings,
+                choice: { durationInMinutes: 0 } // Dummy choice for initialization
+            });
             
-            const initialStoryPart: StoryPart = { id: Date.now(), type: 'story', text: storyResponse.story, notifications: [] };
+            const initialStoryPart: StoryPart = { 
+                id: Date.now(), 
+                type: 'story', 
+                text: storyResponse.story, 
+                notifications: notifications 
+            };
             
             const preActionState = {
-                characterProfile: finalProfile,
+                characterProfile: finalProfile, // The state *before* the first story response is applied
                 worldSettings: newWorldSettings,
                 npcs: initialNpcs,
                 history: [],
@@ -664,15 +705,20 @@ export const useGameLogic = () => {
             const initialHistory = [initialStoryPart];
             const initialChoices = storyResponse.choices;
             const initialGameLog: GameSnapshot[] = [firstSnapshot];
-    
+
+            // Set state with the processed data from applyStoryResponseToState
+            setCharacterProfile(nextProfile);
+            setNpcs(nextNpcs);
+            setWorldSettings(finalWorldSettings);
             setHistory(initialHistory);
             setChoices(initialChoices);
             setGameLog(initialGameLog);
             
+            // Save the processed initial state
             await saveService.saveGame(
-                finalProfile,
-                newWorldSettings,
-                initialNpcs,
+                nextProfile,
+                finalWorldSettings,
+                nextNpcs,
                 initialHistory,
                 initialChoices,
                 initialGameLog
@@ -685,7 +731,7 @@ export const useGameLogic = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [api, apiKeyForService, settings.isMature, settings.perspective]);
+    }, [api, apiKeyForService, settings.isMature, settings.perspective, settings]);
 
     return {
         gameState, setGameState, hasSaves, characterProfile, setCharacterProfile, worldSettings, setWorldSettings, history, displayHistory, npcs, setNpcs, choices, gameLog, isLoading, error, settings, apiKeyForService, toast, clearToast, lastFailedCustomAction,

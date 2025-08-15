@@ -56,7 +56,9 @@ export const buildContextForPrompt = (
         const isMentioned = historyText.includes(npc.name) || (npc.aliases && npc.aliases.split(',').some(alias => historyText.includes(alias.trim())));
         return !npc.isDead && (isPresent || isMentioned);
     }).map(({ id, name, aliases, gender, race, personality, description, level, realm, relationship, isDaoLu }) => ({
-        id, name, aliases, gender, race, personality, description, level, realm, relationship, isDaoLu
+        id, name, aliases, gender, race, personality, 
+        description: description.substring(0, 150) + (description.length > 150 ? '...' : ''),
+        level, realm, relationship, isDaoLu
     }));
 
     // 2. Lọc Địa điểm theo ngữ cảnh: địa phương và toàn cục.
@@ -65,7 +67,11 @@ export const buildContextForPrompt = (
         const parentId = currentLocation.parentId || currentLocation.id;
         localLocations = characterProfile.discoveredLocations
             .filter(loc => loc.parentId === parentId || loc.id === parentId)
-            .map(({ id, name, description, type, isDestroyed }) => ({ id, name, description, type, isDestroyed }));
+            .map(({ id, name, description, type, isDestroyed }) => ({ 
+                id, name, 
+                description: description.substring(0, 150) + (description.length > 150 ? '...' : ''),
+                type, isDestroyed 
+            }));
     }
     const globalLocations = characterProfile.discoveredLocations
         .filter(loc => loc.type === LocationType.THE_LUC || loc.type === LocationType.CITY || loc.type === LocationType.WORLD)
@@ -106,10 +112,13 @@ export const buildContextForPrompt = (
         specialConstitution,
         talent,
         achievements,
+        skills,
         ...rest 
     } = characterProfile;
     
-    const minimalCharacterProfile = rest;
+    const minimalCharacterProfile: any = { ...rest };
+    minimalCharacterProfile.skills = skills.map(({ name, type, quality, level }) => ({ name, type, quality, level }));
+
 
     return {
         contextualNpcs,

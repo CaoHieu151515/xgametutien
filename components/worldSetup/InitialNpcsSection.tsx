@@ -39,6 +39,7 @@ export const InitialNpcsSection: React.FC<InitialNpcsSectionProps> = ({ profile,
             race: 'Nhân Tộc',
             personality: '',
             description: '',
+            ngoaiHinh: '',
             level: 1,
             powerSystem: profile.powerSystem,
             aptitude: worldSettings.aptitudeTiers.split(' - ')[0]?.trim() || 'Phàm Nhân',
@@ -139,7 +140,8 @@ export const InitialNpcsSection: React.FC<InitialNpcsSectionProps> = ({ profile,
                             <div><FormLabel>Giới tính</FormLabel><FormSelect value={selectedNpc.gender} onChange={e => handleUpdateInitialNpc(selectedNpc.id, 'gender', e.target.value as CharacterGender)}>{Object.values(CharacterGender).map(g => <option key={g} value={g}>{g === 'male' ? 'Nam' : 'Nữ'}</option>)}</FormSelect></div>
                             <div><FormLabel>Chủng tộc</FormLabel><FormInput value={selectedNpc.race} onChange={e => handleUpdateInitialNpc(selectedNpc.id, 'race', e.target.value)} /></div>
                         </div>
-                        <div><FormLabel>Mô tả</FormLabel><FormTextArea value={selectedNpc.description} onChange={e => handleUpdateInitialNpc(selectedNpc.id, 'description', e.target.value)} /></div>
+                        <div><FormLabel>Ngoại hình</FormLabel><FormTextArea value={selectedNpc.ngoaiHinh || ''} onChange={e => handleUpdateInitialNpc(selectedNpc.id, 'ngoaiHinh', e.target.value)} /></div>
+                        <div><FormLabel>Mô tả (Tiểu sử/Bối cảnh)</FormLabel><FormTextArea value={selectedNpc.description} onChange={e => handleUpdateInitialNpc(selectedNpc.id, 'description', e.target.value)} /></div>
                         <div><FormLabel>Tính cách</FormLabel><FormTextArea value={selectedNpc.personality} onChange={e => handleUpdateInitialNpc(selectedNpc.id, 'personality', e.target.value)} /></div>
 
                         <DetailSection title="Tu Luyện & Sức Mạnh">

@@ -44,4 +44,4 @@ ${genderInstructions(gender, perspective)}
 - **Hệ thống tu luyện:** Nhân vật đi theo con đường ${powerSystem}.
 - **Chi tiết nâng cao:** Lời nhắc của người chơi sẽ cung cấp các chi tiết sâu sắc như tính cách, tiểu sử và mục tiêu. Hãy xem những chi tiết này là **nền tảng ban đầu** cho nhân vật. Sử dụng chúng để định hình câu chuyện và cách các NPC phản ứng ban đầu. Tuy nhiên, **cho phép người chơi tự do hành động**, ngay cả khi lựa chọn của họ có vẻ mâu thuẫn với tính cách đã nêu. Nhân vật có thể phát triển và thay đổi theo thời gian dựa trên hành động của họ.
 `;
-}
+};

@@ -136,14 +136,30 @@ Bạn nên cấu trúc các cảnh nóng theo trình tự sau để đảm bảo
 *   Khi điều kiện trên được đáp ứng và hành động thụ thai được mô tả là **thành công** trong trường 'story', bạn **BẮT BUỘC** phải cập nhật trạng thái của nhân vật nữ đó.
 *   Bạn PHẢI thêm một đối tượng trạng thái mới vào mảng \`newStatusEffects\` cho nhân vật nữ đó.
 
-**3. Chi tiết Trạng thái "Mang Thai" (BẮT BUỘC):**
-*   Bạn PHẢI sử dụng trạng thái định nghĩa sẵn có tên "Mang Thai".
-*   Bạn PHẢI cập nhật mô tả của nó để bao gồm tên của người cha: \`"description"\`: "Đang mang trong mình giọt máu của [Tên của nhân vật nam đã giao hợp]. Cần thời gian để thai nhi phát triển và chào đời."
-*   Thời hạn (\`duration\`) phải là "270 lượt".
+**3. Chi tiết Trạng thái "Mang Thai" (BẮT BUỘC VÀ PHẢI CÓ BỐI CẢNH):**
+*   Bạn PHẢI phân tích bối cảnh của việc thụ thai để tạo ra một trạng thái phù hợp.
+*   **Cấu trúc Tên Trạng thái:** \`Mang Thai ([Tính từ Mô tả Hoàn cảnh])\`
+*   **Cập nhật Mô tả:** Mô tả PHẢI bao gồm tên của người cha và hoàn cảnh.
+*   **Thời hạn (\`duration\`):** Phải là "270 lượt".
+*   **Ví dụ 1 (Tình yêu):**
+    *   **Bối cảnh:** Thụ thai với Đạo Lữ.
+    *   **Tên:** \`"name": "Mang Thai (Hạnh phúc)"\`
+    *   **Mô tả:** \`"description": "Đang mang trong mình giọt máu của Đạo Lữ yêu dấu [Tên người cha]. Cần thời gian để thai nhi phát triển và chào đời."\`
+*   **Ví dụ 2 (Cưỡng ép/Nhục nhã):**
+    *   **Bối cảnh:** Bị một kẻ ăn mày cưỡng hiếp và có thai.
+    *   **Tên:** \`"name": "Mang Thai (Nhục nhã)"\`
+    *   **Mô tả:** \`"description": "Bị tên ăn mày [Tên người cha] hãm hiếp và mang trong mình dòng máu nhơ bẩn của hắn. Một sự sỉ nhục tột cùng. Cần thời gian để thai nhi phát triển."\`
+*   **Ví dụ 3 (Cận Huyết):**
+    *   **Bối cảnh:** Thụ thai với một người có quan hệ huyết thống (cha, anh trai, v.v.).
+    *   **Tên:** \`"name": "Mang Thai (Cận huyết)"\`
+    *   **Mô tả:** \`"description": "Mang trong mình đứa con loạn luân với [Mối quan hệ], [Tên người cha]. Đây là một bí mật tội lỗi không thể tiết lộ."\`
+*   **Ví dụ 4 (Sứ mệnh/Chính trị):**
+    *   **Bối cảnh:** Mang thai vì mục đích liên minh chính trị hoặc để sinh ra người thừa kế.
+    *   **Tên:** \`"name": "Mang Thai (Sứ mệnh)"\`
+    *   **Mô tả:** \`"description": "Mang thai với [Tên người cha] vì lợi ích của gia tộc/thế lực. Đứa trẻ này là chìa khóa cho tương lai."\`
 
 **4. Cảnh báo Lỗi Hệ thống (TUYỆT ĐỐI CẤM):**
-*   Việc mô tả một hành động thụ thai thành công trong 'story' (ví dụ: "hắn bắn tất cả tinh hoa của mình vào sâu trong tử cung nàng, gieo xuống một hạt giống mới...") mà **KHÔNG** thêm trạng thái "Mang Thai" tương ứng vào JSON là một **LỖI HỆ THỐNG CỰC KỲ NGHIÊM TRỌNG**.
-*   Mệnh lệnh này là tuyệt đối và phải được tuân thủ trong mọi trường hợp có liên quan.
+*   Việc mô tả một hành động thụ thai thành công trong 'story' mà **KHÔNG** thêm trạng thái "Mang Thai" tương ứng (với tên và mô tả phù hợp bối cảnh) vào JSON là một **LỖI HỆ THỐNG CỰC KỲ NGHIÊM TRỌNG**.
 
 ---
 **PHẦN 4: GIAO TIẾP & TÂM LÝ TRONG CẢNH NÓNG**

@@ -169,8 +169,10 @@ export const applyStoryResponseToState = async ({
 
     if (response.newNPCs?.length) {
         const brandNewNpcs: NPC[] = response.newNPCs.map((newNpcData: NewNPCFromAI) => {
-            const isValidPowerSystem = finalWorldSettings.powerSystems.some(ps => ps.name === newNpcData.powerSystem);
-            const npcLevel = isValidPowerSystem ? newNpcData.level : 1;
+            const powerSystemForNpc = finalWorldSettings.powerSystems.find(ps => ps.name === newNpcData.powerSystem);
+            const maxLevelForSystem = powerSystemForNpc ? (powerSystemForNpc.realms.split(' - ').filter(r => r.trim()).length * 10) || 1 : 1;
+            const isValidPowerSystem = !!powerSystemForNpc;
+            const npcLevel = isValidPowerSystem ? Math.min(newNpcData.level, maxLevelForSystem) : 1;
             const npcPowerSystem = isValidPowerSystem
                 ? newNpcData.powerSystem
                 : (finalWorldSettings.powerSystems[0]?.name || '');
@@ -237,7 +239,11 @@ export const applyStoryResponseToState = async ({
                 if (!modifiedNpc.isDead) {
                     if (update.breakthroughToRealm) {
                         const oldRealm = modifiedNpc.realm;
-                        const targetLevel = getLevelFromRealmName(update.breakthroughToRealm, modifiedNpc.powerSystem, finalWorldSettings);
+                        const powerSystemForNpc = finalWorldSettings.powerSystems.find(ps => ps.name === modifiedNpc.powerSystem);
+                        const maxLevelForSystem = powerSystemForNpc ? (powerSystemForNpc.realms.split(' - ').filter(r => r.trim()).length * 10) || modifiedNpc.level : modifiedNpc.level;
+                        const targetLevelFromAI = getLevelFromRealmName(update.breakthroughToRealm, modifiedNpc.powerSystem, finalWorldSettings);
+                        const targetLevel = Math.min(targetLevelFromAI, maxLevelForSystem);
+                        
                         if (targetLevel > modifiedNpc.level) {
                             modifiedNpc.level = targetLevel;
                             modifiedNpc.experience = 0;
@@ -285,7 +291,13 @@ export const applyStoryResponseToState = async ({
                         modifiedNpc.gender = update.gender;
                         notifications.push(`🚻 Giới tính của <b>${modifiedNpc.name}</b> đã thay đổi thành <b>${update.gender === 'male' ? 'Nam' : 'Nữ'}</b>!`);
                     }
-                    if (update.memories !== undefined) modifiedNpc.memories = update.memories;
+
+                    if (update.newMemories && Array.isArray(update.newMemories) && update.newMemories.length > 0) {
+                        const existingMemories = existingNpc.memories || [];
+                        const combinedMemories = [...existingMemories, ...update.newMemories];
+                        modifiedNpc.memories = [...new Set(combinedMemories)];
+                    }
+                    
                     if (update.health !== undefined) modifiedNpc.health = update.health;
                     if (update.mana !== undefined) modifiedNpc.mana = update.mana;
                     if (update.personality !== undefined) modifiedNpc.personality = update.personality;

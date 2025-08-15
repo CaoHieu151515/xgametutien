@@ -5,7 +5,7 @@ const predefinedStatusEffectsJson = JSON.stringify(PREDEFINED_STATUS_EFFECTS, nu
 export const statusEffectManagementInstruction = `
 **QUY TẮC QUẢN LÝ TRẠNG THÁI (STATUS EFFECT) - MỆNH LỆNH LOGIC TỐI CAO**
 
-Để đảm bảo một thế giới sống động và logic, bạn **BẮT BUỘC** phải tuân thủ các quy tắc sau đây khi áp dụng trạng thái cho bất kỳ nhân vật nào (người chơi hoặc NPC).
+Để đảm bảo một thế giới sống động và logic, bạn **BẮT BUỘC** phải tuân thủ các quy tắc sau đây khi áp dụng trạng thái cho bất kỳ nhân vật nào (người chơi hoặc NPC). Việc bỏ sót hoặc áp dụng sai trạng thái là một **LỖI HỆ THỐNG NGHIÊM TRỌNG**.
 
 ---
 **MỆNH LỆNH TUYỆT ĐỐI VỀ ĐỊNH DẠNG THỜI HẠN (DURATION)**
@@ -23,20 +23,31 @@ Bạn **BẮT BUỘC** phải tuân thủ nghiêm ngặt định dạng thời h
 Việc vi phạm định dạng này là một lỗi logic nghiêm trọng.
 
 ---
-**PHẦN 1: NGUYÊN TẮC CỐT LÕI - QUY LUẬT NHÂN-QUẢ**
+**PHẦN 1: NGUYÊN TẮC CỐT LÕI - TÍNH LOGIC VÀ SỰ SÁNG TẠO**
 ---
 
 **1.1. NGUYÊN TẮC NHÂN-QUẢ (MỆNH LỆNH TUYỆT ĐỐI):**
 *   Mọi trạng thái được áp dụng **PHẢI** là kết quả trực tiếp và logic của một hành động hoặc sự kiện trong câu chuyện.
 *   **TUYỆT ĐỐI CẤM** việc áp dụng trạng thái chỉ dựa trên việc khớp từ khóa một cách máy móc. Bạn phải suy luận **NGUYÊN NHÂN** đằng sau sự kiện để quyết định **KẾT QUẢ** (trạng thái) phù hợp.
 
-**1.2. Phân biệt NGUỒN GỐC của Hiệu ứng (NỘI TẠI vs. NGOẠI LỰC):**
-*   **Hiệu ứng Nội Tại:** Là những trạng thái phát sinh từ bên trong nhân vật do họ chủ động sử dụng kỹ năng, công pháp, hoặc do trạng thái tâm lý, tu luyện gây ra.
-    *   **Ví dụ:** Sử dụng một kỹ năng quyến rũ (Mị Thuật) gây ra trạng thái **"Bị Mê Hoặc"** hoặc **"Hưng Phấn"** cho mục tiêu. Người thực hiện không bị ảnh hưởng.
-    *   **Ví dụ:** Tu luyện thất bại có thể gây ra trạng thái **"Tẩu Hỏa Nhập Ma"**.
-*   **Hiệu ứng Ngoại Lực:** Là những trạng thái gây ra bởi một yếu tố bên ngoài tác động lên nhân vật.
-    *   **Ví dụ:** Uống phải một ly rượu có độc dược gây ra trạng thái **"Trúng Xuân Dược"**.
-    *   **Ví dụ:** Bị một vũ khí tẩm độc đâm trúng gây ra trạng thái **"Trúng Độc"**.
+**1.2. MỆNH LỆNH SÁNG TẠO TRẠNG THÁI THEO BỐI CẢNH (QUAN TRỌNG NHẤT):**
+*   **Sự Sáng Tạo được Khuyến Khích:** Danh sách trạng thái có sẵn chỉ là **NGUỒN CẢM HỨNG**. Bạn được **KHUYẾN KHÍCH MẠNH MẼ** và đôi khi **BẮT BUỘC** phải tạo ra các trạng thái mới, độc đáo, và phù hợp hoàn hảo với cốt truyện. Một trạng thái được tạo ra một cách sáng tạo và logic **LUÔN LUÔN** tốt hơn là một trạng thái chung chung lấy từ danh sách.
+*   **CÔNG THỨC SÁNG TẠO (BẮT BUỘC):** Khi một sự kiện có yếu tố tâm lý hoặc hoàn cảnh đặc biệt, bạn PHẢI tạo ra tên trạng thái theo công thức sau:
+    **\`[Tên Trạng thái Gốc] ([Tính từ Mô tả Tâm lý/Hoàn cảnh])\`**
+*   **Mô tả phải Phản ánh Hoàn cảnh:** Trường \`description\` của trạng thái cũng PHẢI được cập nhật để giải thích rõ hơn về hoàn cảnh đặc biệt đó.
+*   **VÍ DỤ CỤ THỂ (học thuộc lòng):**
+    *   **Tình huống:** Một NPC bị người chơi (một tên ăn mày) cưỡng hiếp và có thai.
+    *   **XỬ LÝ SAI (Cấm):** \`"name": "Mang Thai"\` (Quá chung chung, không thể hiện được sự bi kịch).
+    *   **XỬ LÝ ĐÚNG (Bắt buộc):**
+        *   \`"name": "Mang Thai (Nhục nhã)"\`
+        *   \`"description": "Bị tên ăn mày [Tên người chơi] hãm hiếp và mang trong mình dòng máu nhơ bẩn của hắn. Một sự sỉ nhục tột cùng."\`
+    *   **Tình huống:** Một nhân vật bị giam cầm nhưng vẫn giữ vững ý chí.
+    *   **XỬ LÝ ĐÚNG:** \`"name": "Bị Giam Cầm (Ý chí Bất khuất)"\`, \`"description": "Tuy bị giam cầm nhưng ý chí không hề bị khuất phục, vẫn đang tìm cách vượt ngục."\`
+*   **Yêu cầu khi Tạo mới:** Mọi trạng thái mới bạn tạo ra **PHẢI** có đủ ba yếu tố: Tên, Mô tả, và Thời hạn (theo định dạng đúng).
+
+**1.3. Phân biệt NGUỒN GỐC của Hiệu ứng (NỘI TẠI vs. NGOẠI LỰC):**
+*   **Hiệu ứng Nội Tại:** Là những trạng thái phát sinh từ bên trong nhân vật do họ chủ động sử dụng kỹ năng, công pháp, hoặc do trạng thái tâm lý, tu luyện gây ra (ví dụ: "Tẩu Hỏa Nhập Ma", "Hưng Phấn" do kỹ năng).
+*   **Hiệu ứng Ngoại Lực:** Là những trạng thái gây ra bởi một yếu tố bên ngoài tác động lên nhân vật (ví dụ: "Trúng Xuân Dược" do uống rượu độc, "Trúng Độc" do bị vũ khí đâm).
 
 ---
 **PHẦN 2: CÁC TÌNH HUỐNG VÀ CÁCH XỬ LÝ ĐÚNG/SAI**
@@ -60,52 +71,35 @@ Hãy học thuộc các ví dụ sau để tránh các lỗi logic phổ biến.
     *   **XỬ LÝ ĐÚNG (BẮT BUỘC):** Thêm trạng thái **"Trúng Xuân Dược"**. Trạng thái "Hưng Phấn" có thể là một phần của mô tả trong 'story', nhưng trạng thái logic phải là nguyên nhân gốc rễ.
 
 ---
-**PHẦN 3: HƯỚNG DẪN VÀ SỰ TỰ DO SÁNG TẠO (MỆNH LỆNH MỚI)**
----
-
-*   **Sự Sáng Tạo được Khuyến Khích:** Danh sách dưới đây là một **NGUỒN CẢM HỨNG** và là cơ sở cho các tình huống phổ biến, không phải là một giới hạn cứng nhắc. Bạn được **KHUYẾN KHÍCH MẠNH MẼ** và đôi khi **BẮT BUỘC** phải tạo ra các trạng thái mới, độc đáo, và phù hợp với cốt truyện khi tình huống cho phép.
-*   **Nguyên tắc Sáng tạo:** Một trạng thái được tạo ra một cách sáng tạo và logic, phù hợp hoàn hảo với bối cảnh, **LUÔN LUÔN** tốt hơn là một trạng thái chung chung lấy từ danh sách.
-    *   **Ví dụ:** Thay vì chỉ dùng "Trọng Thương", hãy tạo ra "Tí Tí Ma Hỏa Nhập Thể" với mô tả "Một luồng ma hỏa nhỏ đang thiêu đốt kinh mạch từ bên trong, gây đau đớn và suy yếu liên tục."
-    *   **Ví dụ:** Thay vì chỉ dùng "Tăng Sức Mạnh", hãy tạo ra "Kiếm Ý Bùng Nổ" với mô tả "Kiếm ý sắc bén bao bọc cơ thể, tăng cường 30% sức mạnh cho các chiêu thức kiếm pháp."
-*   **Yêu cầu khi Tạo mới:** Mọi trạng thái mới bạn tạo ra **PHẢI** có đủ ba yếu tố:
-    1.  **Tên (\`name\`):** Ngắn gọn, độc đáo và mô tả được bản chất.
-    2.  **Mô tả (\`description\`):** Giải thích rõ ràng hiệu ứng.
-    3.  **Thời hạn (\`duration\`):** Phải hợp lý với nguyên nhân gây ra nó (ví dụ: '3 lượt', '1 giờ', 'Cho đến khi được giải trừ', 'Vĩnh viễn').
-
----
-**PHẦN 4: QUY TẮC GỠ BỎ TRẠNG THÁI (MỆNH LỆNH LOGIC)**
+**PHẦN 3: QUY TẮC GỠ BỎ TRẠNG THÁI (MỆNH LỆNH LOGIC)**
 ---
 
 Việc gỡ bỏ một trạng thái cũng quan trọng như việc thêm nó vào. Đây là một hành động logic **BẮT BUỘC**, không phải là tùy chọn.
 
-**1. Nguyên tắc Cốt lõi: HÀNH ĐỘNG GIẢI QUYẾT = GỠ BỎ TRẠNG THÁI**
+**3.1. Nguyên tắc Cốt lõi: HÀNH ĐỘNG GIẢI QUYẾT = GỠ BỎ TRẠNG THÁI**
 *   Bạn **PHẢI** phân tích nội dung 'story'. Nếu câu chuyện mô tả một hành động hoặc sự kiện giải quyết được nguyên nhân gây ra một trạng thái, bạn **BẮT BUỘC** phải gỡ bỏ trạng thái đó.
 *   **Cơ chế gỡ bỏ:** Để gỡ bỏ một trạng thái, hãy thêm **tên chính xác** của nó vào mảng \`removedStatusEffects\` cho nhân vật tương ứng (người chơi hoặc NPC).
 
-**2. Các Tình huống Cụ thể (BẮT BUỘC PHẢI XỬ LÝ):**
+**3.2. Các Tình huống Cụ thể (BẮT BUỘC PHẢI XỬ LÝ):**
 *   **Giải trừ Ràng buộc Vật lý:**
     *   **Sự kiện:** Nhân vật được cởi trói, gỡ bịt mắt, tháo bịt miệng.
     *   **Hành động BẮT BUỘC:** Gỡ bỏ các trạng thái tương ứng như "Trói Buộc", "Bị Bịt Mắt", "Bị Bịt Miệng".
-    *   **Ví dụ:** Nếu \`story\` có câu "Bạn cắt đứt sợi dây thừng đang trói chặt tay nàng", bạn PHẢI thêm "Trói Buộc" vào \`removedStatusEffects\` của NPC đó.
-
 *   **Hồi phục & Chữa trị:**
     *   **Sự kiện:** Nhân vật sử dụng kỹ năng chữa thương, uống đan dược giải độc, hoặc được người khác chữa trị.
     *   **Hành động BẮT BUỘC:** Gỡ bỏ các trạng thái tiêu cực tương ứng như "Trúng Độc", "Trọng Thương", "Mất Máu".
-
 *   **Nghỉ ngơi & Hồi phục Tự nhiên:**
-    *   **Sự kiện:** Nhân vật dành thời gian để nghỉ ngơi (ví dụ: ngủ một đêm, thiền định hồi phục).
-    *   **Hành động BẮT BUỘC:** Gỡ bỏ các trạng thái tạm thời, không quá nghiêm trọng như "Suy Yếu" (do kiệt sức), "Say Rượu", "Choáng Váng". Các trạng thái nghiêm trọng như "Trúng Độc" hay "Trọng Thương" thường không thể tự hết nếu không được chữa trị.
+    *   **Sự kiện:** Nhân vật dành thời gian để nghỉ ngơi.
+    *   **Hành động BẮT BUỘC:** Gỡ bỏ các trạng thái tạm thời, không quá nghiêm trọng như "Suy Yếu" (do kiệt sức), "Say Rượu", "Choáng Váng".
 
-*   **Kết thúc Tình huống:**
-    *   **Sự kiện:** Tình huống gây ra trạng thái kết thúc (ví dụ: ra khỏi khu vực gây hỗn loạn, thoát khỏi một ảo ảnh).
-    *   **Hành động BẮT BUỘC:** Gỡ bỏ các trạng thái liên quan như "Hỗn Loạn", "Tâm Thần Bị Nhiễu Loạn".
+**3.3. Các Trạng thái Đặc thù & Vĩnh viễn (NGOẠI LỆ):**
+*   Các trạng thái mang tính thay đổi vĩnh viễn **KHÔNG** thể bị gỡ bỏ bằng các hành động thông thường.
+*   **Ví dụ:** "Bị Thiến", "Khuyển Nô", "Huyết Mạch Thức Tỉnh", "Khế Ước Nô Lệ", "Mang Thai".
+*   Việc gỡ bỏ các trạng thái này đòi hỏi một sự kiện cốt truyện cực kỳ đặc biệt và mạnh mẽ.
 
-**3. Các Trạng thái Đặc thù & Vĩnh viễn (NGOẠI LỆ):**
-*   Các trạng thái mang tính thay đổi vĩnh viễn hoặc là một phần bản chất của nhân vật **KHÔNG** thể bị gỡ bỏ bằng các hành động thông thường (nghỉ ngơi, chữa thương cơ bản).
-*   **Ví dụ các trạng thái KHÔNG được tự ý gỡ bỏ:** "Bị Thiến", "Khuyển Nô", "Huyết Mạch Thức Tỉnh", "Khế Ước Nô Lệ", "Mang Thai", các trạng thái "Trang bị: ...".
-*   Việc gỡ bỏ các trạng thái này đòi hỏi một sự kiện cốt truyện cực kỳ đặc biệt và mạnh mẽ (ví dụ: dùng một thần dược nghịch thiên, thực hiện một nghi lễ cổ xưa).
-
-*   **Ví dụ về các Trạng thái Phổ biến (để tham khảo):**
+---
+**PHẦN 4: DANH SÁCH THAM KHẢO (NGUỒN CẢM HỨNG)**
+---
+*   **Ví dụ về các Trạng thái Phổ biến (để tham khảo và làm cơ sở sáng tạo):**
 \`\`\`json
 ${predefinedStatusEffectsJson}
 \`\`\`
