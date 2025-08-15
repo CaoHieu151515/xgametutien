@@ -6,7 +6,7 @@ import { CustomInput } from '../CustomInput';
 import { AdventureCard } from '../AdventureCard';
 import { 
     HomeIcon, PlayerIcon, NpcsIcon, WorldIcon, MapIcon, 
-    GameLogIcon, BagIcon, LocationIcon, SettingsIcon, SaveIcon 
+    GameLogIcon, BagIcon, LocationIcon, SettingsIcon, SaveIcon, TimeIcon
 } from '../ui/Icons';
 import { useComponentLog } from '../../hooks/useComponentLog';
 
@@ -29,6 +29,7 @@ interface GameScreenProps {
     openNpcModal: () => void;
     openGameLogModal: () => void;
     openInventoryModal: () => void;
+    openTimeSkipModal: () => void;
 }
 
 const getFormattedGameTime = (isoString: string | null): string => {
@@ -89,7 +90,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     openMapModal,
     openNpcModal,
     openGameLogModal,
-    openInventoryModal
+    openInventoryModal,
+    openTimeSkipModal
 }) => {
     useComponentLog('GameScreen.tsx');
     
@@ -142,6 +144,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({
 
                 {/* Right Icons */}
                 <div className="flex items-center gap-1 flex-wrap justify-end">
+                     <HeaderButton label="Thời Gian" onClick={openTimeSkipModal} disabled={isLoading}>
+                        <TimeIcon />
+                    </HeaderButton>
                     <HeaderButton label="Nhật Ký" onClick={openGameLogModal} disabled={isLoading}>
                         <GameLogIcon />
                     </HeaderButton>

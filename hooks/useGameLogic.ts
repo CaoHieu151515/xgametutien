@@ -297,7 +297,10 @@ export const useGameLogic = () => {
         for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) {
             try {
                 let currentActionText = choice.title;
-                if (attempt > 1 && lastErrorReason) {
+                if(choice.isTimeSkip && choice.turnsToSkip) {
+                    currentActionText = `(Hệ thống) Người chơi quyết định bỏ qua thời gian. Hãy tua nhanh ${choice.turnsToSkip} lượt và tóm tắt những sự kiện chính đã xảy ra.`
+                }
+                else if (attempt > 1 && lastErrorReason) {
                     currentActionText = `**System Correction (Attempt ${attempt}):** Your previous response was invalid due to: "${lastErrorReason}". YOU MUST FIX THIS. If you mention a new NPC, you MUST define them in 'newNPCs'. Do not update NPCs that are not in the provided context.\n\n**Original Action:**\n${choice.title}`;
                 }
 
@@ -393,9 +396,11 @@ export const useGameLogic = () => {
                 choice
             });
 
-            // Apply turn-based status effect duration updates
-            nextProfile = updateStatusEffectDurations(nextProfile);
-            nextNpcs = nextNpcs.map(npc => updateStatusEffectDurations(npc));
+            // Apply turn-based status effect duration updates only for non-time-skip actions
+            if (!choice.isTimeSkip) {
+                nextProfile = updateStatusEffectDurations(nextProfile);
+                nextNpcs = nextNpcs.map(npc => updateStatusEffectDurations(npc));
+            }
 
             const newStoryPart: StoryPart = {
                 id: Date.now() + 1,
@@ -460,6 +465,20 @@ export const useGameLogic = () => {
         };
         
         handleAction(useChoice);
+    }, [handleAction]);
+
+    const handleTimeSkip = useCallback((turns: number) => {
+        log('useGameLogic.ts', `Player skips time: ${turns} turns`, 'FUNCTION');
+        const timeSkipChoice: Choice = {
+            title: `(Hệ thống) Người chơi quyết định bỏ qua ${turns} lượt.`,
+            benefit: 'Thời gian trôi qua, các sự kiện dài hạn có thể được giải quyết.',
+            risk: 'Thế giới vận động không thể lường trước.',
+            successChance: 100,
+            durationInMinutes: 0, // Duration is handled by turns
+            isTimeSkip: true,
+            turnsToSkip: turns
+        };
+        handleAction(timeSkipChoice);
     }, [handleAction]);
 
     useEffect(() => {
@@ -676,7 +695,13 @@ export const useGameLogic = () => {
                 npcs: initialNpcs,
                 worldSettings: newWorldSettings,
                 settings,
-                choice: { durationInMinutes: 0 } // Dummy choice for initialization
+                choice: { 
+                    title: 'Bắt đầu câu chuyện', 
+                    benefit: 'Khởi đầu một cuộc phiêu lưu mới.', 
+                    risk: 'Không xác định.', 
+                    successChance: 100, 
+                    durationInMinutes: 0 
+                } // Dummy choice for initialization
             });
             
             const initialStoryPart: StoryPart = { 
@@ -735,6 +760,6 @@ export const useGameLogic = () => {
 
     return {
         gameState, setGameState, hasSaves, characterProfile, setCharacterProfile, worldSettings, setWorldSettings, history, displayHistory, npcs, setNpcs, choices, gameLog, isLoading, error, settings, apiKeyForService, toast, clearToast, lastFailedCustomAction,
-        handleAction, handleContinue, handleGoHome, handleLoadGame, handleRestart, saveSettings, handleStartGame, handleUpdateLocation, handleUpdateWorldSettings, handleRewind, handleSave, handleUseItem
+        handleAction, handleContinue, handleGoHome, handleLoadGame, handleRestart, saveSettings, handleStartGame, handleUpdateLocation, handleUpdateWorldSettings, handleRewind, handleSave, handleUseItem, handleTimeSkip
     };
 };

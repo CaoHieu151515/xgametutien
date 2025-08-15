@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 
-export type ModalName = 'settings' | 'playerInfo' | 'worldInfo' | 'map' | 'npc' | 'gameLog' | 'inventory';
+export type ModalName = 'settings' | 'playerInfo' | 'worldInfo' | 'map' | 'npc' | 'gameLog' | 'inventory' | 'timeSkip';
 
 export const useModalManager = () => {
     const [modals, setModals] = useState({
@@ -11,6 +11,7 @@ export const useModalManager = () => {
         npc: false,
         gameLog: false,
         inventory: false,
+        timeSkip: false,
     });
 
     const openModal = useCallback((name: ModalName) => {

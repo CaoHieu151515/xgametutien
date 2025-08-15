@@ -2,6 +2,8 @@
 
 
 
+
+
 import React, { useState, useEffect } from 'react';
 import { SettingsModal } from './components/modal/SettingsModal';
 import { PlayerInfoModal } from './components/modal/PlayerInfoModal';
@@ -10,6 +12,7 @@ import { MapModal } from './components/modal/MapModal';
 import { NpcModal } from './components/modal/NpcModal';
 import { GameLogModal } from './components/modal/GameLogModal';
 import { InventoryModal } from './components/modal/InventoryModal';
+import { TimeSkipModal } from './components/modal/TimeSkipModal';
 import { log } from './services/logService';
 import { DebugLogPanel } from './components/DebugLogPanel';
 import { useComponentLog } from './hooks/useComponentLog';
@@ -23,7 +26,7 @@ const App: React.FC = () => {
     
     const {
         gameState, setGameState, hasSaves, characterProfile, setCharacterProfile, worldSettings, displayHistory, npcs, setNpcs, choices, gameLog, isLoading, error, settings, apiKeyForService, toast, clearToast, lastFailedCustomAction,
-        handleAction, handleContinue, handleGoHome, handleLoadGame, handleRestart, saveSettings, handleStartGame, handleUpdateLocation, handleUpdateWorldSettings, handleRewind, handleSave, handleUseItem
+        handleAction, handleContinue, handleGoHome, handleLoadGame, handleRestart, saveSettings, handleStartGame, handleUpdateLocation, handleUpdateWorldSettings, handleRewind, handleSave, handleUseItem, handleTimeSkip
     } = useGameLogic();
     
     const { modals, openModal, closeModal } = useModalManager();
@@ -79,6 +82,7 @@ const App: React.FC = () => {
         openNpcModal: () => openModal('npc'),
         openGameLogModal: () => openModal('gameLog'),
         openInventoryModal: () => openModal('inventory'),
+        openTimeSkipModal: () => openModal('timeSkip'),
     };
 
     return (
@@ -155,6 +159,15 @@ const App: React.FC = () => {
                     profile={characterProfile}
                     onUpdateProfile={setCharacterProfile}
                     onUseItem={handleUseItem}
+                />
+            )}
+            {characterProfile && npcs && modals.timeSkip && (
+                <TimeSkipModal
+                    isOpen={modals.timeSkip}
+                    onClose={() => closeModal('timeSkip')}
+                    onTimeSkip={handleTimeSkip}
+                    characterProfile={characterProfile}
+                    npcs={npcs}
                 />
             )}
             {isDebugLogVisible && <DebugLogPanel onClose={() => setIsDebugLogVisible(false)} />}

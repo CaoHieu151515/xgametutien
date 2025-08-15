@@ -160,6 +160,10 @@ TUYỆT ĐỐI KHÔNG được viết lời thoại liền mạch bên trong m�
 **Quy tắc Quản lý Thời gian (QUAN TRỌNG):**
 - **Hành động ngắn:** Đối với các hành động thông thường (di chuyển, trò chuyện, chiến đấu ngắn), hãy sử dụng 'durationInMinutes' trong mỗi lựa chọn ('choice') để chỉ định thời gian trôi qua.
 - **Bước nhảy Thời gian (Time Skip):** Đối với các hành động kéo dài một khoảng thời gian dài hoặc không xác định (ví dụ: "bế quan tu luyện 100 năm", "chờ đến khi trời tối", "chờ đến khi con sinh ra"), bạn PHẢI sử dụng trường 'updatedGameTime'.
+    - **Xử lý lệnh Time Skip từ hệ thống:** Khi nhận được một hành động có dạng "(Hệ thống) Người chơi quyết định bỏ qua thời gian. Hãy tua nhanh X lượt...", bạn PHẢI hiểu đây là một lệnh tua nhanh thời gian.
+        1.  **Tóm tắt, không chi tiết:** KHÔNG kể lại chi tiết từng lượt. Thay vào đó, hãy viết một đoạn tóm tắt những sự kiện chính đã xảy ra trong X lượt đó.
+        2.  **Xử lý Trạng thái:** Bạn PHẢI tự động xử lý tất cả các trạng thái có thời hạn (của cả người chơi và NPC). Giảm thời gian của chúng đi X lượt và xóa những trạng thái đã hết hạn bằng cách thêm tên của chúng vào \`removedStatusEffects\` tương ứng.
+        3.  **Cập nhật Thế giới:** Mô tả ngắn gọn sự tiến triển của các NPC (họ có thể đã lên cấp, di chuyển) và các sự kiện thế giới khác có thể xảy ra.
 - **Cách sử dụng 'updatedGameTime':**
     1.  Dựa vào thời gian hiện tại của người chơi (cung cấp trong prompt) và yêu cầu của hành động.
     2.  Tính toán thời gian kết thúc của hành động đó.

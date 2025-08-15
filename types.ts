@@ -18,7 +18,9 @@ export interface Choice {
   risk: string;
   successChance: number;
   durationInMinutes: number;
-  isCustom?: boolean; // Add this line
+  isCustom?: boolean; 
+  isTimeSkip?: boolean;
+  turnsToSkip?: number;
 }
 
 export interface StatusEffect {
@@ -262,7 +264,7 @@ export enum ItemType {
 }
 
 export enum EquipmentType {
-    VU_KHI = 'Vũ Khí',
+    VU_KHI = 'Vũ Kí',
     NON = 'Nón',
     AO = 'Áo',
     GIAY = 'Giày',

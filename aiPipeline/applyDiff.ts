@@ -1,6 +1,6 @@
 import {
     StoryResponse, CharacterProfile, NPC, WorldSettings, StatusEffect, Skill,
-    NewNPCFromAI, Item, ItemType, AppSettings, ApiProvider, Achievement, SkillType, LocationType
+    NewNPCFromAI, Item, ItemType, AppSettings, ApiProvider, Achievement, SkillType, LocationType, Choice
 } from '../types';
 import {
     processLevelUps, getRealmDisplayName, calculateBaseStatsForLevel,
@@ -18,7 +18,7 @@ interface ApplyDiffParams {
     npcs: NPC[];
     worldSettings: WorldSettings;
     settings: AppSettings;
-    choice: { durationInMinutes: number };
+    choice: Choice;
 }
 
 interface ApplyDiffResult {
@@ -191,25 +191,35 @@ export const applyStoryResponseToState = async ({
         }
         nextProfile.currencyAmount = stats.currencyAmount ?? nextProfile.currencyAmount;
         
-        let currentStatusEffects = nextProfile.statusEffects.filter(e => e.duration !== 'Trang bị');
+        // --- START: Status Effect Logic Overhaul ---
+        let newStatusEffectsList = [...nextProfile.statusEffects];
+
+        // Process removals first
         if (stats.removedStatusEffects?.length) {
             const effectsToRemove = new Set(stats.removedStatusEffects);
-            const removedEffects = currentStatusEffects.filter(effect => effectsToRemove.has(effect.name));
-            removedEffects.forEach(effect => notifications.push(`🍃 Trạng thái "<b>${effect.name}</b>" của bạn đã kết thúc.`));
-            currentStatusEffects = currentStatusEffects.filter(effect => !effectsToRemove.has(effect.name));
+            const effectsThatWereRemoved = newStatusEffectsList.filter(effect => effectsToRemove.has(effect.name));
+            effectsThatWereRemoved.forEach(effect => notifications.push(`🍃 Trạng thái "<b>${effect.name}</b>" của bạn đã kết thúc.`));
+            newStatusEffectsList = newStatusEffectsList.filter(effect => !effectsToRemove.has(effect.name));
         }
+
+        // Process additions and updates
         if (stats.newStatusEffects?.length) {
-            const existingEffectNames = new Set(currentStatusEffects.map(effect => effect.name));
-            stats.newStatusEffects.forEach(effect => {
-                if (!existingEffectNames.has(effect.name)) {
-                    notifications.push(`✨ Bạn nhận được trạng thái: <b>${effect.name}</b>.`);
-                    currentStatusEffects.push(effect);
+            stats.newStatusEffects.forEach(newEffect => {
+                const existingEffectIndex = newStatusEffectsList.findIndex(e => e.name === newEffect.name);
+                if (existingEffectIndex !== -1) {
+                    // Replace existing effect to update it (e.g., refresh duration)
+                    notifications.push(`ℹ️ Trạng thái "<b>${newEffect.name}</b>" đã được làm mới.`);
+                    newStatusEffectsList[existingEffectIndex] = newEffect;
                 } else {
-                    notifications.push(`ℹ️ Bạn đã có trạng thái "<b>${effect.name}</b>", không thể nhận thêm.`);
+                    // Add brand new effect
+                    notifications.push(`✨ Bạn nhận được trạng thái: <b>${newEffect.name}</b>.`);
+                    newStatusEffectsList.push(newEffect);
                 }
             });
         }
-        nextProfile.statusEffects = currentStatusEffects;
+        nextProfile.statusEffects = newStatusEffectsList;
+        // --- END: Status Effect Logic Overhaul ---
+
 
         if (stats.newAchievements?.length) {
             if (!nextProfile.achievements) nextProfile.achievements = [];
@@ -356,23 +366,35 @@ export const applyStoryResponseToState = async ({
                     }
                     if (update.newMemories?.length) modifiedNpc.memories = [...new Set([...(modifiedNpc.memories || []), ...update.newMemories])];
                     
-                    // Handle status effects for NPC
+                    // --- START: NPC Status Effect Logic Overhaul ---
                     let currentNpcStatusEffects = [...(modifiedNpc.statusEffects || [])];
+
+                    // Process removals first
                     if (update.removedStatusEffects?.length) {
                         const effectsToRemove = new Set(update.removedStatusEffects);
+                        const effectsThatWereRemoved = currentNpcStatusEffects.filter(effect => effectsToRemove.has(effect.name));
+                        effectsThatWereRemoved.forEach(effect => notifications.push(`🍃 Trạng thái "<b>${effect.name}</b>" của <b>${modifiedNpc.name}</b> đã kết thúc.`));
                         currentNpcStatusEffects = currentNpcStatusEffects.filter(effect => !effectsToRemove.has(effect.name));
-                        update.removedStatusEffects.forEach(effectName => notifications.push(`🍃 Trạng thái "<b>${effectName}</b>" của <b>${modifiedNpc.name}</b> đã kết thúc.`));
                     }
+
+                    // Process additions and updates
                     if (update.newStatusEffects?.length) {
-                        const existingEffectNames = new Set(currentNpcStatusEffects.map(effect => effect.name));
-                        update.newStatusEffects.forEach(effect => {
-                            if (!existingEffectNames.has(effect.name)) {
-                                notifications.push(`✨ <b>${modifiedNpc.name}</b> nhận được trạng thái: <b>${effect.name}</b>.`);
-                                currentNpcStatusEffects.push(effect);
+                        update.newStatusEffects.forEach(newEffect => {
+                            const existingEffectIndex = currentNpcStatusEffects.findIndex(e => e.name === newEffect.name);
+                            if (existingEffectIndex !== -1) {
+                                // Replace existing effect
+                                notifications.push(`ℹ️ Trạng thái "<b>${newEffect.name}</b>" của <b>${modifiedNpc.name}</b> đã được làm mới.`);
+                                currentNpcStatusEffects[existingEffectIndex] = newEffect;
+                            } else {
+                                // Add new effect
+                                notifications.push(`✨ <b>${modifiedNpc.name}</b> nhận được trạng thái: <b>${newEffect.name}</b>.`);
+                                currentNpcStatusEffects.push(newEffect);
                             }
                         });
                     }
                     modifiedNpc.statusEffects = currentNpcStatusEffects;
+                    // --- END: NPC Status Effect Logic Overhaul ---
+
 
                     // Apply other direct updates
                     Object.assign(modifiedNpc, {
@@ -415,17 +437,32 @@ export const applyStoryResponseToState = async ({
     // Apply time changes
     const oldDate = new Date(nextProfile.gameTime);
     let newDate: Date | null = null;
+
     if (response.updatedGameTime) {
         newDate = new Date(response.updatedGameTime);
         const timeDiffMs = newDate.getTime() - oldDate.getTime();
         if (timeDiffMs > 0) {
             const yearsPassed = (timeDiffMs / (1000 * 60 * 60 * 24 * 365.25));
-            if (yearsPassed >= 1) notifications.push(`⏳ <b>${Math.floor(yearsPassed)} năm</b> đã trôi qua.`);
+            if (yearsPassed >= 1) {
+                notifications.push(`⏳ <b>${Math.floor(yearsPassed)} năm</b> đã trôi qua.`);
+            }
         }
-    } else if (choice.durationInMinutes > 0) {
-        newDate = new Date(oldDate.getTime() + choice.durationInMinutes * 60 * 1000);
-        notifications.push(`⏳ Thời gian đã trôi qua: <b>${choice.durationInMinutes} phút</b>.`);
+    } else {
+        let minutesPassed = 0;
+        if (choice.isTimeSkip && choice.turnsToSkip) {
+            // 1 lượt = 8 giờ = 480 phút
+            minutesPassed = choice.turnsToSkip * 480;
+            notifications.push(`⏳ Thời gian đã trôi qua: <b>${choice.turnsToSkip} lượt</b>.`);
+        } else if (choice.durationInMinutes > 0) {
+            minutesPassed = choice.durationInMinutes;
+            notifications.push(`⏳ Thời gian đã trôi qua: <b>${choice.durationInMinutes} phút</b>.`);
+        }
+        
+        if(minutesPassed > 0) {
+            newDate = new Date(oldDate.getTime() + minutesPassed * 60 * 1000);
+        }
     }
+    
     if (newDate) {
         const yearsPassed = newDate.getFullYear() - oldDate.getFullYear();
         if (yearsPassed > 0) nextProfile.lifespan -= yearsPassed;

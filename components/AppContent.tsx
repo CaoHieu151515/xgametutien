@@ -34,6 +34,7 @@ interface AppContentProps {
     openNpcModal: () => void;
     openGameLogModal: () => void;
     openInventoryModal: () => void;
+    openTimeSkipModal: () => void;
 }
 
 export const AppContent: React.FC<AppContentProps> = (props) => {
@@ -72,6 +73,7 @@ export const AppContent: React.FC<AppContentProps> = (props) => {
                             openNpcModal={props.openNpcModal}
                             openGameLogModal={props.openGameLogModal}
                             openInventoryModal={props.openInventoryModal}
+                            openTimeSkipModal={props.openTimeSkipModal}
                         />;
             }
             return <ErrorScreen error="Lỗi trạng thái game: Dữ liệu nhân vật hoặc thế giới không tồn tại." onRestart={props.handleRestart} />;
