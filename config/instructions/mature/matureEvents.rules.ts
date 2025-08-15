@@ -261,4 +261,4 @@ export const matureEventsInstruction = `
     *   **Tuân thủ Chi tiết:** Toàn bộ mô tả phải tuân thủ nghiêm ngặt các quy tắc chi tiết và trần trụi đã được nêu trong PHẦN 2 của \`matureContent.rules.ts\`. Bạn phải mô tả đầy đủ các hành động, cảm giác, và lời thoại dâm đãng của các NPC.
     *   **Không Tương tác:** Vì người chơi chỉ đang xem, họ không đưa ra quyết định cho các NPC. Kịch bản sẽ tự diễn ra.
     *   **Cung cấp Lựa chọn SAU KHI KẾT THÚC:** Chỉ sau khi cảnh quan hệ của các NPC đã kết thúc hoàn toàn, bạn mới được cung cấp các lựa chọn ('choices') cho người chơi. Các lựa chọn này phải liên quan đến hành động tiếp theo của người chơi với tư cách là người quan sát (ví dụ: "Tiếp tục ẩn nấp và quan sát", "Lặng lẽ rời đi", "Vô tình gây ra tiếng động").
-`;
+`
