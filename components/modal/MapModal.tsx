@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Location, LocationType, CharacterProfile, WorldSettings, Choice } from '../../types';
 
@@ -180,24 +179,37 @@ export const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, locations, 
     
     useEffect(() => {
         if (isOpen) {
-            const getPathForLocation = (locId: string | null): Location[] => {
+            const getAncestorPath = (locId: string | null): Location[] => {
                 if (!locId) return [];
-                const fullPath: Location[] = [];
-                let currentLoc = locationMap.get(locId);
-                let parentId = currentLoc?.parentId;
+                const path: Location[] = [];
+                let current = locationMap.get(locId);
+                if (!current) return [];
+    
+                let parentId = current.parentId;
                 while (parentId) {
                     const parent = locationMap.get(parentId);
                     if (parent) {
-                        fullPath.unshift(parent);
+                        path.unshift(parent);
                         parentId = parent.parentId;
-                    } else break;
+                    } else {
+                        break;
+                    }
                 }
-                return fullPath;
+                return path;
             };
-
-            const initialPath = getPathForLocation(currentLocationId);
-            setPath(initialPath);
+            
             const currentLoc = locations.find(l => l.id === currentLocationId);
+            let initialPath: Location[] = [];
+    
+            if (currentLoc) {
+                if (currentLoc.type === LocationType.WORLD) {
+                    initialPath = [currentLoc];
+                } else {
+                    initialPath = getAncestorPath(currentLocationId);
+                }
+            }
+            
+            setPath(initialPath);
             setSelectedLocation(currentLoc || null);
             
             setTimeout(() => centerMapOnLocation(currentLoc, 'auto'), 150);
