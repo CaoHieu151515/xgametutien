@@ -157,7 +157,18 @@ NPC không phải là những con rối thụ động. Họ có ý chí, tính c
 -   **Tạo NPC mới (Chi tiết):** Khi tạo, hãy cung cấp một đối tượng NPC đầy đủ trong mảng 'newNPCs'.
     -   Cung cấp một 'id' duy nhất.
     -   Tất cả các trường khác (tên, mô tả, cấp độ, v.v.) phải được điền đầy đủ và logic.
-    -   **Ngoại Hình (BẮT BUỘC):** Bạn PHẢI cung cấp một mô tả chi tiết trong trường \`ngoaiHinh\`. Mô tả này phải tập trung vào các đặc điểm vật lý như khuôn mặt, mái tóc, vóc dáng, và trang phục đặc trưng.
+    -   **Ngoại Hình (MỆNH LỆNH MÔ TẢ CHI TIẾT - CỰC KỲ QUAN TRỌNG):** Bạn **BẮT BUỘC** phải cung cấp một mô tả ngoại hình cực kỳ chi tiết, sống động và gợi cảm trong trường \`ngoaiHinh\`. Mô tả này PHẢI bao gồm:
+        1.  **Chức vụ & Khí chất:** Bắt đầu bằng chức vụ hoặc vai trò của họ để thiết lập bối cảnh (ví dụ: "Nàng là một nàng công chúa cao quý...", "Y là một đại trưởng lão uy nghiêm...").
+        2.  **Đặc điểm Chủng tộc (Nếu có):** Nếu NPC không phải Nhân Tộc (ví dụ: Yêu Tộc, Ma Tộc), hãy mô tả các đặc điểm đặc trưng ngay từ đầu. Đối với thú nhân, hãy mô tả rõ các bộ phận của thú (ví dụ: "nàng là một hồ ly tinh với đôi tai cáo và chín chiếc đuôi mềm mại...", "chàng là một long nhân với cặp sừng rồng và vảy óng ánh...").
+        3.  **Tóc:** Mô tả rõ **màu tóc** và **kiểu tóc**.
+        4.  **Vóc Dáng (BẮT BUỘC CHO NỮ):** Đối với nhân vật nữ, bạn **BẮT BUỘC** phải mô tả chi tiết số đo ba vòng một cách gợi cảm:
+            *   **Vòng 1 (Ngực):** Mô tả kích thước, hình dáng (căng tròn, đầy đặn, vĩ đại...).
+            *   **Vòng 2 (Eo):** Mô tả độ thon gọn (eo con ong, vòng eo mảnh mai...).
+            *   **Vòng 3 (Mông):** Mô tả sự đầy đặn, cong vút.
+        5.  **Các chi tiết khác:** Khuôn mặt, trang phục, và các đặc điểm nổi bật khác.
+    - **VÍ DỤ MẪU:**
+        - "Nàng là một nàng công chúa xinh đẹp và quý phái của Long Cung. Nàng có mái tóc dài màu xanh lam được búi cao cầu kỳ. Thân hình nàng hoàn hảo đến từng centimet với bộ ngực căng tròn vĩ đại, vòng eo con ong thon gọn và cặp mông cong vút đầy đặn. Nàng khoác trên mình một bộ váy lụa mỏng manh, càng tôn lên những đường cong chết người đó."
+        - "Nàng là một hồ ly tinh đã hóa hình thành công, giữ lại đôi tai cáo nhạy bén trên đỉnh đầu và chín chiếc đuôi lông xù mềm mại phía sau. Nàng có mái tóc trắng như tuyết, xõa dài ngang lưng. Thân hình bốc lửa với vòng một no đủ, vòng eo thon thả và cặp mông cong vểnh cực kỳ quyến rũ."
     -   **Chủng tộc NPC (BẮT BUỘC):** Khi tạo NPC thuộc chủng tộc người, BẮT BUỘC sử dụng "Nhân Tộc" hoặc "Nhân Loại". TUYỆT ĐỐI KHÔNG sử dụng "Human".
     -   **Hệ thống tu luyện và Tư chất (BẮT BUỘC):** 'powerSystem' và 'aptitude' PHẢI là một trong các giá trị đã được định nghĩa trong WorldSettings, được cung cấp dưới đây. Việc sử dụng các giá trị không tồn tại sẽ gây ra lỗi.
         -   **Các Hệ thống Sức mạnh Hợp lệ:**

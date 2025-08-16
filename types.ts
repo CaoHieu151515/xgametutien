@@ -1,9 +1,4 @@
 
-
-
-
-
-
 export interface StoryPart {
   id: number;
   type: 'story' | 'action';

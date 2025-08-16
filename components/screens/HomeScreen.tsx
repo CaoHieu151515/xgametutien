@@ -1,4 +1,5 @@
 
+
 import React, { useRef, useState } from 'react';
 import { GameState, AvatarData, CustomAvatarData } from '../../types';
 import { ContinueIcon, JourneyIcon, SavesIcon, SettingsIcon, UploadIcon, CloudDownloadIcon } from '../ui/Icons';
@@ -24,8 +25,8 @@ const mapCustomToAvatarData = (customData: CustomAvatarData[]): AvatarData[] => 
 
         // Determine gender
         let gender: AvatarData['gender'] = 'none';
-        const maleKeywords = ['nam', 'võ giả', 'tông chủ', 'trưởng lão'];
-        const femaleKeywords = ['nữ', 'tiên tử', 'thiếu nữ'];
+        const maleKeywords = ['nam', 'võ giả', 'tông chủ', 'trưởng lão', 'kiếm sĩ', 'ma đạo', 'hoàng tử', 'lãng tử', 'tu sĩ', 'chiến binh'];
+        const femaleKeywords = ['nữ', 'tiên tử', 'thiếu nữ', 'sát thủ', 'cung thủ', 'công chúa', 'pháp sư', 'nữ hoàng'];
 
         const hasMaleTag = lowerTags.some(tag => maleKeywords.includes(tag));
         const hasFemaleTag = lowerTags.some(tag => femaleKeywords.includes(tag));
@@ -81,8 +82,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ hasSaves, onContinue, on
     };
     
     const handleWebLibraryImport = async () => {
-        // Use a CORS proxy to bypass browser security restrictions for cross-domain requests.
-        const originalUrl = 'https://avatatutien.pages.dev/';
+        const originalUrl = 'https://raw.githubusercontent.com/TieuLongNu/avatatutien/main/data.json';
         const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(originalUrl)}`;
 
         setIsWebLibraryLoading(true);

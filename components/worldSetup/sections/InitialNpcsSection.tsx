@@ -1,5 +1,4 @@
 
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { CharacterProfile, WorldSettings, NewNPCFromAI, CharacterGender, MienLuc, NpcRelationship } from '../../../types';
 import { FormInput, FormSelect, FormTextArea, FormLabel, RemoveIcon, WandIcon } from '../common';
@@ -34,7 +33,7 @@ export const InitialNpcsSection: React.FC<InitialNpcsSectionProps> = ({ profile,
 
     const selectedNpc = useMemo(() => initialNpcs.find(npc => npc.id === selectedNpcId), [initialNpcs, selectedNpcId]);
 
-    const handleAddInitialNpc = () => {
+    const handleAddInitialNpc = async () => {
         const newNpc: NewNPCFromAI = {
             id: `npc_initial_${Date.now()}`,
             name: 'NPC Mới',
@@ -51,6 +50,14 @@ export const InitialNpcsSection: React.FC<InitialNpcsSectionProps> = ({ profile,
             statusEffects: [],
             npcRelationships: [],
         };
+        
+        // Automatically find an avatar
+        const otherNpcs = profile.initialNpcs || [];
+        const avatarUrl = await findBestAvatar(newNpc, otherNpcs);
+        if (avatarUrl) {
+            newNpc.avatarUrl = avatarUrl;
+        }
+
         setProfile(prev => {
             const newNpcs = [...(prev.initialNpcs || []), newNpc];
             return { ...prev, initialNpcs: newNpcs };

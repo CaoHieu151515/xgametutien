@@ -9,6 +9,7 @@ import {
 } from '../services/progressionService';
 import * as geminiService from '../services/geminiService';
 import * as openaiService from '../services/openaiService';
+import { findBestAvatar } from '../services/avatarService';
 
 const USE_DEFAULT_KEY_IDENTIFIER = '_USE_DEFAULT_KEY_';
 
@@ -345,16 +346,16 @@ export const applyStoryResponseToState = async ({
 
     // Apply NPC changes
     if (response.newNPCs?.length) {
-        const brandNewNpcs: NPC[] = response.newNPCs.map((newNpcData: NewNPCFromAI) => {
-             const powerSystemForNpc = finalWorldSettings.powerSystems.find(ps => ps.name === newNpcData.powerSystem);
-             const isValidPowerSystem = !!powerSystemForNpc;
-             const npcPowerSystem = isValidPowerSystem ? newNpcData.powerSystem : (finalWorldSettings.powerSystems[0]?.name || '');
-             const maxLevel = powerSystemForNpc ? (powerSystemForNpc.realms.split(' - ').filter(r => r.trim()).length * 10) || 1 : 1;
-             const npcLevel = isValidPowerSystem ? Math.min(newNpcData.level, maxLevel) : 1;
-             const stats = calculateBaseStatsForLevel(npcLevel);
-             return { ...newNpcData, level: npcLevel, powerSystem: npcPowerSystem, experience: 0, health: stats.maxHealth, mana: stats.maxMana, realm: getRealmDisplayName(npcLevel, npcPowerSystem, finalWorldSettings), memories: [], npcRelationships: newNpcData.npcRelationships || [], statusEffects: newNpcData.statusEffects.filter((v, i, a) => a.findIndex(t => t.name === v.name) === i), isDaoLu: newNpcData.isDaoLu || false, isNew: true };
+        const brandNewNpcsData = response.newNPCs.map((newNpcData: NewNPCFromAI) => {
+            const powerSystemForNpc = finalWorldSettings.powerSystems.find(ps => ps.name === newNpcData.powerSystem);
+            const isValidPowerSystem = !!powerSystemForNpc;
+            const npcPowerSystem = isValidPowerSystem ? newNpcData.powerSystem : (finalWorldSettings.powerSystems[0]?.name || '');
+            const maxLevel = powerSystemForNpc ? (powerSystemForNpc.realms.split(' - ').filter(r => r.trim()).length * 10) || 1 : 1;
+            const npcLevel = isValidPowerSystem ? Math.min(newNpcData.level, maxLevel) : 1;
+            const stats = calculateBaseStatsForLevel(npcLevel);
+            return { ...newNpcData, level: npcLevel, powerSystem: npcPowerSystem, experience: 0, health: stats.maxHealth, mana: stats.maxMana, realm: getRealmDisplayName(npcLevel, npcPowerSystem, finalWorldSettings), memories: [], npcRelationships: newNpcData.npcRelationships || [], statusEffects: newNpcData.statusEffects.filter((v, i, a) => a.findIndex(t => t.name === v.name) === i), isDaoLu: newNpcData.isDaoLu || false, isNew: true };
         });
-        nextNpcs = [...nextNpcs, ...brandNewNpcs];
+        nextNpcs = [...nextNpcs, ...brandNewNpcsData];
     }
     if (response.updatedNPCs?.length) {
         const npcsToUpdateMap = new Map(nextNpcs.map(n => [n.id, n]));

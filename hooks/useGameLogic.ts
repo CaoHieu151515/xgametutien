@@ -7,6 +7,7 @@ import { processLevelUps, getRealmDisplayName, calculateBaseStatsForLevel, getLe
 import { log } from '../services/logService';
 import { applyStoryResponseToState } from '../aiPipeline/applyDiff';
 import { verifyStoryResponse } from '../utils/stateVerifier';
+import { findBestAvatar } from '../services/avatarService';
 
 const SETTINGS_KEY = 'tuTienTruyenSettings_v2';
 const USE_DEFAULT_KEY_IDENTIFIER = '_USE_DEFAULT_KEY_';
@@ -373,6 +374,25 @@ export const useGameLogic = () => {
              setChoices(preActionState.choices);
              setIsLoading(false);
              return;
+        }
+
+        // Find avatars for new NPCs before applying state changes
+        if (storyResponse.newNPCs?.length) {
+            const allNpcsForContext = [...npcs, ...storyResponse.newNPCs];
+            const avatarUpdatePromises = storyResponse.newNPCs.map(async (newNpc) => {
+                if (!newNpc.avatarUrl) {
+                    const allOtherNpcs = allNpcsForContext.filter(n => {
+                        if (!n.id || !newNpc.id) return true;
+                        return n.id !== newNpc.id;
+                    });
+                    const avatarUrl = await findBestAvatar(newNpc, allOtherNpcs);
+                    if (avatarUrl) {
+                        return { ...newNpc, avatarUrl };
+                    }
+                }
+                return newNpc;
+            });
+            storyResponse.newNPCs = await Promise.all(avatarUpdatePromises);
         }
 
         if (usageMetadata?.totalTokenCount) {

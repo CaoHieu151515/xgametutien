@@ -1,9 +1,4 @@
 
-
-
-
-
-
 import React from 'react';
 
 // General App Icons
