@@ -104,6 +104,25 @@ export const applyStoryResponseToState = async ({
         notifications.push(`🚶 Bạn đã di chuyển đến <b>${newLocName}</b>.`);
     }
 
+    if (response.updatedNPCs?.length) {
+        response.updatedNPCs.forEach(update => {
+            const originalNpc = npcs.find(n => n.id === update.id);
+            if (!originalNpc) return;
+    
+            // Check for new special constitution
+            if (update.specialConstitution && 
+                (!originalNpc.specialConstitution || originalNpc.specialConstitution.name !== update.specialConstitution.name)) {
+                notifications.push(`🌟 <b>${originalNpc.name}</b> đã thức tỉnh thể chất đặc biệt: <b>${update.specialConstitution.name}</b>!`);
+            }
+    
+            // Check for new innate talent
+            if (update.innateTalent &&
+                (!originalNpc.innateTalent || originalNpc.innateTalent.name !== update.innateTalent.name)) {
+                notifications.push(`🌟 <b>${originalNpc.name}</b> đã thức tỉnh thiên phú bẩm sinh: <b>${update.innateTalent.name}</b>!`);
+            }
+        });
+    }
+
     // --- STEP 2: Calculate XP and get the definitive new profile object ---
     const gainedXpFromAI = response.updatedStats?.gainedExperience ?? 0;
     let finalGainedXp = 0;
@@ -406,7 +425,9 @@ export const applyStoryResponseToState = async ({
                         description: update.description ?? modifiedNpc.description,
                         ngoaiHinh: update.ngoaiHinh ?? modifiedNpc.ngoaiHinh,
                         aptitude: update.aptitude ?? modifiedNpc.aptitude,
-                        npcRelationships: update.updatedNpcRelationships ?? modifiedNpc.npcRelationships
+                        npcRelationships: update.updatedNpcRelationships ?? modifiedNpc.npcRelationships,
+                        specialConstitution: update.specialConstitution ?? modifiedNpc.specialConstitution,
+                        innateTalent: update.innateTalent ?? modifiedNpc.innateTalent,
                     });
                 }
                 npcsToUpdateMap.set(update.id, modifiedNpc);

@@ -325,6 +325,8 @@ export const updatedNpcSchema = {
         ngoaiHinh: { type: Type.STRING, description: "Mô tả ngoại hình mới của NPC nếu có thay đổi." },
         locationId: { type: Type.STRING, description: "ID vị trí mới của NPC." },
         aptitude: { type: Type.STRING, description: "Tư chất mới của NPC nếu bị thay đổi bởi độc dược hoặc sự kiện." },
+        specialConstitution: { ...specialConstitutionSchema, description: "Thể chất đặc biệt MỚI của NPC nếu có sự thay đổi." },
+        innateTalent: { ...talentSchema, description: "Thiên phú bẩm sinh MỚI của NPC nếu có sự thay đổi." },
         updatedNpcRelationships: { type: Type.ARRAY, items: npcRelationshipSchema, description: "Toàn bộ danh sách mối quan hệ MỚI của NPC này với các NPC khác." },
         isDaoLu: { type: Type.BOOLEAN, description: "Đặt thành true nếu NPC trở thành Đạo Lữ của người chơi." },
         isDead: { type: Type.BOOLEAN, description: "Đặt thành true nếu NPC đã chết." },
