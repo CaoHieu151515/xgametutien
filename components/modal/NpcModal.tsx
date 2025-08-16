@@ -435,7 +435,7 @@ export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpd
 
                                         <Section title="Ký Ức">
                                             {selectedNpc.memories.length > 0 ? (
-                                                <ul className="list-disc list-inside space-y-2 text-slate-300">
+                                                <ul className="list-disc list-inside space-y-2 text-slate-300 max-h-40 overflow-y-auto custom-scrollbar pr-2">
                                                     {selectedNpc.memories.map((mem, i) => <li key={i}>{mem}</li>)}
                                                 </ul>
                                             ) : <p className="text-slate-500 text-center py-4">Chưa có ký ức đáng nhớ nào.</p>}

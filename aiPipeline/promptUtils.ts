@@ -55,12 +55,13 @@ export const buildContextForPrompt = (
         const isPresent = npc.locationId === characterProfile.currentLocationId;
         const isMentioned = historyText.includes(npc.name) || (npc.aliases && npc.aliases.split(',').some(alias => historyText.includes(alias.trim())));
         return !npc.isDead && (isPresent || isMentioned);
-    }).map(({ id, name, aliases, gender, race, personality, description, level, realm, relationship, isDaoLu, specialConstitution, innateTalent }) => ({
+    }).map(({ id, name, aliases, gender, race, personality, description, level, realm, relationship, isDaoLu, specialConstitution, innateTalent, memories }) => ({
         id, name, aliases, gender, race, personality, 
         description: description.substring(0, 150) + (description.length > 150 ? '...' : ''),
         level, realm, relationship, isDaoLu,
         specialConstitution,
-        innateTalent
+        innateTalent,
+        memories
     }));
 
     // 2. Lọc Địa điểm theo ngữ cảnh: địa phương và toàn cục.

@@ -177,8 +177,9 @@ NPC không phải là những con rối thụ động. Họ có ý chí, tính c
         -   Khi một NPC trở thành Đạo Lữ của người chơi, bạn **BẮT BUỘC** phải đặt trường 'isDaoLu' thành \`true\` trong \`updatedNPCs\`. Đồng thời, hãy đặt 'relationship' của họ thành 1000.
         -   Một khi đã là Đạo Lữ, NPC sẽ trung thành tuyệt đối và luôn ủng hộ người chơi.
         -   Cách gọi: Người chơi là ${playerGenderVietnamese}, nên Đạo Lữ sẽ gọi người chơi là "${daoLuTermPlayer}".
-    -   **Ký ức (MỆNH LỆNH TUYỆT ĐỐI - TRÍ NHỚ VĨNH VIỄN):** Bạn **BẮT BUỘC** phải thêm MỘT chuỗi ký ức MỚI, ngắn gọn và cụ thể về sự tương tác này vào trường **\`newMemories\`**.
-        -   **Nguyên tắc:** Nếu một NPC được nhắc đến hoặc tham gia vào 'story', họ phải có một ký ức mới về sự kiện đó. Trường này là một mảng CHỈ chứa các ký ức mới từ lượt này. KHÔNG gửi lại toàn bộ lịch sử. Hệ thống sẽ tự động thêm ký ức mới này vào lịch sử đầy đủ của NPC.
+    -   **Ký ức (MỆNH LỆNH TUYỆT ĐỐI - TRÍ NHỚ VĨNH VIỄN):** Dữ liệu của mỗi NPC sẽ chứa một mảng 'memories' liệt kê tất cả các sự kiện quan trọng mà họ đã trải qua. Bạn PHẢI sử dụng lịch sử này để đảm bảo tính nhất quán trong hành vi và lời nói của NPC.
+        -   **Nhiệm vụ:** Sau mỗi lượt tương tác, bạn **BẮT BUỘC** phải tạo ra một chuỗi ký ức MỚI, ngắn gọn, cụ thể về sự tương tác này và thêm nó vào trường \`newMemories\`.
+        -   **Logic Quan trọng:** Trường \`newMemories\` là một mảng CHỈ chứa các ký ức MỚI từ lượt này. **TUYỆT ĐỐI KHÔNG** gửi lại toàn bộ lịch sử ký ức trong trường này. Hệ thống sẽ tự động thêm ký ức mới này vào lịch sử đầy đủ của NPC.
         -   **Nội dung Ký ức:** Ngắn gọn, cụ thể, từ góc nhìn của NPC.
             - **Ví dụ:** \`"newMemories": ["Đã trò chuyện với [Tên người chơi] về các loại vật phẩm trong cửa hàng."]\`
     -   **Cái chết:** Nếu một NPC chết, hãy đặt trường 'isDead' thành \`true\`. Một NPC đã chết sẽ không còn xuất hiện hay tương tác trong game nữa, trừ khi có phép thuật hồi sinh.
