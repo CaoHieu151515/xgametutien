@@ -260,7 +260,7 @@ export enum ItemType {
 }
 
 export enum EquipmentType {
-    VU_KHI = 'Vũ Kí',
+    VU_KHI = 'Vũ Khí',
     NON = 'Nón',
     AO = 'Áo',
     GIAY = 'Giày',
