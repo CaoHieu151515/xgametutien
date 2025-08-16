@@ -319,26 +319,46 @@ export const applyStoryResponseToState = async ({
 
     // Apply location changes
     if (response.newLocations?.length) {
+        const existingLocationNames = new Set(nextProfile.discoveredLocations.map(l => l.name.toLowerCase()));
         const uniqueNewLocations = response.newLocations
-            .filter(l => !nextProfile.discoveredLocations.some(dl => dl.id === l.id))
+            .filter(l => !nextProfile.discoveredLocations.some(dl => dl.id === l.id) && !existingLocationNames.has(l.name.toLowerCase()))
             .map(l => ({ ...(l.ownerId === 'player' ? { ...l, ownerId: nextProfile.id } : l), isNew: true }));
+        
+        if (uniqueNewLocations.length !== response.newLocations.length) {
+            const ignoredCount = response.newLocations.length - uniqueNewLocations.length;
+            const ignoredNames = response.newLocations.filter(l => existingLocationNames.has(l.name.toLowerCase())).map(n => n.name).join(', ');
+            notifications.push(`ℹ️ Hệ thống đã bỏ qua việc tạo lại ${ignoredCount} địa điểm đã tồn tại: ${ignoredNames}.`);
+        }
+        
         uniqueNewLocations.forEach(newLoc => {
             if (newLoc.ownerId === nextProfile.id) notifications.push(`👑 Bây giờ bạn là chủ sở hữu của <b>${newLoc.name}</b>.`);
         });
         nextProfile.discoveredLocations = [...nextProfile.discoveredLocations, ...uniqueNewLocations];
     }
+
     if (response.updatedLocations?.length) {
         const updatedLocationsWithPlayerId = response.updatedLocations.map(l => l.ownerId === 'player' ? { ...l, ownerId: nextProfile.id } : l);
         const updatedLocationsMap = new Map(updatedLocationsWithPlayerId.map(l => [l.id, l]));
-        nextProfile.discoveredLocations.forEach(oldLoc => {
-            const updatedData = updatedLocationsMap.get(oldLoc.id);
+
+        nextProfile.discoveredLocations = nextProfile.discoveredLocations.map(loc => {
+            const updatedData = updatedLocationsMap.get(loc.id);
             if (updatedData) {
-                if (updatedData.ownerId === nextProfile.id && oldLoc.ownerId !== nextProfile.id) notifications.push(`👑 Bây giờ bạn là chủ sở hữu của <b>${updatedData.name}</b>.`);
-                if (updatedData.isDestroyed === false && oldLoc.isDestroyed === true && oldLoc.type === LocationType.WORLD) notifications.push(`🌍 Thế Giới <b>${oldLoc.name}</b> đã được hồi sinh!`);
+                // Merge to prevent data loss, especially for fields AI might forget like 'rules'
+                const mergedLocation = { ...loc, ...updatedData };
+                
+                // Notification logic
+                if (mergedLocation.ownerId === nextProfile.id && loc.ownerId !== nextProfile.id) {
+                    notifications.push(`👑 Bây giờ bạn là chủ sở hữu của <b>${mergedLocation.name}</b>.`);
+                }
+                if (mergedLocation.isDestroyed === false && loc.isDestroyed === true && loc.type === LocationType.WORLD) {
+                    notifications.push(`🌍 Thế Giới <b>${loc.name}</b> đã được hồi sinh!`);
+                }
+                return mergedLocation;
             }
+            return loc;
         });
-        nextProfile.discoveredLocations = nextProfile.discoveredLocations.map(loc => updatedLocationsMap.get(loc.id) || loc);
     }
+
     // This is the critical update for player movement
     if (response.updatedPlayerLocationId !== undefined) {
         nextProfile.currentLocationId = response.updatedPlayerLocationId;
@@ -346,7 +366,16 @@ export const applyStoryResponseToState = async ({
 
     // Apply NPC changes
     if (response.newNPCs?.length) {
-        const brandNewNpcsData = response.newNPCs.map((newNpcData: NewNPCFromAI) => {
+        const existingNpcNames = new Set(nextNpcs.map(n => n.name.toLowerCase()));
+        const trulyNewNpcs = response.newNPCs.filter(newNpc => !existingNpcNames.has(newNpc.name.toLowerCase()));
+
+        if (trulyNewNpcs.length !== response.newNPCs.length) {
+            const ignoredCount = response.newNPCs.length - trulyNewNpcs.length;
+            const ignoredNames = response.newNPCs.filter(newNpc => existingNpcNames.has(newNpc.name.toLowerCase())).map(n => n.name).join(', ');
+            notifications.push(`ℹ️ Hệ thống đã bỏ qua việc tạo lại ${ignoredCount} NPC đã tồn tại: ${ignoredNames}.`);
+        }
+
+        const brandNewNpcsData = trulyNewNpcs.map((newNpcData: NewNPCFromAI) => {
             const powerSystemForNpc = finalWorldSettings.powerSystems.find(ps => ps.name === newNpcData.powerSystem);
             const isValidPowerSystem = !!powerSystemForNpc;
             const npcPowerSystem = isValidPowerSystem ? newNpcData.powerSystem : (finalWorldSettings.powerSystems[0]?.name || '');

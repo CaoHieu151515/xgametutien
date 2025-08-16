@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { CharacterProfile, WorldSettings, NewNPCFromAI, CharacterGender, MienLuc, NpcRelationship } from '../../../types';
 import { FormInput, FormSelect, FormTextArea, FormLabel, RemoveIcon, WandIcon } from '../common';
