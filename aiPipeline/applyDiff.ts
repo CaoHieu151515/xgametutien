@@ -224,15 +224,26 @@ export const applyStoryResponseToState = async ({
         // Process additions and updates
         if (stats.newStatusEffects?.length) {
             stats.newStatusEffects.forEach(newEffect => {
-                const existingEffectIndex = newStatusEffectsList.findIndex(e => e.name === newEffect.name);
-                if (existingEffectIndex !== -1) {
-                    // Replace existing effect to update it (e.g., refresh duration)
-                    notifications.push(`ℹ️ Trạng thái "<b>${newEffect.name}</b>" đã được làm mới.`);
-                    newStatusEffectsList[existingEffectIndex] = newEffect;
+                if (newEffect.name.startsWith('Mang Thai')) {
+                    const existingPregnancyEffect = newStatusEffectsList.find(e => e.name.startsWith('Mang Thai'));
+                    if (existingPregnancyEffect) {
+                        newEffect.duration = existingPregnancyEffect.duration;
+                        newStatusEffectsList = newStatusEffectsList.filter(e => !e.name.startsWith('Mang Thai'));
+                        newStatusEffectsList.push(newEffect);
+                        notifications.push(`ℹ️ Trạng thái mang thai của bạn đã được cập nhật thành: <b>${newEffect.name}</b>. Thời gian còn lại không đổi.`);
+                    } else {
+                        notifications.push(`✨ Bạn nhận được trạng thái: <b>${newEffect.name}</b>.`);
+                        newStatusEffectsList.push(newEffect);
+                    }
                 } else {
-                    // Add brand new effect
-                    notifications.push(`✨ Bạn nhận được trạng thái: <b>${newEffect.name}</b>.`);
-                    newStatusEffectsList.push(newEffect);
+                    const existingEffectIndex = newStatusEffectsList.findIndex(e => e.name === newEffect.name);
+                    if (existingEffectIndex !== -1) {
+                        notifications.push(`ℹ️ Trạng thái "<b>${newEffect.name}</b>" đã được làm mới.`);
+                        newStatusEffectsList[existingEffectIndex] = newEffect;
+                    } else {
+                        notifications.push(`✨ Bạn nhận được trạng thái: <b>${newEffect.name}</b>.`);
+                        newStatusEffectsList.push(newEffect);
+                    }
                 }
             });
         }
@@ -399,15 +410,26 @@ export const applyStoryResponseToState = async ({
                     // Process additions and updates
                     if (update.newStatusEffects?.length) {
                         update.newStatusEffects.forEach(newEffect => {
-                            const existingEffectIndex = currentNpcStatusEffects.findIndex(e => e.name === newEffect.name);
-                            if (existingEffectIndex !== -1) {
-                                // Replace existing effect
-                                notifications.push(`ℹ️ Trạng thái "<b>${newEffect.name}</b>" của <b>${modifiedNpc.name}</b> đã được làm mới.`);
-                                currentNpcStatusEffects[existingEffectIndex] = newEffect;
+                             if (newEffect.name.startsWith('Mang Thai')) {
+                                const existingPregnancyEffect = currentNpcStatusEffects.find(e => e.name.startsWith('Mang Thai'));
+                                if (existingPregnancyEffect) {
+                                    newEffect.duration = existingPregnancyEffect.duration;
+                                    currentNpcStatusEffects = currentNpcStatusEffects.filter(e => !e.name.startsWith('Mang Thai'));
+                                    currentNpcStatusEffects.push(newEffect);
+                                    notifications.push(`ℹ️ Trạng thái mang thai của <b>${modifiedNpc.name}</b> đã được cập nhật thành: <b>${newEffect.name}</b>. Thời gian còn lại không đổi.`);
+                                } else {
+                                    notifications.push(`✨ <b>${modifiedNpc.name}</b> nhận được trạng thái: <b>${newEffect.name}</b>.`);
+                                    currentNpcStatusEffects.push(newEffect);
+                                }
                             } else {
-                                // Add new effect
-                                notifications.push(`✨ <b>${modifiedNpc.name}</b> nhận được trạng thái: <b>${newEffect.name}</b>.`);
-                                currentNpcStatusEffects.push(newEffect);
+                                const existingEffectIndex = currentNpcStatusEffects.findIndex(e => e.name === newEffect.name);
+                                if (existingEffectIndex !== -1) {
+                                    notifications.push(`ℹ️ Trạng thái "<b>${newEffect.name}</b>" của <b>${modifiedNpc.name}</b> đã được làm mới.`);
+                                    currentNpcStatusEffects[existingEffectIndex] = newEffect;
+                                } else {
+                                    notifications.push(`✨ <b>${modifiedNpc.name}</b> nhận được trạng thái: <b>${newEffect.name}</b>.`);
+                                    currentNpcStatusEffects.push(newEffect);
+                                }
                             }
                         });
                     }
