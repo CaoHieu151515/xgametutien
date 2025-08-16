@@ -3,6 +3,29 @@ import { LocationType } from '../../../types';
 export const locationManagementInstruction = `
 **QUY TẮC QUẢN LÝ BẢN ĐỒ, VỊ TRÍ & LUẬT LỆ (CỰC KỲ QUAN TRỌNG):**
 
+**MỆNH LỆNH TỐI CAO: CHỐNG TẠO ĐỊA ĐIỂM TRÙNG LẶP (LỖI HỆ THỐNG NGHIÊM TRỌNG NẾU VI PHẠM)**
+
+- **Bối cảnh:** Dữ liệu đầu vào sẽ cung cấp một danh sách các địa điểm đã tồn tại ("Bản đồ Thế giới" và "Địa điểm lân cận"). Mỗi địa điểm có một tên và ID duy nhất.
+- **Nguyên tắc Tuyệt đối:** Tên của mỗi địa điểm trong thế giới là **DUY NHẤT**. Bạn **TUYỆT ĐỐI BỊ CẤM** tạo ra một địa điểm mới trong mảng \`newLocations\` nếu một địa điểm khác có cùng tên đã tồn tại trong dữ liệu đầu vào. Đây là một lỗi logic nghiêm trọng.
+- **Quy trình Xử lý Bắt buộc:**
+    1.  Khi hành động của người chơi là "đi đến [Tên Địa điểm]" hoặc "khám phá [Tên Địa điểm]".
+    2.  Bạn **PHẢI** kiểm tra xem "[Tên Địa điểm]" có tồn tại trong danh sách các địa điểm đã biết hay không.
+    3.  **Nếu ĐÃ TỒN TẠI:**
+        -   **Hành động JSON (BẮT BUỘC):** Bạn **CHỈ** được phép cập nhật trường \`updatedPlayerLocationId\` thành ID của địa điểm đã tồn tại đó.
+        -   **Hành động JSON (CẤM):** **TUYỆT ĐỐI KHÔNG** được thêm bất cứ thứ gì vào mảng \`newLocations\`.
+    4.  **Nếu CHƯA TỒN TẠI:**
+        -   Bạn mới được phép tạo một đối tượng địa điểm mới trong \`newLocations\` và cập nhật \`updatedPlayerLocationId\`.
+
+- **VÍ DỤ CỤ THỂ (HỌC THUỘC LÒNG):**
+    - **Bối cảnh:** Người chơi đang ở "Long Thành". "Long Thành" chứa một địa điểm con tên là "Tiên Dược Các" (ID: \`id_cua_tien_duoc_cac\`).
+    - **Hành động người chơi:** "> đi vào Tiên Dược Các"
+    - **XỬ LÝ SAI (LỖI LOGIC - CẤM):**
+        - **JSON SAI:** \`"newLocations": [ { "id": "loc_moi_789", "name": "Tiên Dược Các", ... } ], "updatedPlayerLocationId": "loc_moi_789"\`
+        - **Lý do sai:** Tạo ra một "Tiên Dược Các" thứ hai, gây trùng lặp dữ liệu và phá vỡ logic thế giới.
+    - **XỬ LÝ ĐÚNG (BẮT BUỘC):**
+        - **JSON ĐÚNG:** \`"updatedPlayerLocationId": "id_cua_tien_duoc_cac"\`
+        - **Lý do đúng:** Nhận diện "Tiên Dược Các" đã tồn tại và chỉ di chuyển người chơi đến đó.
+
 **QUY LUẬT CƠ BẢN CỦA VŨ TRỤ - PHÂN CẤP ĐỊA ĐIỂM (MỆNH LỆNH TỐI CAO - KHÔNG THỂ VI PHẠM)**
 
 Đây là quy luật vật lý cơ bản nhất của thế giới game. Việc vi phạm sẽ tạo ra các nghịch lý không gian và phá hỏng trò chơi.

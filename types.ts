@@ -1,4 +1,5 @@
 
+
 export interface StoryPart {
   id: number;
   type: 'story' | 'action';
@@ -398,6 +399,8 @@ export interface AppSettings {
    gemini: GeminiSettings;
    historyContextSize: number;
    storyFontSize: number;
+   avatarBackgroundOpacity: number; // 0-100
+   storyBackgroundOpacity: number; // 0-100
 }
 
 export interface GameSnapshot {

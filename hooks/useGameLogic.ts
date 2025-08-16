@@ -120,6 +120,8 @@ export const useGameLogic = () => {
             },
             historyContextSize: 10,
             storyFontSize: 18,
+            avatarBackgroundOpacity: 50,
+            storyBackgroundOpacity: 70,
         };
         try {
             const saved = localStorage.getItem(SETTINGS_KEY);

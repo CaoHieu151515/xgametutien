@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { GameState, CharacterProfile, WorldSettings, StoryPart, NPC, Choice } from '../../types';
+import React, { useMemo, useState, useCallback } from 'react';
+import { GameState, CharacterProfile, WorldSettings, StoryPart, NPC, Choice, AppSettings } from '../../types';
 import { Loader } from '../Loader';
 import { StoryDisplay } from '../StoryDisplay';
 import { CustomInput } from '../CustomInput';
@@ -19,6 +19,7 @@ interface GameScreenProps {
     npcs: NPC[];
     choices: Choice[];
     lastFailedCustomAction: string | null;
+    settings: AppSettings;
     handleAction: (choice: Choice) => void;
     handleGoHome: () => void;
     handleSave: () => void;
@@ -81,6 +82,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     npcs,
     choices,
     lastFailedCustomAction,
+    settings,
     handleAction,
     handleGoHome,
     handleSave,
@@ -94,6 +96,16 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     openTimeSkipModal
 }) => {
     useComponentLog('GameScreen.tsx');
+    const [backgroundAvatars, setBackgroundAvatars] = useState<string[]>([]);
+
+    const handleUpdateBackgroundAvatars = useCallback((urls: string[]) => {
+        setBackgroundAvatars(currentUrls => {
+            if (JSON.stringify(urls) !== JSON.stringify(currentUrls)) {
+                return urls;
+            }
+            return currentUrls;
+        });
+    }, []);
     
     const currentLocation = useMemo(() => {
         if (!characterProfile.currentLocationId) return null;
@@ -106,79 +118,101 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     
     return (
         <div className="h-full flex flex-col relative">
-            {isLoading && <Loader />}
-            <div className="flex-shrink-0 px-2 sm:px-6 py-2 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 gap-2 sm:gap-4">
-                
-                {/* Left Icons */}
-                <div className="flex items-center gap-1 flex-wrap justify-start">
-                    <HeaderButton label="Hồ Sơ" onClick={openPlayerInfoModal} disabled={isLoading}>
-                        <PlayerIcon />
-                    </HeaderButton>
-                    <HeaderButton label="Túi Đồ" onClick={openInventoryModal} disabled={isLoading}>
-                        <BagIcon />
-                    </HeaderButton>
-                    <HeaderButton label="NPC" onClick={openNpcModal} disabled={isLoading}>
-                        <NpcsIcon />
-                    </HeaderButton>
-                    <HeaderButton label="Thế Giới" onClick={openWorldInfoModal} disabled={isLoading}>
-                        <WorldIcon />
-                    </HeaderButton>
-                     <HeaderButton label="Bản Đồ" onClick={openMapModal} disabled={isLoading}>
-                        <MapIcon />
-                    </HeaderButton>
-                </div>
-
-                {/* Center Info */}
-                <div className="hidden sm:flex flex-col justify-center items-center text-center flex-grow min-w-0">
-                    <div className="flex items-center gap-2 bg-slate-800/50 px-4 py-1.5 rounded-full border border-slate-700/50">
-                        <LocationIcon />
-                        <span className="text-sm font-medium text-slate-300 truncate">
-                            Vị trí: {currentLocation ? currentLocation.name : voidKnowledgeName}
-                        </span>
-                        {currentLocation?.isNew && <NewBadge />}
-                    </div>
-                    <div className="text-xs text-slate-400 mt-1.5">
-                        {formattedGameTime}
-                    </div>
-                </div>
-
-                {/* Right Icons */}
-                <div className="flex items-center gap-1 flex-wrap justify-end">
-                     <HeaderButton label="Thời Gian" onClick={openTimeSkipModal} disabled={isLoading}>
-                        <TimeIcon />
-                    </HeaderButton>
-                    <HeaderButton label="Nhật Ký" onClick={openGameLogModal} disabled={isLoading}>
-                        <GameLogIcon />
-                    </HeaderButton>
-                    <HeaderButton label="Lưu" onClick={handleSave} disabled={isLoading}>
-                        <SaveIcon />
-                    </HeaderButton>
-                     <HeaderButton label="Cài Đặt" onClick={openSettingsModal} disabled={isLoading}>
-                        <SettingsIcon />
-                    </HeaderButton>
-                    <HeaderButton label="Trang Chủ" onClick={handleGoHome} disabled={isLoading}>
-                        <HomeIcon />
-                    </HeaderButton>
-                </div>
-            </div>
-            <StoryDisplay 
-                history={displayHistory} 
-                characterProfile={characterProfile}
-                worldSettings={worldSettings}
-                npcs={npcs}
-            />
-            <div className="flex-shrink-0 p-4 border-t border-slate-800 bg-slate-900/50">
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                    {choices.map((choice, index) => (
-                        <AdventureCard key={index} choice={choice} onClick={() => handleAction(choice)} disabled={isLoading} />
-                    ))}
-                </div>
-                <div className="mt-3 pt-3 border-t border-slate-700/50">
-                    <CustomInput 
-                        onSubmit={(text) => handleAction({ title: text, benefit: 'Không xác định', risk: 'Không xác định', successChance: 50, durationInMinutes: 10, isCustom: true })} 
-                        disabled={isLoading}
-                        initialValue={lastFailedCustomAction}
+            {/* Dynamic Background */}
+            <div 
+                key={backgroundAvatars.join('-')}
+                className="absolute inset-0 z-0 grid grid-flow-col auto-cols-fr overflow-hidden transition-opacity duration-500" 
+                style={{ opacity: (settings.avatarBackgroundOpacity ?? 50) / 100 }}
+                aria-hidden="true"
+            >
+                {backgroundAvatars.map((url) => (
+                    <div
+                        key={url}
+                        className="w-full h-full bg-contain bg-center bg-no-repeat animate-fade-in"
+                        style={{ backgroundImage: `url(${url})` }}
                     />
+                ))}
+            </div>
+            {/* Dark overlay for readability */}
+            <div className="absolute inset-0 z-10" style={{ backgroundColor: 'var(--story-bg-color)' }}></div>
+
+            {/* CONTENT */}
+            <div className="relative z-20 h-full flex flex-col">
+                {isLoading && <Loader />}
+                <div className="flex-shrink-0 px-2 sm:px-6 py-2 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 gap-2 sm:gap-4">
+                    
+                    {/* Left Icons */}
+                    <div className="flex items-center gap-1 flex-wrap justify-start">
+                        <HeaderButton label="Hồ Sơ" onClick={openPlayerInfoModal} disabled={isLoading}>
+                            <PlayerIcon />
+                        </HeaderButton>
+                        <HeaderButton label="Túi Đồ" onClick={openInventoryModal} disabled={isLoading}>
+                            <BagIcon />
+                        </HeaderButton>
+                        <HeaderButton label="NPC" onClick={openNpcModal} disabled={isLoading}>
+                            <NpcsIcon />
+                        </HeaderButton>
+                        <HeaderButton label="Thế Giới" onClick={openWorldInfoModal} disabled={isLoading}>
+                            <WorldIcon />
+                        </HeaderButton>
+                         <HeaderButton label="Bản Đồ" onClick={openMapModal} disabled={isLoading}>
+                            <MapIcon />
+                        </HeaderButton>
+                    </div>
+
+                    {/* Center Info */}
+                    <div className="hidden sm:flex flex-col justify-center items-center text-center flex-grow min-w-0">
+                        <div className="flex items-center gap-2 bg-slate-800/50 px-4 py-1.5 rounded-full border border-slate-700/50">
+                            <LocationIcon />
+                            <span className="text-sm font-medium text-slate-300 truncate">
+                                Vị trí: {currentLocation ? currentLocation.name : voidKnowledgeName}
+                            </span>
+                            {currentLocation?.isNew && <NewBadge />}
+                        </div>
+                        <div className="text-xs text-slate-400 mt-1.5">
+                            {formattedGameTime}
+                        </div>
+                    </div>
+
+                    {/* Right Icons */}
+                    <div className="flex items-center gap-1 flex-wrap justify-end">
+                         <HeaderButton label="Thời Gian" onClick={openTimeSkipModal} disabled={isLoading}>
+                            <TimeIcon />
+                        </HeaderButton>
+                        <HeaderButton label="Nhật Ký" onClick={openGameLogModal} disabled={isLoading}>
+                            <GameLogIcon />
+                        </HeaderButton>
+                        <HeaderButton label="Lưu" onClick={handleSave} disabled={isLoading}>
+                            <SaveIcon />
+                        </HeaderButton>
+                         <HeaderButton label="Cài Đặt" onClick={openSettingsModal} disabled={isLoading}>
+                            <SettingsIcon />
+                        </HeaderButton>
+                        <HeaderButton label="Trang Chủ" onClick={handleGoHome} disabled={isLoading}>
+                            <HomeIcon />
+                        </HeaderButton>
+                    </div>
+                </div>
+                <StoryDisplay 
+                    history={displayHistory} 
+                    characterProfile={characterProfile}
+                    worldSettings={worldSettings}
+                    npcs={npcs}
+                    onUpdateBackgroundAvatars={handleUpdateBackgroundAvatars}
+                />
+                <div className="flex-shrink-0 p-4 border-t border-slate-800 bg-slate-900/50">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                        {choices.map((choice, index) => (
+                            <AdventureCard key={index} choice={choice} onClick={() => handleAction(choice)} disabled={isLoading} />
+                        ))}
+                    </div>
+                    <div className="mt-3 pt-3 border-t border-slate-700/50">
+                        <CustomInput 
+                            onSubmit={(text) => handleAction({ title: text, benefit: 'Không xác định', risk: 'Không xác định', successChance: 50, durationInMinutes: 10, isCustom: true })} 
+                            disabled={isLoading}
+                            initialValue={lastFailedCustomAction}
+                        />
+                    </div>
                 </div>
             </div>
         </div>

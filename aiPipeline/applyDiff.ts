@@ -1,6 +1,6 @@
 import {
     StoryResponse, CharacterProfile, NPC, WorldSettings, StatusEffect, Skill,
-    NewNPCFromAI, Item, ItemType, AppSettings, ApiProvider, Achievement, SkillType, LocationType, Choice
+    NewNPCFromAI, Item, ItemType, AppSettings, ApiProvider, Achievement, SkillType, Location, Choice, LocationType
 } from '../types';
 import {
     processLevelUps, getRealmDisplayName, calculateBaseStatsForLevel,
@@ -37,7 +37,8 @@ export const applyStoryResponseToState = async ({
     settings,
     choice
 }: ApplyDiffParams): Promise<ApplyDiffResult> => {
-    const response = storyResponse;
+    // Make a mutable copy of the response to correct inconsistencies before applying
+    const response: StoryResponse = JSON.parse(JSON.stringify(storyResponse)); 
     const notifications: string[] = [];
     const api = settings.apiProvider === ApiProvider.OPENAI ? openaiService : geminiService;
     const apiKeyForService = settings.apiProvider === ApiProvider.OPENAI
@@ -61,6 +62,54 @@ export const applyStoryResponseToState = async ({
         ...worldSettings,
         initialKnowledge: worldSettings.initialKnowledge.map(k => ({ ...k, isNew: false }))
     };
+
+    // --- PRE-PROCESSING STEP: Correct AI response inconsistencies ---
+    
+    // Correct new locations that already exist to prevent duplicates and fix player location ID
+    if (response.newLocations?.length) {
+        const existingLocationNames = new Set(intermediateProfile.discoveredLocations.map(l => l.name.toLowerCase()));
+        const existingLocationIds = new Set(intermediateProfile.discoveredLocations.map(l => l.id));
+        const uniqueNewLocations: Location[] = [];
+
+        response.newLocations.forEach((newLoc: Location) => {
+            const isDuplicate = existingLocationIds.has(newLoc.id) || existingLocationNames.has(newLoc.name.toLowerCase());
+
+            if (isDuplicate) {
+                notifications.push(`ℹ️ Hệ thống đã bỏ qua việc tạo lại 1 địa điểm đã tồn tại: <b>${newLoc.name}</b>.`);
+                
+                // If the AI intended to move the player to this duplicated new location,
+                // we must correct the target ID to the existing location's ID.
+                if (response.updatedPlayerLocationId === newLoc.id) {
+                    const existingLoc = intermediateProfile.discoveredLocations.find(l => l.name.toLowerCase() === newLoc.name.toLowerCase());
+                    if (existingLoc) {
+                        response.updatedPlayerLocationId = existingLoc.id;
+                    }
+                }
+            } else {
+                uniqueNewLocations.push(newLoc);
+            }
+        });
+        response.newLocations = uniqueNewLocations;
+    }
+
+    // Correct new NPCs that already exist to prevent duplicates
+    if (response.newNPCs?.length) {
+        const existingNpcNames = new Set(nextNpcs.map(n => n.name.toLowerCase()));
+        const existingNpcIds = new Set(nextNpcs.map(n => n.id));
+        const uniqueNewNpcs: NewNPCFromAI[] = [];
+
+        response.newNPCs.forEach((newNpc: NewNPCFromAI) => {
+            const isDuplicate = existingNpcIds.has(newNpc.id) || existingNpcNames.has(newNpc.name.toLowerCase());
+
+            if (isDuplicate) {
+                notifications.push(`ℹ️ Hệ thống đã bỏ qua việc tạo lại 1 NPC đã tồn tại: <b>${newNpc.name}</b>.`);
+            } else {
+                uniqueNewNpcs.push(newNpc);
+            }
+        });
+        response.newNPCs = uniqueNewNpcs;
+    }
+
 
     // --- STEP 1: Generate all notifications by comparing the response with the original state ---
     if (response.updatedStats?.currencyAmount !== undefined && response.updatedStats.currencyAmount !== characterProfile.currencyAmount) {
@@ -317,27 +366,32 @@ export const applyStoryResponseToState = async ({
         nextProfile.skills = [...nextProfile.skills, ...newlyAcquiredSkills];
     }
 
-    // Apply location changes
+    // Apply location changes (using pre-processed response)
     if (response.newLocations?.length) {
-        const existingLocationNames = new Set(nextProfile.discoveredLocations.map(l => l.name.toLowerCase()));
-        const uniqueNewLocations = response.newLocations
-            .filter(l => !nextProfile.discoveredLocations.some(dl => dl.id === l.id) && !existingLocationNames.has(l.name.toLowerCase()))
-            .map(l => ({ ...(l.ownerId === 'player' ? { ...l, ownerId: nextProfile.id } : l), isNew: true }));
-        
-        if (uniqueNewLocations.length !== response.newLocations.length) {
-            const ignoredCount = response.newLocations.length - uniqueNewLocations.length;
-            const ignoredNames = response.newLocations.filter(l => existingLocationNames.has(l.name.toLowerCase())).map(n => n.name).join(', ');
-            notifications.push(`ℹ️ Hệ thống đã bỏ qua việc tạo lại ${ignoredCount} địa điểm đã tồn tại: ${ignoredNames}.`);
-        }
-        
-        uniqueNewLocations.forEach(newLoc => {
-            if (newLoc.ownerId === nextProfile.id) notifications.push(`👑 Bây giờ bạn là chủ sở hữu của <b>${newLoc.name}</b>.`);
+        // DEFENSIVE CODING: Correct missing parent IDs from AI response
+        const correctedNewLocations = response.newLocations.map((loc: Location) => {
+            // A location that is NOT a WORLD type MUST have a parent.
+            if (loc.type !== LocationType.WORLD && !loc.parentId) {
+                // The parent should be the location the player was in when they discovered this new place.
+                loc.parentId = characterProfile.currentLocationId;
+            }
+            return loc;
         });
-        nextProfile.discoveredLocations = [...nextProfile.discoveredLocations, ...uniqueNewLocations];
+    
+        const mappedNewLocations = correctedNewLocations
+            .map((l: Location) => ({ ...(l.ownerId === 'player' ? { ...l, ownerId: nextProfile.id } : l), isNew: true }));
+    
+        mappedNewLocations.forEach(newLoc => {
+            if (newLoc.ownerId === nextProfile.id) {
+                notifications.push(`👑 Bây giờ bạn là chủ sở hữu của <b>${newLoc.name}</b>.`);
+            }
+        });
+        nextProfile.discoveredLocations = [...nextProfile.discoveredLocations, ...mappedNewLocations];
     }
 
     if (response.updatedLocations?.length) {
-        const updatedLocationsWithPlayerId = response.updatedLocations.map(l => l.ownerId === 'player' ? { ...l, ownerId: nextProfile.id } : l);
+        const validUpdatedLocations = response.updatedLocations.filter(l => l && typeof l === 'object');
+        const updatedLocationsWithPlayerId = validUpdatedLocations.map(l => (l.ownerId === 'player' ? { ...l, ownerId: nextProfile.id } : l));
         const updatedLocationsMap = new Map(updatedLocationsWithPlayerId.map(l => [l.id, l]));
 
         nextProfile.discoveredLocations = nextProfile.discoveredLocations.map(loc => {
@@ -359,31 +413,40 @@ export const applyStoryResponseToState = async ({
         });
     }
 
-    // This is the critical update for player movement
+    // This is the critical update for player movement (using corrected ID)
     if (response.updatedPlayerLocationId !== undefined) {
         nextProfile.currentLocationId = response.updatedPlayerLocationId;
     }
 
-    // Apply NPC changes
+    // Apply NPC changes (using pre-processed response)
     if (response.newNPCs?.length) {
-        const existingNpcNames = new Set(nextNpcs.map(n => n.name.toLowerCase()));
-        const trulyNewNpcs = response.newNPCs.filter(newNpc => !existingNpcNames.has(newNpc.name.toLowerCase()));
+        const brandNewNpcsData: NPC[] = response.newNPCs
+            .filter((npcData): npcData is NewNPCFromAI => npcData !== null && typeof npcData === 'object')
+            .map((newNpcData: NewNPCFromAI) => {
+                const powerSystemForNpc = finalWorldSettings.powerSystems.find(ps => ps.name === newNpcData.powerSystem);
+                const isValidPowerSystem = !!powerSystemForNpc;
+                const npcPowerSystem = isValidPowerSystem ? newNpcData.powerSystem : (finalWorldSettings.powerSystems[0]?.name || '');
+                const maxLevel = powerSystemForNpc ? (powerSystemForNpc.realms.split(' - ').filter(r => r.trim()).length * 10) || 1 : 1;
+                const npcLevel = isValidPowerSystem ? Math.min(newNpcData.level, maxLevel) : 1;
+                const stats = calculateBaseStatsForLevel(npcLevel);
 
-        if (trulyNewNpcs.length !== response.newNPCs.length) {
-            const ignoredCount = response.newNPCs.length - trulyNewNpcs.length;
-            const ignoredNames = response.newNPCs.filter(newNpc => existingNpcNames.has(newNpc.name.toLowerCase())).map(n => n.name).join(', ');
-            notifications.push(`ℹ️ Hệ thống đã bỏ qua việc tạo lại ${ignoredCount} NPC đã tồn tại: ${ignoredNames}.`);
-        }
-
-        const brandNewNpcsData = trulyNewNpcs.map((newNpcData: NewNPCFromAI) => {
-            const powerSystemForNpc = finalWorldSettings.powerSystems.find(ps => ps.name === newNpcData.powerSystem);
-            const isValidPowerSystem = !!powerSystemForNpc;
-            const npcPowerSystem = isValidPowerSystem ? newNpcData.powerSystem : (finalWorldSettings.powerSystems[0]?.name || '');
-            const maxLevel = powerSystemForNpc ? (powerSystemForNpc.realms.split(' - ').filter(r => r.trim()).length * 10) || 1 : 1;
-            const npcLevel = isValidPowerSystem ? Math.min(newNpcData.level, maxLevel) : 1;
-            const stats = calculateBaseStatsForLevel(npcLevel);
-            return { ...newNpcData, level: npcLevel, powerSystem: npcPowerSystem, experience: 0, health: stats.maxHealth, mana: stats.maxMana, realm: getRealmDisplayName(npcLevel, npcPowerSystem, finalWorldSettings), memories: [], npcRelationships: newNpcData.npcRelationships || [], statusEffects: newNpcData.statusEffects.filter((v, i, a) => a.findIndex(t => t.name === v.name) === i), isDaoLu: newNpcData.isDaoLu || false, isNew: true };
-        });
+                const npc: NPC = {
+                    ...newNpcData,
+                    level: npcLevel,
+                    powerSystem: npcPowerSystem,
+                    experience: 0,
+                    health: stats.maxHealth,
+                    mana: stats.maxMana,
+                    realm: getRealmDisplayName(npcLevel, npcPowerSystem, finalWorldSettings),
+                    memories: [],
+                    npcRelationships: newNpcData.npcRelationships || [],
+                    statusEffects: (Array.isArray(newNpcData.statusEffects) ? newNpcData.statusEffects : [])
+                        .filter((v, i, a) => a.findIndex(t => t.name === v.name) === i),
+                    isDaoLu: newNpcData.isDaoLu || false,
+                    isNew: true
+                };
+                return npc;
+            });
         nextNpcs = [...nextNpcs, ...brandNewNpcsData];
     }
     if (response.updatedNPCs?.length) {
@@ -424,7 +487,7 @@ export const applyStoryResponseToState = async ({
                         modifiedNpc.relationship = newRel;
                         if(newRel !== oldRel) notifications.push(`😊 Hảo cảm của <b>${modifiedNpc.name}</b> đã thay đổi ${newRel - oldRel} điểm (hiện tại: ${newRel}).`);
                     }
-                    if (update.newMemories?.length) modifiedNpc.memories = [...new Set([...(modifiedNpc.memories || []), ...update.newMemories])];
+                    if (update.newMemories?.length) modifiedNpc.memories = Array.from(new Set([...(modifiedNpc.memories || []), ...update.newMemories]));
                     
                     // --- START: NPC Status Effect Logic Overhaul ---
                     let currentNpcStatusEffects = [...(modifiedNpc.statusEffects || [])];

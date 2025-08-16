@@ -229,33 +229,58 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, o
                         </p>
                     </div>
 
-                    {/* Font Size */}
-                    <div className="bg-slate-900/50 p-4 rounded-lg">
-                        <label htmlFor="font-size-slider" className="text-lg font-semibold mb-3 text-slate-300 block">
-                            Cỡ chữ truyện
-                        </label>
-                        <div className="flex items-center space-x-4">
-                            <button
-                                onClick={() => setSettings(p => ({ ...p, storyFontSize: Math.max(14, p.storyFontSize - 1) }))}
-                                className="px-3 py-1 bg-slate-700 rounded-md font-bold hover:bg-slate-600">-</button>
-                            <input
-                                id="font-size-slider"
-                                type="range"
-                                min="14"
-                                max="28"
-                                step="1"
-                                value={settings.storyFontSize}
-                                onChange={(e) => setSettings(p => ({ ...p, storyFontSize: parseInt(e.target.value, 10) }))}
-                                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                            />
-                            <button
-                                onClick={() => setSettings(p => ({ ...p, storyFontSize: Math.min(28, p.storyFontSize + 1) }))}
-                                className="px-3 py-1 bg-slate-700 rounded-md font-bold hover:bg-slate-600">+</button>
-                            <span className="font-bold text-amber-300 w-12 text-center bg-slate-700 p-1 rounded-md text-sm">{settings.storyFontSize}px</span>
+                    {/* UI Settings */}
+                     <div className="bg-slate-900/50 p-4 rounded-lg">
+                        <h3 className="text-lg font-semibold mb-3 text-slate-300">Giao Diện</h3>
+                        <div className="space-y-6">
+                            {/* Font Size */}
+                            <div>
+                                <label htmlFor="font-size-slider" className="text-md font-semibold text-slate-300 block">Cỡ chữ truyện</label>
+                                <div className="flex items-center space-x-4 mt-2">
+                                    <input
+                                        id="font-size-slider"
+                                        type="range"
+                                        min="14" max="28" step="1"
+                                        value={settings.storyFontSize}
+                                        onChange={(e) => setSettings(p => ({ ...p, storyFontSize: parseInt(e.target.value, 10) }))}
+                                        className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                                    />
+                                    <span className="font-bold text-amber-300 w-12 text-center bg-slate-700 p-1 rounded-md text-sm">{settings.storyFontSize}px</span>
+                                </div>
+                            </div>
+                             {/* Avatar BG Opacity */}
+                            <div>
+                                <label htmlFor="avatar-opacity-slider" className="text-md font-semibold text-slate-300 block">Độ hiện diện của avatar nền</label>
+                                <div className="flex items-center space-x-4 mt-2">
+                                    <input
+                                        id="avatar-opacity-slider"
+                                        type="range" min="0" max="100" step="5"
+                                        value={settings.avatarBackgroundOpacity}
+                                        onChange={(e) => setSettings(p => ({ ...p, avatarBackgroundOpacity: parseInt(e.target.value, 10) }))}
+                                        className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                                    />
+                                    <span className="font-bold text-amber-300 w-16 text-center bg-slate-700 p-1 rounded-md text-sm">
+                                        {settings.avatarBackgroundOpacity === 0 ? "Tắt" : `${settings.avatarBackgroundOpacity}%`}
+                                    </span>
+                                </div>
+                            </div>
+                             {/* Story BG Opacity */}
+                            <div>
+                                <label htmlFor="story-bg-opacity-slider" className="text-md font-semibold text-slate-300 block">Độ trong suốt nền truyện</label>
+                                <div className="flex items-center space-x-4 mt-2">
+                                    <input
+                                        id="story-bg-opacity-slider"
+                                        type="range" min="50" max="100" step="5"
+                                        value={settings.storyBackgroundOpacity}
+                                        onChange={(e) => setSettings(p => ({ ...p, storyBackgroundOpacity: parseInt(e.target.value, 10) }))}
+                                        className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                                    />
+                                    <span className="font-bold text-amber-300 w-16 text-center bg-slate-700 p-1 rounded-md text-sm">
+                                        {settings.storyBackgroundOpacity}%
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                        <p className="text-xs text-slate-500 mt-3">
-                            Thay đổi kích thước chữ trong phần tường thuật và hội thoại của câu chuyện.
-                        </p>
                     </div>
 
                     {/* History Context */}
@@ -269,10 +294,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, o
                         <div className="flex items-center space-x-4">
                             <input
                                 id="history-context-slider"
-                                type="range"
-                                min="0"
-                                max="20"
-                                step="1"
+                                type="range" min="0" max="20" step="1"
                                 value={settings.historyContextSize}
                                 onChange={(e) => setSettings(p => ({ ...p, historyContextSize: parseInt(e.target.value, 10) }))}
                                 className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"

@@ -63,6 +63,7 @@ export const AppContent: React.FC<AppContentProps> = (props) => {
                             npcs={props.npcs}
                             choices={props.choices}
                             lastFailedCustomAction={props.lastFailedCustomAction}
+                            settings={props.settings}
                             handleAction={props.handleAction}
                             handleGoHome={props.handleGoHome}
                             handleSave={props.handleSave}

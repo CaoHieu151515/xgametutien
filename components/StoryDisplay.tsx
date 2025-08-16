@@ -160,15 +160,59 @@ interface StoryDisplayProps {
   characterProfile: CharacterProfile | null;
   worldSettings: WorldSettings | null;
   npcs: NPC[];
+  onUpdateBackgroundAvatars: (urls: string[]) => void;
 }
 
-export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterProfile, worldSettings, npcs }) => {
+export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterProfile, worldSettings, npcs, onUpdateBackgroundAvatars }) => {
   const storyContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // When a new turn starts, scroll to the top of the story display.
     storyContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   }, [history]);
+
+  useEffect(() => {
+    if (!history.length || !characterProfile) {
+        onUpdateBackgroundAvatars([]);
+        return;
+    }
+
+    const lastPart = history[history.length - 1];
+
+    if (lastPart.type === 'action') {
+        onUpdateBackgroundAvatars([]);
+        return;
+    }
+
+    // Regex to find all speaker names like [Speaker Name]:
+    const speakerRegex = /\[([^\]]+?)\][:：]/g;
+    const matches = [...lastPart.text.matchAll(speakerRegex)];
+    
+    if (matches.length === 0) {
+        // It's narration, clear the background
+        onUpdateBackgroundAvatars([]);
+        return;
+    }
+    
+    const speakerNames = new Set(matches.map(match => match[1].trim()));
+
+    // Remove player from the list of speakers
+    speakerNames.delete(characterProfile.name);
+    
+    const avatarUrls = Array.from(speakerNames)
+      .map(name => {
+        // Remove NEW/MỚI tag if present for lookup
+        const cleanName = name.replace(/\s+(?:NEW|MỚI)\s*$/i, '').trim();
+        return npcs.find(npc => npc.name === cleanName || npc.aliases?.includes(cleanName));
+      })
+      .filter((npc): npc is NPC => !!npc && !!npc.avatarUrl)
+      .map(npc => npc.avatarUrl as string);
+      
+    // Get unique URLs and limit to 3
+    const uniqueUrls = [...new Set(avatarUrls)];
+    onUpdateBackgroundAvatars(uniqueUrls.slice(0, 3));
+
+  }, [history, npcs, characterProfile, onUpdateBackgroundAvatars]);
 
   const keywords = useMemo((): Keyword[] => {
     if (!characterProfile || !worldSettings) return [];

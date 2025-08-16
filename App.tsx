@@ -53,6 +53,13 @@ const App: React.FC = () => {
         log('App.tsx', `Story font size set to ${size}px`, 'STATE');
     }, [settings.storyFontSize]);
 
+    useEffect(() => {
+        const storyBgOpacity = (settings.storyBackgroundOpacity ?? 70) / 100;
+        // slate-900 is rgb(15, 23, 42)
+        document.documentElement.style.setProperty('--story-bg-color', `rgba(15, 23, 42, ${storyBgOpacity})`);
+        log('App.tsx', `Story background opacity set to ${storyBgOpacity}`, 'STATE');
+    }, [settings.storyBackgroundOpacity]);
+
 
     const appContentProps = {
         gameState,
