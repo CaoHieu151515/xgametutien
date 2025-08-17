@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { ToastMessage } from '../types';
+import { GAME_CONFIG } from '../config/gameConfig';
 
 interface ToastProps {
   toast: ToastMessage;
@@ -53,7 +54,7 @@ export const Toast: React.FC<ToastProps> = ({ toast, onClose }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       onClose();
-    }, 7000); // Auto-dismiss after 7 seconds
+    }, GAME_CONFIG.ui.toastDismissTimeMs); // Auto-dismiss
 
     return () => {
       clearTimeout(timer);

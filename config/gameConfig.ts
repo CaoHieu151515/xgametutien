@@ -11,6 +11,8 @@ export const GAME_CONFIG = {
     ai: {
         // Số lượng lựa chọn mà AI phải tạo ra mỗi lượt.
         numberOfChoices: 4,
+        // Số lần thử lại tối đa khi gọi API thất bại.
+        maxRetries: 2,
         /**
          * Cấu hình liên quan đến phong cách và cấu trúc kể chuyện của AI.
          */
@@ -70,6 +72,9 @@ export const GAME_CONFIG = {
         xp: {
             base: 100, // Lượng kinh nghiệm cơ bản ở cấp 1
             exponent: 1.4, // Yếu tố quyết định mức độ tăng kinh nghiệm theo cấp số nhân
+            // Hệ số thưởng EXP
+            levelBonusDivisor: 50, // Hệ số chia cho cấp độ để tính thưởng
+            cultivationSkillBonusMultiplier: 0.1, // Hệ số nhân cho mỗi bậc phẩm chất công pháp
         },
         // Cấu hình kinh nghiệm cho cấp độ kỹ năng
         skillXp: {
@@ -102,6 +107,16 @@ export const GAME_CONFIG = {
         time: {
             // Số phút trong game tương ứng với 1 lượt khi tua nhanh
             minutesPerTurn: 480, // 8 giờ
+        },
+        // Cấu hình cho các hành động mặc định của người chơi
+        actions: {
+            custom: {
+                defaultSuccessChance: 100,
+                defaultDurationMinutes: 10,
+            },
+            travel: {
+                defaultDurationMinutes: 30,
+            }
         }
     },
     
@@ -111,6 +126,8 @@ export const GAME_CONFIG = {
     ui: {
         // Số lượt tối đa có thể quay lại trong Nhật Ký
         maxRewindableTurns: 10,
+        // Thời gian (ms) để một thông báo (toast) tự động đóng lại.
+        toastDismissTimeMs: 5000,
     },
     
     /**
@@ -179,5 +196,14 @@ export const GAME_CONFIG = {
          * nhân với (hệ số này ^ số bậc chênh lệch).
          */
         qualityMultiplierGrowthFactor: 5.0,
+        /**
+         * Giá dịch vụ cơ bản (để tham khảo, chưa dùng trong code)
+         */
+        servicePrices: {
+            innStay_normal: 10, // Tiền Đồng
+            innStay_cultivator: 1, // Linh Thạch
+            meal_simple: 2, // Tiền Đồng
+            meal_lavish: 15, // Tiền Đồng
+        }
     }
 };

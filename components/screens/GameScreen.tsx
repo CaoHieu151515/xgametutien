@@ -9,6 +9,7 @@ import {
     GameLogIcon, BagIcon, LocationIcon, SettingsIcon, SaveIcon, TimeIcon
 } from '../ui/Icons';
 import { useComponentLog } from '../../hooks/useComponentLog';
+import { GAME_CONFIG } from '../../config/gameConfig';
 
 
 interface GameScreenProps {
@@ -208,7 +209,14 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                     </div>
                     <div className="mt-3 pt-3 border-t border-slate-700/50">
                         <CustomInput 
-                            onSubmit={(text) => handleAction({ title: text, benefit: 'Không xác định', risk: 'Không xác định', successChance: 50, durationInMinutes: 10, isCustom: true })} 
+                            onSubmit={(text) => handleAction({ 
+                                title: text, 
+                                benefit: 'Không xác định', 
+                                risk: 'Không xác định', 
+                                successChance: GAME_CONFIG.gameplay.actions.custom.defaultSuccessChance, 
+                                durationInMinutes: GAME_CONFIG.gameplay.actions.custom.defaultDurationMinutes, 
+                                isCustom: true 
+                            })} 
                             disabled={isLoading}
                             initialValue={lastFailedCustomAction}
                         />

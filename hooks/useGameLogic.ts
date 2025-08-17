@@ -315,7 +315,7 @@ export const useGameLogic = () => {
             }
         }
             
-        const MAX_RETRIES = 2;
+        const MAX_RETRIES = GAME_CONFIG.ai.maxRetries;
         let storyResponse: StoryResponse | null = null;
         let usageMetadata: StoryApiResponse['usageMetadata'] | undefined;
         let lastErrorReason = '';

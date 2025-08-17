@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Location, LocationType, CharacterProfile, WorldSettings, Choice } from '../../types';
+import { GAME_CONFIG } from '../../config/gameConfig';
 
 interface MapModalProps {
     isOpen: boolean;
@@ -242,7 +243,7 @@ export const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, locations, 
 
     const handleMoveTo = () => {
         if (!selectedLocation || isLoading) return;
-        const moveChoice: Choice = { title: `Di chuyển đến ${selectedLocation.name}`, benefit: 'Khám phá khu vực mới.', risk: 'Có thể gặp nguy hiểm trên đường đi.', successChance: 100, durationInMinutes: 30 };
+        const moveChoice: Choice = { title: `Di chuyển đến ${selectedLocation.name}`, benefit: 'Khám phá khu vực mới.', risk: 'Có thể gặp nguy hiểm trên đường đi.', successChance: 100, durationInMinutes: GAME_CONFIG.gameplay.actions.travel.defaultDurationMinutes };
         onAction(moveChoice);
         onClose();
     };

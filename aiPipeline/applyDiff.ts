@@ -221,13 +221,14 @@ export const applyStoryResponseToState = async ({
             notifications.push(`✨ **ĐỘT PHÁ THẦN TỐC!** Vận may ập đến, bạn nhận được một lượng lớn kinh nghiệm để đạt đến <b>${breakthroughRealm}</b>.`);
         }
     } else if (gainedXpFromAI > 0) {
-        const levelBonus = 1 + (intermediateProfile.level / 50);
+        const { levelBonusDivisor, cultivationSkillBonusMultiplier } = GAME_CONFIG.progression.xp;
+        const levelBonus = 1 + (intermediateProfile.level / levelBonusDivisor);
         const cultivationSkills = intermediateProfile.skills.filter(s => s.type === SkillType.CULTIVATION);
         const qualityTiers = finalWorldSettings.qualityTiers.split(' - ').map(q => q.trim());
         let cultivationBonus = 1.0;
         cultivationSkills.forEach(skill => {
             const qualityIndex = qualityTiers.indexOf(skill.quality);
-            if (qualityIndex !== -1) cultivationBonus += (qualityIndex + 1) * 0.1;
+            if (qualityIndex !== -1) cultivationBonus += (qualityIndex + 1) * cultivationSkillBonusMultiplier;
         });
         const adjustedXp = Math.max(1, Math.round(gainedXpFromAI * levelBonus * cultivationBonus));
         finalGainedXp = adjustedXp;
