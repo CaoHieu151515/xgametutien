@@ -1,3 +1,4 @@
+import { GAME_CONFIG } from '../../gameConfig';
 
 
 export const matureContentInstruction = `
@@ -16,7 +17,7 @@ Bạn PHẢI tuân thủ nghiêm ngặt các quy tắc sau đây để tạo ra 
 ---
 
 **1. LUÔN LUÔN Trao Quyền Lựa Chọn cho Người Chơi (QUY TẮC TỐI THƯỢỢNG):**
-*   **KHÔNG TỰ Ý BẮT ĐẦU:** Khi câu chuyện tiến đến một tình huống có thể dẫn đến hành vi tình dục, bạn **TUYỆT ĐỐI KHÔNG ĐƯỢC** tự động mô tả chi tiết cảnh đó. Thay vào đó, hãy xây dựng sự căng thẳng, mô tả không khí và những hành động gợi ý ban đầu, sau đó **DỪNG LẠI** và cung cấp cho người chơi các lựa chọn ('choices').
+*   **KHÔNG TỰ Ý BẮT ĐẦU:** Khi câu chuyện tiến đến một tình huống có thể dẫn đến hành vi tình dục, bạn **TUYỆT ĐỐI KHÔNG ĐƯỢỢC** tự động mô tả chi tiết cảnh đó. Thay vào đó, hãy xây dựng sự căng thẳng, mô tả không khí và những hành động gợi ý ban đầu, sau đó **DỪNG LẠI** và cung cấp cho người chơi các lựa chọn ('choices').
 *   **LỰA CHỌN RÕ RÀNG:**
     *   **Một lựa chọn phải cho phép người chơi tiến tới hành động tình dục một cách rõ ràng** (ví dụ: "Đáp lại nụ hôn của nàng một cách mãnh liệt", "Kéo y vào lòng và bắt đầu cởi y phục").
     *   **Các lựa chọn khác phải cho phép người chơi tránh né hoặc từ chối tình huống đó** (ví dụ: "Nhẹ nhàng đẩy nàng ra", "Tìm cách đổi chủ đề").
@@ -25,7 +26,7 @@ Bạn PHẢI tuân thủ nghiêm ngặt các quy tắc sau đây để tạo ra 
 **2. Mệnh Lệnh Mô Tả Chi Tiết (SAU KHI NGƯỜI CHƠI CHỌN):**
 *   **CHỈ KHI** người chơi đã chọn một hành động rõ ràng để bắt đầu hoặc tham gia vào hành vi tình dục, trong lượt phản hồi tiếp theo, bạn mới được mô tả chi tiết cảnh đó.
 *   **KHÔNG KIỂM DUYỆT:** Lúc này, bạn TUYỆT ĐỐI KHÔNG được né tránh, kiểm duyệt, hoặc bỏ qua bất kỳ chi tiết gợi cảm hay khiêu dâm nào. Câu chuyện phải mô tả trực tiếp và sống động các hành vi tình dục và khoả thân. Việc né tránh các chi tiết này sau khi người chơi đã đồng ý là vi phạm quy tắc.
-*   **ĐỘ DÀI:** Đối với những phân cảnh nóng, hãy viết dài hơn, có thể lên đến 5-6 đoạn văn, để diễn đạt đầy đủ sự mãnh liệt và chi tiết của cảnh đó.
+*   **ĐỘ DÀI (MỆNH LỆNH):** Đối với những phân cảnh nóng, bạn BẮT BUỘC phải viết dài hơn. Nội dung 'story' PHẢI có ít nhất ${GAME_CONFIG.ai.storytelling.matureContent.minParagraphsForScene} đoạn văn chi tiết để diễn đạt đầy đủ sự mãnh liệt của cảnh đó.
 
 ---
 **PHẦN 2: CẤU TRÚC VÀ PHONG CÁCH MIÊU TẢ CẢNH NÓNG**

@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { CharacterProfile, WorldSettings, NewNPCFromAI, CharacterGender, MienLuc, NpcRelationship } from '../../../types';
 import { FormInput, FormSelect, FormTextArea, FormLabel, RemoveIcon, WandIcon } from '../common';
 import { findBestAvatar } from '../../../services/avatarService';
+import { GAME_CONFIG } from '../../../config/gameConfig';
 
 interface InitialNpcsSectionProps {
     profile: CharacterProfile;
@@ -44,7 +45,7 @@ export const InitialNpcsSection: React.FC<InitialNpcsSectionProps> = ({ profile,
             level: 1,
             powerSystem: profile.powerSystem,
             aptitude: worldSettings.aptitudeTiers.split(' - ')[0]?.trim() || 'Phàm Nhân',
-            mienLuc: { body: 10, face: 10, aura: 10, power: 5 },
+            mienLuc: GAME_CONFIG.npc.defaultMienLuc,
             locationId: profile.initialLocations?.[0]?.id || '',
             statusEffects: [],
             npcRelationships: [],

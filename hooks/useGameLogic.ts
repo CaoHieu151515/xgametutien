@@ -8,6 +8,7 @@ import { log } from '../services/logService';
 import { applyStoryResponseToState } from '../aiPipeline/applyDiff';
 import { verifyStoryResponse } from '../utils/stateVerifier';
 import { findBestAvatar } from '../services/avatarService';
+import { GAME_CONFIG } from '../config/gameConfig';
 
 const SETTINGS_KEY = 'tuTienTruyenSettings_v2';
 const USE_DEFAULT_KEY_IDENTIFIER = '_USE_DEFAULT_KEY_';
@@ -445,7 +446,7 @@ export const useGameLogic = () => {
             const finalChoices = storyResponse.choices;
             
             let logWithNewTurn = [...gameLog, newSnapshot];
-            const maxRewindableTurns = 10;
+            const maxRewindableTurns = GAME_CONFIG.ui.maxRewindableTurns;
             
             const finalGameLog = logWithNewTurn.map((snapshot, index, arr) => {
                 if (arr.length > maxRewindableTurns && index < arr.length - maxRewindableTurns) {
@@ -496,7 +497,7 @@ export const useGameLogic = () => {
             benefit: 'Thời gian trôi qua, các sự kiện dài hạn có thể được giải quyết.',
             risk: 'Thế giới vận động không thể lường trước.',
             successChance: 100,
-            durationInMinutes: 0, // Duration is handled by turns
+            durationInMinutes: turns * GAME_CONFIG.gameplay.time.minutesPerTurn,
             isTimeSkip: true,
             turnsToSkip: turns
         };

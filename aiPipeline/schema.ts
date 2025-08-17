@@ -1,5 +1,6 @@
 import { CharacterGender, SkillType, LocationType, ItemType, EquipmentType } from '../types';
 import { Type } from '@google/genai';
+import { GAME_CONFIG } from '../config/gameConfig';
 
 export const statusEffectSchema = {
     type: Type.OBJECT,
@@ -363,7 +364,7 @@ const fullResponseProperties = {
     story: { type: Type.STRING, description: "Phần tiếp theo của câu chuyện, được viết theo phong cách đã chọn." },
     choices: {
         type: Type.ARRAY,
-        description: "Một mảng gồm chính xác BỐN (4) đối tượng lựa chọn, mỗi lựa chọn đại diện cho một hành động/nhiệm vụ mà người chơi có thể thực hiện. Các lựa chọn phải đa dạng và hấp dẫn.",
+        description: `Một mảng gồm chính xác ${GAME_CONFIG.ai.numberOfChoices} đối tượng lựa chọn, mỗi lựa chọn đại diện cho một hành động/nhiệm vụ mà người chơi có thể thực hiện. Các lựa chọn phải đa dạng và hấp dẫn.`,
         items: choiceSchema
     },
     updatedStats: updatedStatsSchema,

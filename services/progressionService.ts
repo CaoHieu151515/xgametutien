@@ -1,22 +1,21 @@
-
-
 import { CharacterProfile, WorldSettings, Skill, NPC, Item, StatusEffect } from '../types';
 import { log } from './logService';
-
-const ROMAN_NUMERALS_VI = ['Nhất', 'Nhị', 'Tam', 'Tứ', 'Ngũ', 'Lục', 'Thất', 'Bát', 'Cửu', 'Viên Mãn'];
+import { GAME_CONFIG } from '../config/gameConfig';
 
 export const getExperienceForNextLevel = (level: number): number => {
-    return Math.round(100 * Math.pow(level, 1.4));
+    const { base, exponent } = GAME_CONFIG.progression.xp;
+    return Math.round(base * Math.pow(level, exponent));
 };
 
 export const getSkillExperienceForNextLevel = (level: number, quality: string, qualityTiersString: string): number => {
+    const { base, exponent, qualityMultiplier } = GAME_CONFIG.progression.skillXp;
     const qualityTiers = qualityTiersString.split(' - ').map(q => q.trim()).filter(Boolean);
     const qualityIndex = qualityTiers.indexOf(quality);
 
-    const qualityMultiplier = 1 + (qualityIndex > 0 ? qualityIndex * 0.75 : 0);
-    const baseExp = 100 * Math.pow(level, 1.5);
+    const finalQualityMultiplier = 1 + (qualityIndex > 0 ? qualityIndex * qualityMultiplier : 0);
+    const baseExp = base * Math.pow(level, exponent);
     
-    return Math.round(baseExp * qualityMultiplier);
+    return Math.round(baseExp * finalQualityMultiplier);
 };
 
 export const getRealmDisplayName = (level: number, powerSystemName: string, worldSettings: WorldSettings | null): string => {
@@ -37,17 +36,19 @@ export const getRealmDisplayName = (level: number, powerSystemName: string, worl
         return realms[0] || "Phàm Nhân";
     }
 
-    const realmIndex = Math.floor((level - 1) / 10);
-    const subLevelIndex = (level - 1) % 10;
+    const { subRealmNames } = GAME_CONFIG.progression;
+    const levelsPerRealm = subRealmNames.length;
+    const realmIndex = Math.floor((level - 1) / levelsPerRealm);
+    const subLevelIndex = (level - 1) % levelsPerRealm;
 
     if (realmIndex >= realms.length) {
         return `${realms[realms.length - 1]} Viên Mãn`;
     }
 
     const realmName = realms[realmIndex];
-    const subLevelName = ROMAN_NUMERALS_VI[subLevelIndex] || (subLevelIndex + 1).toString();
+    const subLevelName = subRealmNames[subLevelIndex] || (subLevelIndex + 1).toString();
     
-    if (subLevelName === 'Viên Mãn') {
+    if (subLevelIndex === levelsPerRealm - 1) {
         return `${realmName} ${subLevelName}`;
     }
 
@@ -62,32 +63,28 @@ export const getLevelFromRealmName = (realmInput: string, powerSystemName: strin
 
     const realms = powerSystem.realms.split(' - ').map(r => r.trim());
     const normalizedInput = realmInput.trim();
+    const { subRealmNames } = GAME_CONFIG.progression;
+    const levelsPerRealm = subRealmNames.length;
 
     // Iterate backwards to match higher realms first
     for (let i = realms.length - 1; i >= 0; i--) {
         const realmName = realms[i];
         // Check for exact realm name followed by a space or end of string. Case-insensitive.
         if (normalizedInput.toLowerCase().startsWith(realmName.toLowerCase())) {
-            const baseLevel = i * 10;
+            const baseLevel = i * levelsPerRealm;
             const afterRealm = normalizedInput.substring(realmName.length).trim();
             
             if (afterRealm === '') {
                 return baseLevel + 1; // e.g., "Kim Đan"
             }
 
-            // Check for "Viên Mãn" which can stand alone
-            if (afterRealm.toLowerCase() === 'viên mãn') {
-                return baseLevel + 10;
-            }
-
-            // Check for sub-levels like "Nhất Trọng"
+            // Check for sub-levels like "Nhất Trọng" or "Viên Mãn"
             const parts = afterRealm.split(' ');
             if (parts.length > 0) {
                 const subLevelName = parts[0];
-                const subLevelIndex = ROMAN_NUMERALS_VI.findIndex(r => r.toLowerCase() === subLevelName.toLowerCase());
+                const subLevelIndex = subRealmNames.findIndex(r => r.toLowerCase() === subLevelName.toLowerCase());
 
                 if (subLevelIndex !== -1) {
-                    // This covers "Viên Mãn" (index 9) and other sub-levels
                     return baseLevel + subLevelIndex + 1;
                 }
             }
@@ -99,16 +96,22 @@ export const getLevelFromRealmName = (realmInput: string, powerSystemName: strin
 };
 
 export const calculateBaseStatsForLevel = (level: number) => {
-    const realmIndex = Math.floor((level - 1) / 10);
+    const { 
+        healthPerLevel, healthPerRealm, manaPerLevel, manaPerRealm, 
+        attackPerLevel, attackPerRealm, baseLifespan, lifespanBonuses 
+    } = GAME_CONFIG.progression.baseStats;
+    const { subRealmNames } = GAME_CONFIG.progression;
+    const levelsPerRealm = subRealmNames.length;
     
-    const maxHealth = 100 + ((level - 1) * 20000) + (realmIndex * 150000);
-    const maxMana = 100 + ((level - 1) * 15000) + (realmIndex * 100000);
-    const attack = 10 + ((level - 1) * 2000) + (realmIndex * 10000);
+    const realmIndex = Math.floor((level - 1) / levelsPerRealm);
+    
+    const maxHealth = 100 + ((level - 1) * healthPerLevel) + (realmIndex * healthPerRealm);
+    const maxMana = 100 + ((level - 1) * manaPerLevel) + (realmIndex * manaPerRealm);
+    const attack = 10 + ((level - 1) * attackPerLevel) + (realmIndex * attackPerRealm);
 
-    const realmLifespanBonuses = [0, 50000, 100000, 200000, 500000, 1000000, 5000000, 10000000, 25000000, 50000000, 100000000];
-    let lifespan = 100;
+    let lifespan = baseLifespan;
     for (let i = 1; i <= realmIndex; i++) {
-        lifespan += realmLifespanBonuses[i] || (i * 100000000);
+        lifespan += lifespanBonuses[i] || (i * lifespanBonuses[lifespanBonuses.length - 1]);
     }
 
     return { maxHealth, maxMana, attack, lifespan };
@@ -201,19 +204,21 @@ export const processSkillLevelUps = (
 ): { updatedSkill: Skill; breakthroughInfo: { oldQuality: string; newQuality: string } | null } => {
     let updatedSkill = { ...skill };
     let breakthroughInfo: { oldQuality: string; newQuality: string } | null = null;
+    const { subRealmNames } = GAME_CONFIG.progression;
+    const levelsPerRealm = subRealmNames.length;
     
     updatedSkill.experience += addedExperience;
     let xpForNextLevel = getSkillExperienceForNextLevel(updatedSkill.level, updatedSkill.quality, qualityTiersString);
     const qualityTiers = qualityTiersString.split(' - ').map(q => q.trim()).filter(Boolean);
 
-    while (updatedSkill.experience >= xpForNextLevel && updatedSkill.level < 10) {
+    while (updatedSkill.experience >= xpForNextLevel && updatedSkill.level < levelsPerRealm) {
         updatedSkill.experience -= xpForNextLevel;
         updatedSkill.level += 1;
         xpForNextLevel = getSkillExperienceForNextLevel(updatedSkill.level, updatedSkill.quality, qualityTiersString);
         log('progressionService.ts', `Skill "${skill.name}" leveled up to ${updatedSkill.level}.`, 'INFO');
     }
 
-    if (updatedSkill.level === 10 && updatedSkill.experience >= xpForNextLevel) {
+    if (updatedSkill.level === levelsPerRealm && updatedSkill.experience >= xpForNextLevel) {
         const currentQualityIndex = qualityTiers.indexOf(updatedSkill.quality);
         if (currentQualityIndex !== -1 && currentQualityIndex < qualityTiers.length - 1) {
             const newQuality = qualityTiers[currentQualityIndex + 1];
@@ -233,6 +238,7 @@ export const processSkillLevelUps = (
 
 
 export const calculateAptitudeExpBonus = (aptitude: string, aptitudeTiersString: string): number => {
+    const { bonusPerTier } = GAME_CONFIG.progression.aptitude;
     if (!aptitudeTiersString) return 1.0;
     const tiers = aptitudeTiersString.split(' - ').map(t => t.trim()).filter(Boolean);
     if (tiers.length === 0) return 1.0;
@@ -240,7 +246,7 @@ export const calculateAptitudeExpBonus = (aptitude: string, aptitudeTiersString:
     const index = tiers.indexOf(aptitude);
     if (index === -1) return 1.0;
 
-    return 1.0 + (index * 0.15);
+    return 1.0 + (index * bonusPerTier);
 };
 
 
@@ -257,7 +263,9 @@ export const processNpcLevelUps = <T extends NPC>(
     const powerSystem = worldSettings.powerSystems.find(ps => ps && ps.name === npc.powerSystem);
     if (!powerSystem) return updatedNpc;
 
-    const maxLevel = (powerSystem.realms.split(' - ').filter(r => r.trim()).length * 10) || updatedNpc.level;
+    const systemMaxLevel = (powerSystem.realms.split(' - ').filter(r => r.trim()).length * GAME_CONFIG.progression.subRealmNames.length) || updatedNpc.level;
+    const absoluteMaxLevel = GAME_CONFIG.npc.maxNpcLevel;
+    const maxLevel = Math.min(systemMaxLevel, absoluteMaxLevel);
 
     if (updatedNpc.level >= maxLevel) {
         if (updatedNpc.experience !== 0) {

@@ -10,8 +10,41 @@ import {
 import * as geminiService from '../services/geminiService';
 import * as openaiService from '../services/openaiService';
 import { findBestAvatar } from '../services/avatarService';
+import { GAME_CONFIG } from '../config/gameConfig';
 
 const USE_DEFAULT_KEY_IDENTIFIER = '_USE_DEFAULT_KEY_';
+
+/**
+ * Tính toán giá trị của một vật phẩm dựa trên các quy tắc trong gameConfig.
+ * @param item - Vật phẩm cần tính giá trị (không cần các trường id, value, quantity).
+ * @param worldSettings - Cài đặt thế giới để lấy danh sách phẩm chất.
+ * @returns Giá trị được tính toán của vật phẩm.
+ */
+const calculateItemValue = (item: Omit<Item, 'value' | 'id' | 'quantity'>, worldSettings: WorldSettings): number => {
+    const { economy } = GAME_CONFIG;
+    const baseValue = economy.baseValueByType[item.type] || economy.baseValueByType[ItemType.KHAC];
+
+    const qualityTiers = worldSettings.qualityTiers.split(' - ').map(q => q.trim()).filter(Boolean);
+    const qualityIndex = qualityTiers.indexOf(item.quality);
+
+    let qualityMultiplier = 1.0;
+
+    if (qualityIndex === -1) {
+        // Phẩm chất không tìm thấy, dùng hệ số mặc định
+        qualityMultiplier = 1.0;
+    } else if (qualityIndex < economy.valueMultiplierByQuality.length) {
+        // Nằm trong phạm vi đã định nghĩa
+        qualityMultiplier = economy.valueMultiplierByQuality[qualityIndex];
+    } else {
+        // Ngoại suy cho các bậc cao hơn
+        const lastDefinedMultiplier = economy.valueMultiplierByQuality[economy.valueMultiplierByQuality.length - 1];
+        const difference = qualityIndex - (economy.valueMultiplierByQuality.length - 1);
+        qualityMultiplier = lastDefinedMultiplier * Math.pow(economy.qualityMultiplierGrowthFactor, difference);
+    }
+
+    return Math.round(baseValue * qualityMultiplier);
+};
+
 
 interface ApplyDiffParams {
     storyResponse: StoryResponse;
@@ -337,16 +370,23 @@ export const applyStoryResponseToState = async ({
         });
         newItems = newItems.filter(item => item.quantity > 0);
     }
-    if (response.newItems) response.newItems.forEach(newItem => {
-        const isEquipment = newItem.type === ItemType.TRANG_BI || newItem.type === ItemType.DAC_THU;
-        const existingItemIndex = isEquipment ? -1 : newItems.findIndex(i => i.name === newItem.name);
-        if (existingItemIndex > -1) {
-            newItems[existingItemIndex].quantity += newItem.quantity;
-            newItems[existingItemIndex].isNew = true;
-        } else {
-            newItems.push({ ...newItem, isNew: true });
-        }
-    });
+    if (response.newItems) {
+        response.newItems.forEach(newItemFromAI => {
+            const calculatedValue = calculateItemValue(newItemFromAI, finalWorldSettings);
+            const newItem = { ...newItemFromAI, value: calculatedValue, isNew: true };
+
+            const isEquipment = newItem.type === ItemType.TRANG_BI || newItem.type === ItemType.DAC_THU;
+            // Chỉ cộng dồn các vật phẩm không phải trang bị và có cùng phẩm chất.
+            const existingItemIndex = isEquipment ? -1 : newItems.findIndex(i => i.name === newItem.name && i.quality === newItem.quality);
+
+            if (existingItemIndex > -1) {
+                newItems[existingItemIndex].quantity += newItem.quantity;
+                newItems[existingItemIndex].isNew = true;
+            } else {
+                newItems.push(newItem);
+            }
+        });
+    }
     nextProfile.items = newItems;
 
     // Update discovered items encyclopedia

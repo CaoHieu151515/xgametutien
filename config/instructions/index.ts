@@ -1,4 +1,5 @@
 import { NarrativePerspective, CharacterGender, WorldSettings } from '../../types';
+import { GAME_CONFIG } from '../gameConfig';
 
 // System
 import { masterInstruction } from './system/master.rules';
@@ -7,7 +8,7 @@ import { playerDefinedRulesInstruction } from './system/playerDefined.rules';
 
 // Gameplay
 import { getCharacterInstruction } from './gameplay/character.rules';
-import { choicesInstruction } from './gameplay/choices.rules';
+import { getChoicesInstruction } from './gameplay/choices.rules';
 import { statUpdatesInstruction } from './gameplay/statUpdates.rules';
 import { getWorldInstruction } from './gameplay/world.rules';
 import { creationInstruction } from './gameplay/creation.rules';
@@ -48,7 +49,7 @@ export const getSystemInstruction = (
         baseInstruction,
         getCharacterInstruction(gender, perspective, race, powerSystem),
         getWorldInstruction(worldSettings),
-        choicesInstruction,
+        getChoicesInstruction(GAME_CONFIG.ai.numberOfChoices),
         statUpdatesInstruction,
         statusEffectManagementInstruction,
         locationManagementInstruction,

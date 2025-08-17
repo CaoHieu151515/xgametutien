@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { CharacterProfile, WorldSettings, Skill, SkillType } from '../../../types';
 import { getSkillExperienceForNextLevel } from '../../../services/progressionService';
 import { FormInput, FormSelect, FormTextArea, FormLabel } from '../common';
+import { GAME_CONFIG } from '../../../config/gameConfig';
 
 interface InitialSkillsSectionProps {
     profile: CharacterProfile;
@@ -38,6 +38,8 @@ export const InitialSkillsSection: React.FC<InitialSkillsSectionProps> = ({ prof
             )
         }));
     };
+    
+    const levelsPerRealm = GAME_CONFIG.progression.subRealmNames.length;
 
     return (
         <div className="space-y-4">
@@ -60,8 +62,8 @@ export const InitialSkillsSection: React.FC<InitialSkillsSectionProps> = ({ prof
                             <FormSelect id={`skill-quality-${skill.id}`} value={skill.quality} onChange={(e) => handleSkillChange(skill.id, 'quality', e.target.value)}>{worldSettings.qualityTiers.split(' - ').map(q => q.trim()).filter(Boolean).map(tier => <option key={tier} value={tier}>{tier}</option>)}</FormSelect>
                         </div>
                          <div>
-                            <FormLabel htmlFor={`skill-level-${skill.id}`}>Cấp (1-10, 10 là Viên Mãn)</FormLabel>
-                            <FormSelect id={`skill-level-${skill.id}`} value={skill.level} onChange={(e) => handleSkillChange(skill.id, 'level', parseInt(e.target.value, 10))}>{Array.from({ length: 10 }, (_, i) => i + 1).map(level => <option key={level} value={level}>{level}</option>)}</FormSelect>
+                            <FormLabel htmlFor={`skill-level-${skill.id}`}>Cấp (1-{levelsPerRealm}, {levelsPerRealm} là Viên Mãn)</FormLabel>
+                            <FormSelect id={`skill-level-${skill.id}`} value={skill.level} onChange={(e) => handleSkillChange(skill.id, 'level', parseInt(e.target.value, 10))}>{Array.from({ length: levelsPerRealm }, (_, i) => i + 1).map(level => <option key={level} value={level}>{level}</option>)}</FormSelect>
                         </div>
                     </div>
 

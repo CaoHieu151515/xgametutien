@@ -1,8 +1,10 @@
 
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { CharacterProfile, StatusEffect, Skill, NPC, WorldSettings, CharacterGender, Location, Choice, ItemType, Achievement } from '../../types';
 import { getExperienceForNextLevel, getSkillExperienceForNextLevel } from '../../services/progressionService';
 import { ImageLibraryModal } from './ImageLibraryModal';
+import { getRelationshipDisplay } from '../../utils/uiHelpers';
 
 interface PlayerInfoModalProps {
     isOpen: boolean;
@@ -161,17 +163,6 @@ const statusStyles: Record<StatusEffectType, { border: string; bg: string; text:
         bg: 'bg-purple-900/30',
         text: 'text-purple-300',
     }
-};
-
-const getRelationshipText = (value: number | undefined) => {
-    if (value === undefined) return { text: 'Trung Lập', color: 'text-slate-400' };
-    if (value >= 1000) return { text: 'Tin tưởng tuyệt đối', color: 'text-emerald-400' };
-    if (value >= 500) return { text: 'Tin tưởng', color: 'text-green-300' };
-    if (value >= 100) return { text: 'Thân thiện', color: 'text-green-400' };
-    if (value >= -99) return { text: 'Trung Lập', color: 'text-slate-400' };
-    if (value >= -499) return { text: 'Căm Ghét', color: 'text-red-400' };
-    if (value >= -999) return { text: 'Kẻ Thù', color: 'text-red-500' };
-    return { text: 'Thâm thù đại hận', color: 'text-red-600' };
 };
 
 const RulesEditor: React.FC<{ 
@@ -602,7 +593,7 @@ export const PlayerInfoModal: React.FC<PlayerInfoModalProps> = ({ isOpen, onClos
                 </div>
             ) : (
                 npcs.map((npc) => {
-                    const relationship = getRelationshipText(npc.isDaoLu ? 1000 : npc.relationship);
+                    const relationship = getRelationshipDisplay(npc.isDaoLu ? 1000 : npc.relationship);
                     const relationshipValue = npc.isDaoLu ? 1000 : (npc.relationship !== undefined ? npc.relationship : '???');
                     const defaultNpcAvatar = getDefaultAvatar(npc.gender);
 

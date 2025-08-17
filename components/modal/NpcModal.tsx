@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { NPC, CharacterGender, StatusEffect, WorldSettings, CharacterProfile } from '../../types';
 import { calculateBaseStatsForLevel } from '../../services/progressionService';
 import { ImageLibraryModal } from './ImageLibraryModal';
+import { getRelationshipDisplay } from '../../utils/uiHelpers';
 
 interface NpcModalProps {
     isOpen: boolean;
@@ -48,18 +49,6 @@ const getPowerTier = (level: number) => {
         icon: null,
         description: 'Tu vi không đáng kể hoặc chỉ là một phàm nhân.'
     };
-};
-
-
-const getRelationshipText = (value: number | undefined) => {
-    if (value === undefined) return { text: 'Trung Lập', color: 'text-slate-400' };
-    if (value >= 1000) return { text: 'Tin tưởng tuyệt đối', color: 'text-emerald-400' };
-    if (value >= 500) return { text: 'Tin tưởng', color: 'text-green-300' };
-    if (value >= 100) return { text: 'Thân thiện', color: 'text-green-400' };
-    if (value >= -99) return { text: 'Trung Lập', color: 'text-slate-400' };
-    if (value >= -499) return { text: 'Căm Ghét', color: 'text-red-400' };
-    if (value >= -999) return { text: 'Kẻ Thù', color: 'text-red-500' };
-    return { text: 'Thâm thù đại hận', color: 'text-red-600' };
 };
 
 const FormSelect = (props: React.SelectHTMLAttributes<HTMLSelectElement>) => (
@@ -403,7 +392,7 @@ export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpd
                                                 <div className="space-y-2">
                                                     {allRelationships.map((rel, index) => {
                                                         const score = rel.isPlayer && selectedNpc.isDaoLu ? 1000 : rel.value;
-                                                        const relationship = getRelationshipText(score);
+                                                        const relationship = getRelationshipDisplay(score);
                                                         const valueText = rel.isPlayer && selectedNpc.isDaoLu ? '1000' : (rel.value !== undefined ? rel.value : '???');
                                                         const defaultAvatarForRel = getDefaultAvatar(rel.gender);
                                                         const isDaoLuRel = rel.relationshipType === 'Đạo lữ';
