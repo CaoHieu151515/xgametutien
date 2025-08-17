@@ -35,8 +35,6 @@ export const GAME_CONFIG = {
     events: {
         // Tỷ lệ (0-1) một sự kiện ngẫu nhiên xảy ra mỗi khi người chơi thực hiện một hành động tốn thời gian.
         randomEncounterChance: 0.25, // 25%
-        // Bật/tắt các sự kiện 18+ ngẫu nhiên. Tách biệt với cài đặt chung.
-        allowRandomMatureEvents: true,
 
         // Trọng số cho các sự kiện ở chế độ thường (SFW - Safe For Work)
         sfwEventWeights: {
@@ -48,7 +46,8 @@ export const GAME_CONFIG = {
             sexual_violent: 0,
             graphic_violence: 0,
         },
-        // Trọng số cho các sự kiện ở chế độ 18+ (NSFW - Not Safe For Work) - ƯU TIÊN 18+
+        // Trọng số cho các sự kiện ở chế độ 18+ (NSFW - Not Safe For Work).
+        // Sẽ được kích hoạt khi người chơi bật "Nội dung người lớn" trong Cài đặt chung.
         nsfwEventWeights: {
             positive: 10,     // Giảm
             negative: 10,     // Giảm

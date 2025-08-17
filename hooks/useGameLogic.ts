@@ -239,10 +239,10 @@ export const useGameLogic = () => {
         let modifiedActionText = choice.title;
 
         // --- START: Random Event Logic ---
-        const { randomEncounterChance, sfwEventWeights, nsfwEventWeights, allowRandomMatureEvents } = GAME_CONFIG.events;
+        const { randomEncounterChance, sfwEventWeights, nsfwEventWeights } = GAME_CONFIG.events;
         // Chỉ kích hoạt sự kiện cho các hành động có tốn thời gian
         if (!choice.isTimeSkip && choice.durationInMinutes > 0 && Math.random() < randomEncounterChance) {
-            const weights = settings.isMature && allowRandomMatureEvents ? nsfwEventWeights : sfwEventWeights;
+            const weights = settings.isMature ? nsfwEventWeights : sfwEventWeights;
             const totalWeight = Object.values(weights).reduce((sum, weight) => sum + weight, 0);
             let random = Math.random() * totalWeight;
 
