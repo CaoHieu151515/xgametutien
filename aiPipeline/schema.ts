@@ -441,6 +441,10 @@ const fullResponseProperties = {
         description: "Các tri thức mới được khám phá trong lượt này (ví dụ: một Bang Phái mới). Chỉ bao gồm nếu có.",
         items: storyWorldKnowledgeSchema,
     },
+    newMilestone: {
+        type: Type.STRING,
+        description: "MỘT CƠ CHẾ CỰC KỲ QUAN TRỌNG ĐỂ GHI NHỚ LỊCH SỬ. Nếu lượt này giải quyết dứt điểm một sự kiện, một mối quan hệ, hoặc một chương truyện một cách vĩnh viễn, bạn BẮT BUỘC phải cung cấp một câu tóm tắt ngắn gọn về nó. Đây là 'trí nhớ vĩnh viễn' của game. Ví dụ: 'Đã phá hủy Hắc Phong Trại, cứu được dân làng.', 'Chính thức trở thành Đạo Lữ với Mộng Liên.', 'Rời khỏi Vô Cực Tông sau khi hoàn thành tu luyện.', 'Giết chết kẻ thù không đội trời chung là Hắc Ma Lão Tổ.', 'Mất đi toàn bộ tu vi và trở thành phàm nhân.' Bỏ qua nếu không có sự kiện nào kết thúc dứt điểm."
+    },
 };
 
 const stateUpdateProperties = { ...fullResponseProperties };

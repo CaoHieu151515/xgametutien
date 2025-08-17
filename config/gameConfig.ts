@@ -101,22 +101,21 @@ export const GAME_CONFIG = {
             attackPerRealm: 10000,
             baseLifespan: 100,
             // Thưởng thọ nguyên khi đột phá đại cảnh giới
-            lifespanBonuses: [0, 50000, 100000, 200000, 500000, 1000000, 5000000, 10000000, 25000000, 50000000, 100000000],
-        }
+            lifespanBonuses: [0, 50000, 100000, 200000, 500000, 1000000, 5000000, 10000000, 25000000, 50000000],
+        },
     },
 
     /**
-     * Cấu hình liên quan đến cơ chế gameplay.
+     * Cấu hình liên quan đến gameplay
      */
     gameplay: {
         time: {
-            // Số phút trong game tương ứng với 1 lượt khi tua nhanh
-            minutesPerTurn: 480, // 8 giờ
+            // Số phút trong game tương ứng với 1 lượt khi tua nhanh thời gian.
+            minutesPerTurn: 480, // 8 hours
         },
-        // Cấu hình cho các hành động mặc định của người chơi
         actions: {
             custom: {
-                defaultSuccessChance: 100,
+                defaultSuccessChance: 75,
                 defaultDurationMinutes: 10,
             },
             travel: {
@@ -126,89 +125,80 @@ export const GAME_CONFIG = {
     },
     
     /**
-     * Cấu hình liên quan đến giao diện người dùng.
+     * Cấu hình liên quan đến Giao diện Người dùng (UI)
      */
     ui: {
-        // Số lượt tối đa có thể quay lại trong Nhật Ký
-        maxRewindableTurns: 10,
-        // Thời gian (ms) để một thông báo (toast) tự động đóng lại.
+        // Thời gian hiển thị của thông báo toast (ms).
         toastDismissTimeMs: 5000,
+        // Số lượt tối đa có thể quay lại trong nhật ký game.
+        maxRewindableTurns: 10,
     },
     
     /**
-     * Cấu hình liên quan đến các Nhân vật không phải người chơi (NPC).
+     * Cấu hình liên quan đến NPC
      */
     npc: {
-        // Cấp độ tối đa mà một NPC có thể đạt được, bất kể hệ thống tu luyện của họ.
+        // Cấp độ tối đa mà một NPC có thể đạt được.
         maxNpcLevel: 100,
-        // Các giá trị Mị Lực mặc định khi tạo NPC mới.
-        defaultMienLuc: { 
-            body: 10, 
-            face: 10, 
-            aura: 10, 
-            power: 5 
-        },
-        // Các ngưỡng và tên gọi cho mức độ quan hệ. Sắp xếp từ cao đến thấp.
+        // Cấu hình các bậc quan hệ và màu sắc hiển thị.
+        // Được sắp xếp từ cao đến thấp.
         relationshipTiers: [
-            { threshold: Infinity, text: 'Tri Kỷ', color: 'text-pink-400' },
-            { threshold: 999, text: 'Tin Tưởng Tuyệt Đối', color: 'text-pink-300' },
-            { threshold: 500, text: 'Tin tưởng', color: 'text-emerald-400' },
-            { threshold: 300, text: 'Cảm Mến', color: 'text-emerald-300' },
-            { threshold: 100, text: 'Thân Thiện', color: 'text-green-300' },
-            { threshold: -99, text: 'Trung Lập', color: 'text-slate-400' },
-            { threshold: -299, text: 'Lạnh Nhạt', color: 'text-sky-400' },
-            { threshold: -599, text: 'Chán Ghét', color: 'text-yellow-500' },
-            { threshold: -999, text: 'Căm Hận', color: 'text-red-400' },
-            { threshold: -Infinity, text: 'Kẻ Thù', color: 'text-red-500' },
-        ]
+            { threshold: 950, text: 'Tri Kỷ / Đạo Lữ', color: 'text-pink-400' },
+            { threshold: 800, text: 'Thân Thiết', color: 'text-teal-400' },
+            { threshold: 500, text: 'Bằng Hữu', color: 'text-green-400' },
+            { threshold: 200, text: 'Thân thiện', color: 'text-lime-400' },
+            { threshold: 0, text: 'Người Quen', color: 'text-slate-300' },
+            { threshold: -100, text: 'Trung Lập', color: 'text-slate-400' },
+            { threshold: -400, text: 'Lạnh Nhạt', color: 'text-sky-400' },
+            { threshold: -700, text: 'Chán Ghét', color: 'text-yellow-400' },
+            { threshold: -900, text: 'Căm Hận', color: 'text-orange-400' },
+            { threshold: -1001, text: 'Kẻ Thù Không Đội Trời Chung', color: 'text-red-500' },
+        ],
+        // Giá trị Mị Lực mặc định cho NPC khi được tạo thủ công.
+        defaultMienLuc: { body: 15, face: 15, aura: 10, power: 5 },
     },
-
+    
     /**
-     * Cấu hình liên quan đến hệ thống kinh tế và giá trị vật phẩm.
+     * Cấu hình liên quan đến Kinh tế trong game
      */
     economy: {
-        /**
-         * Định nghĩa giá trị "sàn" cho mỗi loại vật phẩm.
-         * Đây là giá của một vật phẩm loại đó ở phẩm chất thấp nhất.
-         */
+        // Giá trị cơ bản của vật phẩm theo loại.
         baseValueByType: {
             [ItemType.TRANG_BI]: 50,
-            [ItemType.BI_KIP]: 40,
             [ItemType.DUOC_PHAM]: 15,
-            [ItemType.DAC_THU]: 25,
+            [ItemType.DAC_THU]: 100,
+            [ItemType.BI_KIP]: 200,
             [ItemType.NGUYEN_LIEU]: 5,
             [ItemType.KHAC]: 1,
         },
+        // Hệ số nhân giá trị dựa trên phẩm chất (tương ứng với qualityTiers).
+        valueMultiplierByQuality: [1, 5, 25, 125, 625, 3125],
+        // Hệ số tăng trưởng cho các phẩm chất cao hơn không được định nghĩa.
+        qualityMultiplierGrowthFactor: 5,
+    },
 
+    /**
+     * Cấu hình liên quan đến việc tạo thế giới ban đầu.
+     */
+    worldGen: {
         /**
-         * HỆ SỐ NHÂN THEO PHẨM CHẤT.
-         * Mảng này chứa các hệ số nhân tương ứng với vị trí (index) của phẩm chất
-         * trong chuỗi `worldSettings.qualityTiers`.
+         * Các tham số cho chức năng "Để AI Điền Giúp".
          */
-        valueMultiplierByQuality: [
-            1.0,     // Bậc 1 (index 0)
-            5.0,     // Bậc 2 (index 1)
-            25.0,    // Bậc 3 (index 2)
-            125.0,   // Bậc 4 (index 3)
-            625.0,   // Bậc 5 (index 4)
-            3125.0   // Bậc 6 (index 5)
-        ],
-
-        /**
-         * Hệ số nhân tăng trưởng cho các bậc phẩm chất vượt ra ngoài
-         * phạm vi được định nghĩa sẵn trong 'valueMultiplierByQuality'.
-         * Mỗi bậc "thừa" sẽ được tính bằng cách lấy giá trị của bậc cao nhất
-         * nhân với (hệ số này ^ số bậc chênh lệch).
-         */
-        qualityMultiplierGrowthFactor: 5.0,
-        /**
-         * Giá dịch vụ cơ bản (để tham khảo, chưa dùng trong code)
-         */
-        servicePrices: {
-            innStay_normal: 10, // Tiền Đồng
-            innStay_cultivator: 1, // Linh Thạch
-            meal_simple: 2, // Tiền Đồng
-            meal_lavish: 15, // Tiền Đồng
-        }
-    }
+        autoFill: {
+            // Số lượng NPC khởi đầu AI cần tạo ra.
+            npcs: 3,
+            // Số lượng địa điểm khởi đầu.
+            locations: 5,
+            // Số lượng vật phẩm/trang bị khởi đầu.
+            items: 2,
+            // Số lượng sinh vật/quái vật khởi đầu.
+            monsters: 2,
+            // Số lượng kỹ năng khởi đầu cho nhân vật.
+            skills: 3,
+            // Số lượng mục tri thức thế giới khởi đầu.
+            knowledge: 10,
+            // Số lượng hệ thống sức mạnh khởi đầu.
+            powerSystems: 2,
+        },
+    },
 };

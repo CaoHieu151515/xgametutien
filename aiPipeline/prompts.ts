@@ -1,8 +1,10 @@
 
-import { CharacterProfile, WorldSettings, NPC, Location, Skill, StoryResponse } from '../types';
+import { CharacterProfile, WorldSettings, NPC, Location, Skill, StoryResponse, Milestone } from '../types';
 import { buildContextForPrompt } from './promptUtils';
+import { GAME_CONFIG } from '../config/gameConfig';
 
 export const buildWorldGenPrompt = (storyIdea: string, openingScene: string): string => {
+    const { npcs, locations, items, monsters, skills, knowledge, powerSystems } = GAME_CONFIG.worldGen.autoFill;
     return `
 Dựa trên ý tưởng cốt truyện và bối cảnh sau đây, hãy tạo ra một thế giới hoàn chỉnh và một nhân vật chính để bắt đầu một game nhập vai tương tác.
 
@@ -28,7 +30,7 @@ Bạn PHẢI trả về một đối tượng JSON duy nhất tuân thủ nghiê
     *   Chỉ sử dụng các chủ đề thần thoại hoặc bối cảnh phương Tây nếu người dùng yêu cầu rõ ràng.
 
 2.  **Hệ Thống Sức Mạnh (\`powerSystems\`):**
-    *   Thiết kế ít nhất HAI (2) hệ thống sức mạnh.
+    *   Thiết kế ít nhất ${powerSystems} hệ thống sức mạnh.
     *   **Tên Hệ Thống:** Tên phải bao quát và cụ thể (ví dụ: 'Tiên Đạo Tu Luyện', 'Ma Đạo Tu Luyện').
     *   **Cảnh Giới:** Mỗi hệ thống **BẮT BUỘC** phải có chính xác MƯỜI (10) cảnh giới, bắt đầu bằng \`Phàm Nhân - \`.
 
@@ -36,13 +38,13 @@ Bạn PHẢI trả về một đối tượng JSON duy nhất tuân thủ nghiê
     *   Tạo ra một nhân vật chính có tiểu sử, tính cách và mục tiêu phù hợp.
     *   **Chủng tộc (\`race\`):** Tên Chủng tộc phải ngắn gọn và mang tính thần thoại phương Đông (ví dụ: Nhân Tộc, Long Tộc, Ma Tộc).
     *   **Cấp độ khởi đầu (\`level\`):** Gán cho nhân vật một cấp độ khởi đầu từ 1 đến 5.
-    *   **Kỹ năng khởi đầu (\`skills\`):** Nhân vật chính PHẢI bắt đầu với ít nhất BA (3) kỹ năng đa dạng.
+    *   **Kỹ năng khởi đầu (\`skills\`):** Nhân vật chính PHẢI bắt đầu với ít nhất ${skills} kỹ năng đa dạng.
 
 4.  **Yếu tố ban đầu (\`initialNpcs\`, \`initialLocations\`, \`initialItems\`, \`initialMonsters\`):**
-    *   **NPC Khởi đầu (QUAN TRỌNG):** Tạo ít nhất BA (3) NPC có vai trò quan trọng và phù hợp. **BẮT BUỘC** phải bao gồm: một sư phụ hoặc trưởng bối, một đối thủ, và một nhân vật bí ẩn. Giới tính có thể linh hoạt.
+    *   **NPC Khởi đầu (QUAN TRỌNG):** Tạo ít nhất ${npcs} NPC có vai trò quan trọng và phù hợp. **BẮT BUỘC** phải bao gồm: một sư phụ hoặc trưởng bối, một đối thủ, và một nhân vật bí ẩn. Giới tính có thể linh hoạt.
     *   **Chủng tộc NPC:** Khi tạo NPC thuộc chủng tộc người, BẮT BUỘC sử dụng "Nhân Tộc" hoặc "Nhân Loại", TUYỆT ĐỐI KHÔNG sử dụng "Con người".
     *   **Quan hệ NPC ban đầu:** Tạo một vài mối quan hệ ban đầu giữa các NPC trong trường \`npcRelationships\`.
-    *   **Sinh Vật Khởi Đầu (\`initialMonsters\`):** Tạo ít nhất HAI (2) loại sinh vật hoặc yêu thú phù hợp.
+    *   **Sinh Vật Khởi Đầu (\`initialMonsters\`):** Tạo ít nhất ${monsters} loại sinh vật hoặc yêu thú phù hợp.
         *   **QUY TẮC ĐẶT TÊN SINH VẬT (MỆNH LỆNH TUYỆT ĐỐI):**
         *   Mỗi sinh vật PHẢI có một tên NGẮN GỌN, CỤ THỂ và ĐỘC NHẤT. Trường \`name\` là để chứa MỘT tên, không phải một danh sách.
         *   **VÍ DỤ:**
@@ -50,20 +52,20 @@ Bạn PHẢI trả về một đối tượng JSON duy nhất tuân thủ nghiê
             *   \`"name": "Ma Dơi"\` -> **ĐÚNG**
             *   \`"name": "Xà Tinh Địa Long Xà Hổ Mang Bạch Hổ..."\` -> **SAI (LỖI NGHIÊM TRỌNG - SẼ PHÁ HỎNG GAME!)**
     *   **Địa điểm Khởi đầu:**
-        *   Tạo ít nhất NĂM (5) địa điểm khởi đầu đa dạng.
+        *   Tạo ít nhất ${locations} địa điểm khởi đầu đa dạng.
         *   **Bắt buộc:** PHẢI có một địa điểm gốc loại 'THẾ GIỚI' có \`parentId\` là \`null\`.
         *   **Thế Lực (Bang Phái):** Tạo ít nhất MỘT (1) địa điểm loại 'THẾ LỰC'.
         *   **Quy tắc Đặt tên (Rất Quan trọng):** Tuân thủ cấu trúc '[Tên Riêng] [Loại Địa Điểm]'. Ví dụ: 'Long Thần Thành' (ĐÚNG), không phải 'Thành Long Thần' (SAI). 'Vô Cực Tông' (ĐÚNG), không phải 'Tông Môn Vô Cực' (SAI).
         *   **Đồng bộ Tri Thức:** Với MỖI địa điểm loại 'THẾ LỰC', bạn PHẢI tạo một mục 'initialKnowledge' tương ứng với 'category' là 'Bang Phái'.
         *   **Phân bổ Tọa độ:** Phân bổ tọa độ (\`coordinates\`) trên bản đồ 1000x1000 một cách hợp lý, tránh chồng chéo.
         *   **QUAN TRỌNG VỀ DỮ LIỆU:** Đối với mỗi địa điểm, trường \`rules\` PHẢI là một mảng (có thể rỗng \`[]\`), TUYỆT ĐỐI KHÔNG được là \`null\`. Trường \`isDestroyed\` mặc định phải là \`false\` nếu không bị phá hủy, không được là \`null\`.
-    *   **Trang bị khởi đầu (\`initialItems\`):** BẮT BUỘC phải tạo ít nhất HAI (2) vật phẩm khởi đầu phù hợp, bao gồm một vũ khí.
+    *   **Trang bị khởi đầu (\`initialItems\`):** BẮT BUỘC phải tạo ít nhất ${items} vật phẩm khởi đầu phù hợp, bao gồm một vũ khí.
         *   **BẮT BUỘC:** Đối với vật phẩm có \`type\` là 'Trang Bị' hoặc 'Đặc Thù', bạn PHẢI cung cấp đầy đủ đối tượng \`equipmentDetails\`. Trường \`value\` PHẢI là một con số (có thể là 0 nếu vô giá), TUYỆT ĐỐI KHÔNG được là \`null\`. Nếu một vật phẩm không có hiệu ứng (\`effectsDescription\`), hãy **BỎ QUA HOÀN TOÀN** trường đó, không đặt là \`null\`.
         *   **QUY TẮC CHỈ SỐ (CỰC KỲ QUAN TRỌNG):** Các chỉ số trong \`stats.key\` CHỈ ĐƯỢỢC PHÉP là: \`'attack'\`, \`'maxHealth'\`, \`'maxMana'\`.
         *   **LOGIC QUAN TRỌNG:** Giá trị chỉ số (\`stats.value\`) của trang bị PHẢI tương xứng với phẩm chất (\`quality\`).
 
 5.  **Tri Thức Thế Giới (\`initialKnowledge\`) - Cốt lõi:**
-    *   Tạo ra các mục tri thức phong phú để giải thích các khái niệm của thế giới.
+    *   Tạo ra ít nhất ${knowledge} mục tri thức phong phú để giải thích các khái niệm của thế giới.
     *   **Bắt buộc** phải có các mục tri thức RIÊNG BIỆT cho:
         *   Chủng tộc (\`race\`) của nhân vật chính. Mục tri thức này phải mô tả về nguồn gốc, đặc điểm và vị thế của chủng tộc đó trong thế giới.
         *   Thể Chất Đặc Biệt (\`specialConstitution\`) của nhân vật chính.
@@ -100,6 +102,7 @@ export const buildUnifiedPrompt = (
         specialConstitution,
         talent,
         achievements,
+        milestones,
         discoveredMonsters,
     } = buildContextForPrompt(characterProfile, worldSettings, npcs, historyText);
 
@@ -134,6 +137,11 @@ ${currentLocation.description}
 \`\`\`json
 ${JSON.stringify(achievements.map(({ name, tier }) => ({ name, tier })), null, 2)}
 \`\`\`
+` : '';
+
+    const milestonesContext = (milestones && milestones.length > 0) ? `
+**Sổ Ký Ức (Các sự kiện lớn đã kết thúc vĩnh viễn - KHÔNG THỂ THAY ĐỔI):**
+${milestones.map(m => `- Lượt ${m.turnNumber}: ${m.summary}`).join('\n')}
 ` : '';
 
     const discoveredMonstersContext = (discoveredMonsters && discoveredMonsters.length > 0) ? `
@@ -189,6 +197,8 @@ ${JSON.stringify(globalLocations, null, 2)}
 ${locationRules || "Không có luật lệ nào tại địa điểm này."}
 
 ${discoveredMonstersContext}
+
+${milestonesContext}
 
 **Lịch sử câu chuyện:**
 ${historyText}

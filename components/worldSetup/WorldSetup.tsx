@@ -72,6 +72,7 @@ const initialProfile: CharacterProfile = {
     lifespan: 100,
     statusEffects: [],
     achievements: [],
+    milestones: [],
     skills: [],
     items: [],
     equipment: {},
@@ -203,6 +204,8 @@ export const WorldSetup: React.FC<WorldSetupProps> = ({ onStartGame, onBackToMen
             talent: profile.talent,
             avatarUrl: profile.avatarUrl,
             skills: profile.skills,
+            achievements: profile.achievements,
+            milestones: profile.milestones,
             initialItems: profile.initialItems,
             initialNpcs: profile.initialNpcs,
             initialLocations: profile.initialLocations,
@@ -249,7 +252,7 @@ export const WorldSetup: React.FC<WorldSetupProps> = ({ onStartGame, onBackToMen
                 const data = JSON.parse(text);
 
                 if (data && typeof data === 'object' && data.worldSettings && data.profile) {
-                    const completeProfile: CharacterProfile = { ...initialProfile, ...data.profile, specialConstitution: { ...initialProfile.specialConstitution, ...(data.profile.specialConstitution || {}) }, talent: { ...initialProfile.talent, ...(data.profile.talent || {}) }, skills: data.profile.skills || [], initialNpcs: data.profile.initialNpcs || [], initialLocations: data.profile.initialLocations || [], initialItems: data.profile.initialItems || [], discoveredLocations: data.profile.discoveredLocations || [], statusEffects: data.profile.statusEffects || [], equipment: data.profile.equipment || {}, initialMonsters: data.profile.initialMonsters || [], discoveredMonsters: data.profile.discoveredMonsters || [], discoveredItems: data.profile.discoveredItems || [] };
+                    const completeProfile: CharacterProfile = { ...initialProfile, ...data.profile, specialConstitution: { ...initialProfile.specialConstitution, ...(data.profile.specialConstitution || {}) }, talent: { ...initialProfile.talent, ...(data.profile.talent || {}) }, skills: data.profile.skills || [], initialNpcs: data.profile.initialNpcs || [], initialLocations: data.profile.initialLocations || [], initialItems: data.profile.initialItems || [], discoveredLocations: data.profile.discoveredLocations || [], statusEffects: data.profile.statusEffects || [], equipment: data.profile.equipment || {}, initialMonsters: data.profile.initialMonsters || [], discoveredMonsters: data.profile.discoveredMonsters || [], discoveredItems: data.profile.discoveredItems || [], achievements: data.profile.achievements || [], milestones: data.profile.milestones || [] };
                     const completeWorldSettings: WorldSettings = { ...initialWorldSettings, ...data.worldSettings, powerSystems: data.worldSettings.powerSystems || [], playerDefinedRules: data.worldSettings.playerDefinedRules || [], initialKnowledge: data.worldSettings.initialKnowledge || [] };
                     
                     setWorldSettings(completeWorldSettings);

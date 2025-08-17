@@ -428,6 +428,8 @@ export const useGameLogic = () => {
             });
         }
 
+        const newTurnNumber = (gameLog[gameLog.length - 1]?.turnNumber || 0) + 1;
+
         try {
             // Xác minh tính nhất quán logic của phản hồi AI trước khi áp dụng
             verifyStoryResponse(storyResponse, characterProfile, npcs, worldSettings);
@@ -439,7 +441,8 @@ export const useGameLogic = () => {
                 npcs,
                 worldSettings,
                 settings,
-                choice
+                choice,
+                turnNumber: newTurnNumber,
             });
 
             // Apply turn-based status effect duration updates only for non-time-skip actions
@@ -455,7 +458,7 @@ export const useGameLogic = () => {
                 notifications,
             };
 
-            const newTurnNumber = (gameLog[gameLog.length - 1]?.turnNumber || 0) + 1;
+            
             const newSnapshot: GameSnapshot = {
                 turnNumber: newTurnNumber,
                 preActionState,
@@ -682,6 +685,7 @@ export const useGameLogic = () => {
             ...profile,
             id: `char_${Date.now()}`,
             items: profile.initialItems || [],
+            milestones: [],
             currentLocationId: profile.initialLocations?.[0]?.id || null,
             discoveredLocations: profile.initialLocations || [],
             discoveredMonsters: profile.initialMonsters || [],
@@ -747,7 +751,8 @@ export const useGameLogic = () => {
                     risk: 'Không xác định.', 
                     successChance: 100, 
                     durationInMinutes: 0 
-                } // Dummy choice for initialization
+                }, // Dummy choice for initialization
+                turnNumber: 1,
             });
             
             const initialStoryPart: StoryPart = { 

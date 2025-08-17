@@ -203,6 +203,7 @@ export interface StoryResponse {
   removedItemIds?: string[];
   newMonsters?: { name: string; description: string }[];
   newWorldKnowledge?: WorldKnowledge[];
+  newMilestone?: string;
 }
 
 export enum GameState {
@@ -307,6 +308,12 @@ export interface Item {
     isNew?: boolean;
 }
 
+export interface Milestone {
+  turnNumber: number;
+  summary: string;
+  isNew?: boolean;
+}
+
 export interface CharacterProfile {
   id: string; // ID duy nhất cho nhân vật
   name: string;
@@ -352,6 +359,7 @@ export interface CharacterProfile {
   // Status Effects
   statusEffects: StatusEffect[];
   achievements: Achievement[];
+  milestones: Milestone[];
 
   // Skills
   skills: Skill[];

@@ -1,6 +1,6 @@
 import {
     StoryResponse, CharacterProfile, NPC, WorldSettings, StatusEffect, Skill,
-    NewNPCFromAI, Item, ItemType, AppSettings, ApiProvider, Achievement, SkillType, Location, Choice, LocationType, Coordinates
+    NewNPCFromAI, Item, ItemType, AppSettings, ApiProvider, Achievement, SkillType, Location, Choice, LocationType, Coordinates, Milestone
 } from '../types';
 import {
     processLevelUps, getRealmDisplayName, calculateBaseStatsForLevel,
@@ -53,6 +53,7 @@ interface ApplyDiffParams {
     worldSettings: WorldSettings;
     settings: AppSettings;
     choice: Choice;
+    turnNumber: number;
 }
 
 interface ApplyDiffResult {
@@ -68,7 +69,8 @@ export const applyStoryResponseToState = async ({
     npcs,
     worldSettings,
     settings,
-    choice
+    choice,
+    turnNumber,
 }: ApplyDiffParams): Promise<ApplyDiffResult> => {
     // Make a mutable copy of the response to correct inconsistencies before applying
     const response: StoryResponse = JSON.parse(JSON.stringify(storyResponse)); 
@@ -86,6 +88,7 @@ export const applyStoryResponseToState = async ({
         items: characterProfile.items.map(i => ({ ...i, isNew: false })),
         skills: characterProfile.skills.map(s => ({ ...s, isNew: false })),
         achievements: (characterProfile.achievements || []).map(a => ({ ...a, isNew: false })),
+        milestones: (characterProfile.milestones || []).map(m => ({ ...m, isNew: false })),
         discoveredLocations: characterProfile.discoveredLocations.map(loc => ({ ...loc, isNew: false })),
         discoveredMonsters: characterProfile.discoveredMonsters.map(m => ({ ...m, isNew: false })),
         discoveredItems: (characterProfile.discoveredItems || []).map(i => ({ ...i, isNew: false })),
@@ -670,5 +673,16 @@ export const applyStoryResponseToState = async ({
         nextProfile.gameTime = newDate.toISOString();
     }
     
+    // Apply new milestone
+    if (response.newMilestone && response.newMilestone.trim()) {
+        const newMilestoneEntry: Milestone = {
+            turnNumber: turnNumber,
+            summary: response.newMilestone.trim(),
+            isNew: true,
+        };
+        nextProfile.milestones = [...(nextProfile.milestones || []), newMilestoneEntry];
+        notifications.push(`- **Sổ Ký Ức được cập nhật:** ${newMilestoneEntry.summary}`);
+    }
+
     return { nextProfile, nextNpcs, finalWorldSettings, notifications };
 };

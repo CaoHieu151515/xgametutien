@@ -1,4 +1,4 @@
-import { CharacterProfile, WorldSettings, NPC, Location, Item, Achievement, Monster, LocationType } from '../types';
+import { CharacterProfile, WorldSettings, NPC, Location, Item, Achievement, Monster, LocationType, Milestone } from '../types';
 
 interface ContextualPromptData {
     contextualNpcs: Partial<NPC>[];
@@ -12,6 +12,7 @@ interface ContextualPromptData {
     specialConstitution: CharacterProfile['specialConstitution'];
     talent: CharacterProfile['talent'];
     achievements: Achievement[];
+    milestones: Milestone[];
     discoveredMonsters: Monster[];
 }
 
@@ -115,6 +116,7 @@ export const buildContextForPrompt = (
         specialConstitution,
         talent,
         achievements,
+        milestones,
         skills,
         ...rest 
     } = characterProfile;
@@ -135,6 +137,7 @@ export const buildContextForPrompt = (
         specialConstitution,
         talent,
         achievements: achievements || [],
+        milestones: milestones || [],
         discoveredMonsters: discoveredMonsters || [],
     };
 };

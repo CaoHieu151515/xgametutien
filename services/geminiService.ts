@@ -19,7 +19,7 @@ export const generateWorldFromIdea = async (storyIdea: string, openingScene: str
     try {
         const prompt = buildWorldGenPrompt(storyIdea, openingScene);
         const response = await callGeminiApi({ prompt, apiKey, schema: worldCreationSchema, systemInstruction: "Bạn là một người sáng tạo thế giới và viết truyện chuyên nghiệp cho một trò chơi nhập vai tương tác. Nhiệm vụ của bạn là tạo ra một thế giới phong phú và một nhân vật chính hấp dẫn dựa trên ý tưởng của người dùng." });
-        const result = parseAndValidateJson<any>(response.text.trim());
+        const result = parseAndValidateJson<any>((response?.text ?? '').trim());
         validateWorldGenResponse(result);
 
         log('geminiService.ts', 'World generation successful.', 'API');
@@ -48,7 +48,7 @@ export const getNextStoryStep = async (
 
     try {
         const response = await callGeminiApi({ systemInstruction, prompt, apiKey, schema: responseSchema });
-        const storyResponse = parseAndValidateJson<StoryResponse>(response.text.trim());
+        const storyResponse = parseAndValidateJson<StoryResponse>((response?.text ?? '').trim());
         
         return {
             storyResponse,
@@ -75,7 +75,7 @@ export const getInitialStory = async (
     const prompt = buildInitialStoryPrompt(characterProfile, worldSettings);
     try {
         const response = await callGeminiApi({ systemInstruction, prompt, apiKey, schema: responseSchema });
-        const storyResponse = parseAndValidateJson<StoryResponse>(response.text.trim());
+        const storyResponse = parseAndValidateJson<StoryResponse>((response?.text ?? '').trim());
 
         return {
             storyResponse,
@@ -104,7 +104,7 @@ export const generateNewSkillDescription = async (
     try {
         const prompt = buildNewSkillDescriptionPrompt(skill, newQuality, worldSettings);
         const response = await callGeminiApi({ prompt, apiKey, schema: newSkillDescriptionSchema, systemInstruction: "You are a creative writer for a fantasy RPG. Your task is to upgrade a skill's description and effect. Respond with a single, valid JSON object in Vietnamese." });
-        const result = parseAndValidateJson<{ description: string; effect: string }>(response.text.trim());
+        const result = parseAndValidateJson<{ description: string; effect: string }>((response?.text ?? '').trim());
         log('geminiService.ts', 'Skill description generation successful.', 'API');
         return result;
     } catch (err) {
