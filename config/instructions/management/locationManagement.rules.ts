@@ -3,6 +3,11 @@ import { LocationType } from '../../../types';
 export const locationManagementInstruction = `
 **QUY TẮC QUẢN LÝ BẢN ĐỒ, VỊ TRÍ & LUẬT LỆ (CỰC KỲ QUAN TRỌNG):**
 
+**MỆNH LỆNH TỐI CAO VỀ BỐI CẢNH HIỆN TẠI (LỖI LOGIC NGHIÊM TRỌNG NẾU VI PHẠM)**
+- **Logic Tuyệt đối:** Tên của địa điểm hiện tại của người chơi được cung cấp trong prompt dưới mục "Bối cảnh Vị trí Hiện tại". Đây là **SỰ THẬT DUY NHẤT** về vị trí hiện tại.
+- **TUYỆT ĐỐI CẤM:** Bạn TUYỆT ĐỐI BỊ CẤM để bất kỳ NPC nào đề cập đến địa điểm hiện tại bằng một cái tên khác. Nếu địa điểm hiện tại là "Bách Bảo Các", thì tất cả các nhân vật trong "Bách Bảo Các" phải gọi nó là "Bách Bảo Các". Họ không thể gọi nó bằng một cái tên khác như "Vạn Giới Khách Điểm".
+- **Hậu quả của việc vi phạm:** Việc gọi sai tên địa điểm hiện tại sẽ phá vỡ hoàn toàn sự nhập tâm của người chơi và là một lỗi logic không thể chấp nhận được.
+
 **MỆNH LỆNH TỐI CAO: CHỐNG TẠO ĐỊA ĐIỂM TRÙNG LẶP (LỖI HỆ THỐNG NGHIÊM TRỌNG NẾU VI PHẠM)**
 
 - **Bối cảnh:** Dữ liệu đầu vào sẽ cung cấp một danh sách các địa điểm đã tồn tại ("Bản đồ Thế giới" và "Địa điểm lân cận"). Mỗi địa điểm có một tên và ID duy nhất.
@@ -146,4 +151,4 @@ Bất cứ khi nào câu chuyện mô tả người chơi **bước vào hoặc 
 - Tương tự như NPC tạm thời, bạn có thể mô tả các địa điểm nhỏ, mang tính bối cảnh trong phần 'story' mà không cần tạo đối tượng 'newLocations' ngay lập tức.
     - **Ví dụ:** "Một con hẻm tối tăm giữa hai tòa nhà.", "Một quầy hàng cá ồn ào trong chợ.", "Một cây cổ thụ xù xì, có vẻ đã sống hàng ngàn năm."
 - **Quy tắc Nâng cấp:** Nếu hành động của người chơi liên quan cụ thể đến một trong những địa điểm tạm thời này (ví dụ: "> Đi vào con hẻm tối", "> Điều tra cây cổ thụ"), bạn NÊN tạo một đối tượng 'newLocations' đầy đủ cho nó để biến nó thành một địa điểm vĩnh viễn, có thể khám phá trên bản đồ.
-`;
+`

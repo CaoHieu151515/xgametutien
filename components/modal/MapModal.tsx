@@ -90,64 +90,17 @@ const Breadcrumb: React.FC<{
     );
 };
 
-const RulesEditor: React.FC<{ 
-    location: Location; 
-    onUpdateLocation: (location: Location) => void;
-    title?: string;
-}> = ({ location, onUpdateLocation, title }) => {
-    const [newRule, setNewRule] = useState('');
-
-    const handleAddRule = () => {
-        if (newRule.trim()) {
-            const updatedRules = [...(location.rules || []), newRule.trim()];
-            onUpdateLocation({ ...location, rules: updatedRules });
-            setNewRule('');
-        }
-    };
-
-    const handleDeleteRule = (indexToDelete: number) => {
-        const updatedRules = (location.rules || []).filter((_, index) => index !== indexToDelete);
-        onUpdateLocation({ ...location, rules: updatedRules });
-    };
-
-    return (
-        <div className="mt-4 border-t border-slate-700 pt-4 space-y-3">
-            <h5 className="font-semibold text-amber-200">{title || 'Quản Lý Luật Lệ'}</h5>
-            <div className="space-y-2 max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800 pr-2">
-                {(location.rules || []).length > 0 ? (
-                    (location.rules || []).map((rule, index) => (
-                        <div key={index} className="flex items-start justify-between p-2 bg-slate-800/50 rounded-md text-slate-300 text-sm">
-                            <p className="flex-grow pr-2">&bull; {rule}</p>
-                            <button onClick={() => handleDeleteRule(index)} className="flex-shrink-0 text-red-500 hover:text-red-400 font-bold text-lg transition-colors" aria-label={`Xóa quy tắc: ${rule}`}>&times;</button>
-                        </div>
-                    ))
-                ) : (
-                    <p className="text-slate-500 text-center py-2 text-sm">Chưa có luật lệ nào được định nghĩa.</p>
-                )}
-            </div>
-             <div className="flex gap-2">
-                <input
-                    type="text"
-                    value={newRule}
-                    onChange={(e) => setNewRule(e.target.value)}
-                    placeholder="Thêm luật lệ mới..."
-                    className="flex-grow p-2 bg-slate-700 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all text-slate-200 text-sm"
-                />
-                <button onClick={handleAddRule} disabled={!newRule.trim()} className="px-4 bg-amber-600 text-slate-900 font-bold rounded-lg hover:bg-amber-500 transition-colors text-sm disabled:opacity-50">Thêm</button>
-            </div>
-        </div>
-    );
-};
-
 export const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, locations, currentLocationId, characterProfile, onAction, onUpdateLocation, isLoading, worldSettings }) => {
     const [path, setPath] = useState<Location[]>([]);
     const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editableLocations, setEditableLocations] = useState<Location[]>([]);
     const [draggedLocationId, setDraggedLocationId] = useState<string | null>(null);
+
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<HTMLDivElement>(null);
     const hasDraggedRef = useRef(false);
+    const dragOffsetRef = useRef({ x: 0, y: 0 });
 
     const locationMap = useMemo(() => new Map(locations.map(loc => [loc.id, loc])), [locations]);
 
@@ -255,7 +208,6 @@ export const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, locations, 
 
     const hasChildren = useMemo(() => selectedLocation ? locations.some(loc => loc.parentId === selectedLocation.id) : false, [selectedLocation, locations]);
     const isSelectedLocationDestroyed = isLocationOrAncestorDestroyed(selectedLocation);
-    const isOwner = selectedLocation?.ownerId === characterProfile.id;
 
     // --- Edit Mode Logic ---
     const handleStartEditing = () => {
@@ -278,8 +230,20 @@ export const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, locations, 
     };
 
     const handlePinInteractionStart = (e: React.MouseEvent | React.TouchEvent, locationId: string) => {
+        e.preventDefault();
         e.stopPropagation();
         hasDraggedRef.current = false;
+
+        const pinElement = e.currentTarget as HTMLElement;
+        const pinRect = pinElement.getBoundingClientRect();
+        const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+        const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
+        dragOffsetRef.current = {
+            x: clientX - pinRect.left,
+            y: clientY - pinRect.top
+        };
+
         setDraggedLocationId(locationId);
     };
 
@@ -288,27 +252,28 @@ export const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, locations, 
             if (!draggedLocationId) return;
             hasDraggedRef.current = true;
 
-            if (!isEditing || !mapRef.current || !mapContainerRef.current) return;
+            if (!isEditing || !mapRef.current) return;
 
             const mapRect = mapRef.current.getBoundingClientRect();
-            const container = mapContainerRef.current;
-            
             const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
             const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
             
-            const mouseX = clientX - mapRect.left + container.scrollLeft;
-            const mouseY = clientY - mapRect.top + container.scrollTop;
+            // Calculate cursor position relative to the map's top-left corner
+            let newX_pixels = clientX - mapRect.left - dragOffsetRef.current.x;
+            let newY_pixels = clientY - mapRect.top - dragOffsetRef.current.y;
 
-            let newX = Math.round((mouseX / mapRef.current.offsetWidth) * 1000);
-            let newY = Math.round((mouseY / mapRef.current.offsetHeight) * 1000);
+            // Convert pixel position to 0-1000 coordinate system
+            let newX_coord = (newX_pixels / mapRect.width) * 1000;
+            let newY_coord = (newY_pixels / mapRect.height) * 1000;
 
-            newX = Math.max(10, Math.min(990, newX));
-            newY = Math.max(10, Math.min(990, newY));
+            // Clamp values to stay within map boundaries (with a small margin)
+            newX_coord = Math.max(10, Math.min(990, newX_coord));
+            newY_coord = Math.max(10, Math.min(990, newY_coord));
 
             setEditableLocations(prev =>
                 prev.map(loc =>
                     loc.id === draggedLocationId
-                        ? { ...loc, coordinates: { ...loc.coordinates, x: newX, y: newY } }
+                        ? { ...loc, coordinates: { x: Math.round(newX_coord), y: Math.round(newY_coord) } }
                         : loc
                 )
             );
@@ -323,7 +288,6 @@ export const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, locations, 
                     handleSelectLocation(location);
                 }
             }
-
             setDraggedLocationId(null);
         };
 
@@ -337,7 +301,8 @@ export const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, locations, 
             window.removeEventListener('mouseup', handleInteractionEnd);
             window.removeEventListener('touchend', handleInteractionEnd);
         };
-    }, [draggedLocationId, isEditing, locationsToRenderOnMap, centerMapOnLocation, handleSelectLocation]);
+    }, [draggedLocationId, isEditing, locationsToRenderOnMap]);
+
 
     if (!isOpen) return null;
 
@@ -376,12 +341,17 @@ export const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, locations, 
                                             <h4 className={`text-xl font-bold break-words flex items-center ${isSelectedLocationDestroyed ? 'text-red-500 line-through' : 'text-amber-300'}`}>{selectedLocation.name}{selectedLocation.isNew && <NewBadge/>}</h4>
                                             <div className="mt-2 mb-4 flex items-center gap-2"><span className="text-lg">{isSelectedLocationDestroyed ? '💥' : (locationTypeDetails[selectedLocation.type]?.icon)}</span><span className={`font-semibold ${isSelectedLocationDestroyed ? 'text-red-400' : locationTypeDetails[selectedLocation.type]?.color}`}>{isSelectedLocationDestroyed ? 'Đã Hủy Diệt' : (locationTypeDetails[selectedLocation.type]?.name || selectedLocation.type)}</span></div>
                                             <div className="text-slate-300 text-sm whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">{selectedLocation.description}</div>
-                                            {isOwner && !isSelectedLocationDestroyed && <RulesEditor location={selectedLocation} onUpdateLocation={onUpdateLocation} />}
                                         </div>
                                         <div className="mt-6 flex-shrink-0 space-y-3">
-                                            {isOwner && !isSelectedLocationDestroyed && (<div className="p-3 bg-yellow-900/50 border border-yellow-500/50 rounded-lg text-center"><p className="font-bold text-yellow-300">Bạn là chủ sở hữu</p></div>)}
                                             {selectedLocation.id === currentLocationId ? (<div className="p-3 bg-green-900/50 border border-green-500/50 rounded-lg text-center"><p className="font-bold text-green-300">Bạn đang ở đây</p></div>) : (<button onClick={handleMoveTo} disabled={isLoading || isSelectedLocationDestroyed} className="w-full p-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{isSelectedLocationDestroyed ? 'Không thể di chuyển' : 'Di chuyển tới'}</button>)}
-                                            {hasChildren && !isSelectedLocationDestroyed && (<button onClick={handleViewContents} className="w-full p-3 bg-amber-700 text-white font-bold rounded-lg hover:bg-amber-600 transition-colors">Xem các địa điểm bên trong &rarr;</button>)}
+                                            {hasChildren && (
+                                                <button 
+                                                    onClick={handleViewContents} 
+                                                    className={`w-full p-3 text-white font-bold rounded-lg transition-colors ${isSelectedLocationDestroyed ? 'bg-slate-600 hover:bg-slate-500' : 'bg-amber-700 hover:bg-amber-600'}`}
+                                                >
+                                                    {isSelectedLocationDestroyed ? 'Xem tàn tích bên trong →' : 'Xem các địa điểm bên trong →'}
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 ) : (

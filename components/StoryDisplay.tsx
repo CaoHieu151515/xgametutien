@@ -163,6 +163,39 @@ interface StoryDisplayProps {
   onUpdateBackgroundAvatars: (urls: string[]) => void;
 }
 
+/**
+ * A fallback formatter for when the AI returns one long block of text.
+ * It splits the text into sentences and groups them into paragraphs.
+ * @param text The long narration block.
+ * @returns Text formatted with paragraph breaks, or the original text if it's already formatted or too short.
+ */
+const formatLongNarration = (text: string): string => {
+    // If AI already formatted with paragraphs or the text is short, trust it.
+    if (text.includes('\n\n') || text.length < 400) {
+        return text;
+    }
+
+    // Split into sentences, keeping the punctuation and handling quotes.
+    const sentences = text.match(/[^.!?]+[.!?]("|”|\s)*/g);
+    
+    // If it can't be split or has few sentences, return as is.
+    if (!sentences || sentences.length <= 3) {
+        return text;
+    }
+
+    const paragraphs: string[] = [];
+    // Aim for paragraphs of 2-4 sentences for good readability.
+    const sentencesPerParagraph = Math.min(4, Math.max(2, Math.ceil(sentences.length / 4)));
+
+    for (let i = 0; i < sentences.length; i += sentencesPerParagraph) {
+        const chunk = sentences.slice(i, i + sentencesPerParagraph);
+        paragraphs.push(chunk.join(' ').trim());
+    }
+
+    return paragraphs.join('\n\n');
+};
+
+
 export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterProfile, worldSettings, npcs, onUpdateBackgroundAvatars }) => {
   const storyContainerRef = useRef<HTMLDivElement>(null);
 
@@ -417,8 +450,9 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
                         );
             
                     } else {
-                        // This segment is narration. Split it into paragraphs.
-                        const paragraphs = segment.trim().split(/\n\s*\n+/).filter(p => p.trim());
+                        // This segment is narration. Format it to prevent "walls of text".
+                        const formattedSegment = formatLongNarration(segment);
+                        const paragraphs = formattedSegment.trim().split(/\n\s*\n+/).filter(p => p.trim());
                         return (
                             <React.Fragment key={`${part.id}-${segmentIndex}`}>
                                 {paragraphs.map((paragraph, paragraphIndex) => {

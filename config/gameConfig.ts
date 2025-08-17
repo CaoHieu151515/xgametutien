@@ -13,6 +13,11 @@ export const GAME_CONFIG = {
         numberOfChoices: 4,
         // Số lần thử lại tối đa khi gọi API thất bại.
         maxRetries: 2,
+        // Số lượng token tối đa mà AI có thể tạo ra trong một phản hồi.
+        // Giúp ngăn chặn việc nội dung bị cắt ngắn đột ngột.
+        maxOutputTokens: 8192,
+        // (Chỉ dành cho Gemini) Ngân sách token cho "suy nghĩ".
+        thinkingBudget: 2048,
         /**
          * Cấu hình liên quan đến phong cách và cấu trúc kể chuyện của AI.
          */

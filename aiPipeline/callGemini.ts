@@ -1,5 +1,6 @@
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { log } from '../services/logService';
+import { GAME_CONFIG } from "../config/gameConfig";
 
 const USE_DEFAULT_KEY_IDENTIFIER = '_USE_DEFAULT_KEY_';
 
@@ -33,6 +34,8 @@ export const callGeminiApi = async ({ systemInstruction, prompt, apiKey, schema 
                 ...(systemInstruction && { systemInstruction }),
                 responseMimeType: "application/json",
                 responseSchema: schema,
+                maxOutputTokens: GAME_CONFIG.ai.maxOutputTokens,
+                thinkingConfig: { thinkingBudget: GAME_CONFIG.ai.thinkingBudget },
             },
         });
         

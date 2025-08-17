@@ -1,5 +1,5 @@
-
 import { log } from '../services/logService';
+import { GAME_CONFIG } from '../config/gameConfig';
 
 const API_URL = "https://api.openai.com/v1/chat/completions";
 const MODEL = 'gpt-4o';
@@ -81,7 +81,7 @@ export const callOpenAiApi = async ({ systemInstruction, prompt, apiKey, isWorld
                     { role: "user", content: prompt }
                 ],
                 response_format: { type: "json_object" },
-                max_tokens: 4096
+                max_tokens: GAME_CONFIG.ai.maxOutputTokens
             })
         });
 
