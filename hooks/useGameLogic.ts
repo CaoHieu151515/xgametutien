@@ -235,13 +235,36 @@ export const useGameLogic = () => {
         setError(null);
         setToast(null);
         setLastFailedCustomAction(null);
+        
+        let modifiedActionText = choice.title;
+
+        // --- START: Random Event Logic ---
+        const { randomEncounterChance, sfwEventWeights, nsfwEventWeights, allowRandomMatureEvents } = GAME_CONFIG.events;
+        // Chỉ kích hoạt sự kiện cho các hành động có tốn thời gian
+        if (!choice.isTimeSkip && choice.durationInMinutes > 0 && Math.random() < randomEncounterChance) {
+            const weights = settings.isMature && allowRandomMatureEvents ? nsfwEventWeights : sfwEventWeights;
+            const totalWeight = Object.values(weights).reduce((sum, weight) => sum + weight, 0);
+            let random = Math.random() * totalWeight;
+
+            for (const [type, weight] of Object.entries(weights)) {
+                if (random < weight) {
+                    const eventType = type.replace(/_/g, ' '); // e.g., sexual_opportunity -> sexual opportunity
+                    modifiedActionText = `(Hệ thống) Trong lúc nhân vật đang hành động, một sự kiện ngẫu nhiên thuộc loại '${eventType}' đã xảy ra. Hãy mô tả chi tiết sự kiện này và kết hợp nó một cách liền mạch với hành động gốc của người chơi.\n\nHành động gốc của người chơi:\n${choice.title}`;
+                    log('useGameLogic.ts', `Triggered random event of type: ${type}`, 'INFO');
+                    setToast({ message: 'Một sự kiện bất ngờ đã xảy ra!', type: 'info' });
+                    break;
+                }
+                random -= weight;
+            }
+        }
+        // --- END: Random Event Logic ---
 
         const preActionState = { characterProfile, worldSettings, npcs, history, choices };
 
         const newActionPart: StoryPart = {
             id: Date.now(),
             type: 'action',
-            text: choice.title
+            text: choice.title // Ghi lại hành động gốc, không phải hành động đã sửa đổi
         };
 
         setChoices([]);
@@ -300,12 +323,12 @@ export const useGameLogic = () => {
 
         for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) {
             try {
-                let currentActionText = choice.title;
+                let currentActionText = modifiedActionText; // Sử dụng hành động đã có thể được sửa đổi
                 if(choice.isTimeSkip && choice.turnsToSkip) {
                     currentActionText = `(Hệ thống) Người chơi quyết định bỏ qua thời gian. Hãy tua nhanh ${choice.turnsToSkip} lượt và tóm tắt những sự kiện chính đã xảy ra.`
                 }
                 else if (attempt > 1 && lastErrorReason) {
-                    currentActionText = `**System Correction (Attempt ${attempt}):** Your previous response was invalid due to: "${lastErrorReason}". YOU MUST FIX THIS. If you mention a new NPC, you MUST define them in 'newNPCs'. Do not update NPCs that are not in the provided context.\n\n**Original Action:**\n${choice.title}`;
+                    currentActionText = `**System Correction (Attempt ${attempt}):** Your previous response was invalid due to: "${lastErrorReason}". YOU MUST FIX THIS. If you mention a new NPC, you MUST define them in 'newNPCs'. Do not update NPCs that are not in the provided context.\n\n**Original Action:**\n${modifiedActionText}`;
                 }
 
                 const apiResponse = await api.getNextStoryStep(historyText, currentActionText, settings.isMature, settings.perspective, characterProfile, worldSettings, npcs, apiKeyForService);

@@ -28,6 +28,37 @@ export const GAME_CONFIG = {
             }
         },
     },
+    
+    /**
+     * Cấu hình cho Thế Giới & Sự Kiện
+     */
+    events: {
+        // Tỷ lệ (0-1) một sự kiện ngẫu nhiên xảy ra mỗi khi người chơi thực hiện một hành động tốn thời gian.
+        randomEncounterChance: 0.25, // 25%
+        // Bật/tắt các sự kiện 18+ ngẫu nhiên. Tách biệt với cài đặt chung.
+        allowRandomMatureEvents: true,
+
+        // Trọng số cho các sự kiện ở chế độ thường (SFW - Safe For Work)
+        sfwEventWeights: {
+            positive: 20,     // Gặp cơ duyên, nhặt được vật phẩm.
+            negative: 40,     // Bị cướp, rơi vào bẫy, gặp yêu thú.
+            neutral: 25,      // Gặp một du khách, chứng kiến một sự việc.
+            lore: 15,         // Nghe được một tin đồn, một bí mật.
+            sexual_opportunity: 0,
+            sexual_violent: 0,
+            graphic_violence: 0,
+        },
+        // Trọng số cho các sự kiện ở chế độ 18+ (NSFW - Not Safe For Work) - ƯU TIÊN 18+
+        nsfwEventWeights: {
+            positive: 10,     // Giảm
+            negative: 10,     // Giảm
+            neutral: 10,      // Giảm
+            lore: 10,          // Giảm
+            sexual_opportunity: 20,  // Tăng mạnh - Cơ hội tình dục
+            sexual_violent: 20,       // Tăng - Tình dục bạo lực, cạm bẫy
+            graphic_violence: 20,     // Tăng - Bạo lực đồ họa chi tiết
+        },
+    },
 
     /**
      * Cấu hình liên quan đến hệ thống tiến trình của nhân vật và kỹ năng.
