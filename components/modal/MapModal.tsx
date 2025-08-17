@@ -35,9 +35,8 @@ const LocationPin: React.FC<{
     isDestroyed: boolean;
     isEditing: boolean;
     isDragged: boolean;
-    onClick: () => void;
     onInteractionStart: (e: React.MouseEvent | React.TouchEvent) => void;
-}> = ({ location, isCurrent, isSelected, isDestroyed, isEditing, isDragged, onClick, onInteractionStart }) => {
+}> = ({ location, isCurrent, isSelected, isDestroyed, isEditing, isDragged, onInteractionStart }) => {
     const details = locationTypeDetails[location.type] || { icon: '📍', color: 'text-white' };
     const pinSize = location.type === LocationType.WORLD ? 'text-3xl' : 'text-2xl';
     const selectedClass = isSelected ? 'scale-150' : 'group-hover:scale-125';
@@ -48,7 +47,6 @@ const LocationPin: React.FC<{
         <div
             className={`absolute transform -translate-x-1/2 -translate-y-1/2 group flex flex-col items-center justify-center z-10 ${destroyedClass} ${editingClass}`}
             style={{ left: `${location.coordinates.x / 10}%`, top: `${location.coordinates.y / 10}%` }}
-            onClick={onClick}
             onMouseDown={onInteractionStart}
             onTouchStart={onInteractionStart}
         >
@@ -235,11 +233,12 @@ export const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, locations, 
     const locationsToRenderOnMap = isEditing ? editableLocations : locationsToList;
 
     const handleNavigatePath = (index: number) => { setPath(prev => prev.slice(0, index + 1)); setSelectedLocation(null); };
-    const handleSelectLocationFromList = (location: Location) => { 
-        if(hasDraggedRef.current) return;
-        setSelectedLocation(location); 
-        centerMapOnLocation(location, 'smooth'); 
+    
+    const handleSelectLocation = (location: Location) => {
+        setSelectedLocation(location);
+        centerMapOnLocation(location, 'smooth');
     };
+    
     const handleViewContents = () => {
         if (selectedLocation) {
             setPath(prev => [...prev, selectedLocation]);
@@ -279,8 +278,6 @@ export const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, locations, 
     };
 
     const handlePinInteractionStart = (e: React.MouseEvent | React.TouchEvent, locationId: string) => {
-        if (!isEditing) return;
-        e.preventDefault();
         e.stopPropagation();
         hasDraggedRef.current = false;
         setDraggedLocationId(locationId);
@@ -288,8 +285,10 @@ export const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, locations, 
 
     useEffect(() => {
         const handleInteractionMove = (e: MouseEvent | TouchEvent) => {
-            if (!draggedLocationId || !mapRef.current || !mapContainerRef.current) return;
+            if (!draggedLocationId) return;
             hasDraggedRef.current = true;
+
+            if (!isEditing || !mapRef.current || !mapContainerRef.current) return;
 
             const mapRect = mapRef.current.getBoundingClientRect();
             const container = mapContainerRef.current;
@@ -316,6 +315,15 @@ export const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, locations, 
         };
 
         const handleInteractionEnd = () => {
+            if (!draggedLocationId) return;
+
+            if (!hasDraggedRef.current) {
+                const location = locationsToRenderOnMap.find(l => l.id === draggedLocationId);
+                if (location) {
+                    handleSelectLocation(location);
+                }
+            }
+
             setDraggedLocationId(null);
         };
 
@@ -329,7 +337,7 @@ export const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, locations, 
             window.removeEventListener('mouseup', handleInteractionEnd);
             window.removeEventListener('touchend', handleInteractionEnd);
         };
-    }, [draggedLocationId]);
+    }, [draggedLocationId, isEditing, locationsToRenderOnMap, centerMapOnLocation, handleSelectLocation]);
 
     if (!isOpen) return null;
 
@@ -382,7 +390,7 @@ export const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, locations, 
                                             const details = locationTypeDetails[loc.type] || { icon: '?', name: loc.type };
                                             const isDestroyed = isLocationOrAncestorDestroyed(loc);
                                             return (
-                                                <button key={loc.id} onClick={() => handleSelectLocationFromList(loc)} className={`w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-slate-700/50 transition-colors ${isDestroyed ? 'opacity-50' : ''}`}><span className="text-xl">{isDestroyed ? '💥' : details.icon}</span><div className="flex-grow"><p className={`font-semibold flex items-center ${isDestroyed ? 'text-red-500 line-through' : 'text-slate-200'}`}>{loc.name}{loc.isNew && <NewBadge />}</p><p className="text-xs text-slate-400">{isDestroyed ? 'Đã Hủy Diệt' : details.name}</p></div><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-500" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" /></svg></button>
+                                                <button key={loc.id} onClick={() => handleSelectLocation(loc)} className={`w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-slate-700/50 transition-colors ${isDestroyed ? 'opacity-50' : ''}`}><span className="text-xl">{isDestroyed ? '💥' : details.icon}</span><div className="flex-grow"><p className={`font-semibold flex items-center ${isDestroyed ? 'text-red-500 line-through' : 'text-slate-200'}`}>{loc.name}{loc.isNew && <NewBadge />}</p><p className="text-xs text-slate-400">{isDestroyed ? 'Đã Hủy Diệt' : details.name}</p></div><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-500" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" /></svg></button>
                                             );
                                         }) : (<p className="text-slate-500 text-center py-8">Không có địa điểm con nào ở đây.</p>)}
                                     </div>
@@ -401,7 +409,6 @@ export const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, locations, 
                                    isDestroyed={isLocationOrAncestorDestroyed(loc)}
                                    isEditing={isEditing}
                                    isDragged={draggedLocationId === loc.id}
-                                   onClick={() => handleSelectLocationFromList(loc)}
                                    onInteractionStart={(e) => handlePinInteractionStart(e, loc.id)}
                                />
                            ))}
