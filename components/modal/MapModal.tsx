@@ -36,8 +36,8 @@ const LocationPin: React.FC<{
     isEditing: boolean;
     isDragged: boolean;
     onClick: () => void;
-    onMouseDown: (e: React.MouseEvent) => void;
-}> = ({ location, isCurrent, isSelected, isDestroyed, isEditing, isDragged, onClick, onMouseDown }) => {
+    onInteractionStart: (e: React.MouseEvent | React.TouchEvent) => void;
+}> = ({ location, isCurrent, isSelected, isDestroyed, isEditing, isDragged, onClick, onInteractionStart }) => {
     const details = locationTypeDetails[location.type] || { icon: '📍', color: 'text-white' };
     const pinSize = location.type === LocationType.WORLD ? 'text-3xl' : 'text-2xl';
     const selectedClass = isSelected ? 'scale-150' : 'group-hover:scale-125';
@@ -49,7 +49,8 @@ const LocationPin: React.FC<{
             className={`absolute transform -translate-x-1/2 -translate-y-1/2 group flex flex-col items-center justify-center z-10 ${destroyedClass} ${editingClass}`}
             style={{ left: `${location.coordinates.x / 10}%`, top: `${location.coordinates.y / 10}%` }}
             onClick={onClick}
-            onMouseDown={onMouseDown}
+            onMouseDown={onInteractionStart}
+            onTouchStart={onInteractionStart}
         >
             <div className={`relative flex items-center justify-center transition-transform duration-300 ${selectedClass}`}>
                  {isCurrent && !isDestroyed && (
@@ -148,6 +149,7 @@ export const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, locations, 
     const [draggedLocationId, setDraggedLocationId] = useState<string | null>(null);
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<HTMLDivElement>(null);
+    const hasDraggedRef = useRef(false);
 
     const locationMap = useMemo(() => new Map(locations.map(loc => [loc.id, loc])), [locations]);
 
@@ -233,7 +235,11 @@ export const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, locations, 
     const locationsToRenderOnMap = isEditing ? editableLocations : locationsToList;
 
     const handleNavigatePath = (index: number) => { setPath(prev => prev.slice(0, index + 1)); setSelectedLocation(null); };
-    const handleSelectLocationFromList = (location: Location) => { setSelectedLocation(location); centerMapOnLocation(location, 'smooth'); };
+    const handleSelectLocationFromList = (location: Location) => { 
+        if(hasDraggedRef.current) return;
+        setSelectedLocation(location); 
+        centerMapOnLocation(location, 'smooth'); 
+    };
     const handleViewContents = () => {
         if (selectedLocation) {
             setPath(prev => [...prev, selectedLocation]);
@@ -272,45 +278,58 @@ export const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, locations, 
         setIsEditing(false);
     };
 
-    const handlePinMouseDown = (e: React.MouseEvent, locationId: string) => {
+    const handlePinInteractionStart = (e: React.MouseEvent | React.TouchEvent, locationId: string) => {
         if (!isEditing) return;
         e.preventDefault();
+        e.stopPropagation();
+        hasDraggedRef.current = false;
         setDraggedLocationId(locationId);
     };
 
     useEffect(() => {
-        const handleMouseMove = (e: MouseEvent) => {
+        const handleInteractionMove = (e: MouseEvent | TouchEvent) => {
             if (!draggedLocationId || !mapRef.current || !mapContainerRef.current) return;
+            hasDraggedRef.current = true;
 
             const mapRect = mapRef.current.getBoundingClientRect();
             const container = mapContainerRef.current;
             
-            const mouseX = e.clientX - mapRect.left + container.scrollLeft;
-            const mouseY = e.clientY - mapRect.top + container.scrollTop;
+            const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+            const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+            
+            const mouseX = clientX - mapRect.left + container.scrollLeft;
+            const mouseY = clientY - mapRect.top + container.scrollTop;
 
             let newX = Math.round((mouseX / mapRef.current.offsetWidth) * 1000);
             let newY = Math.round((mouseY / mapRef.current.offsetHeight) * 1000);
 
-            newX = Math.max(10, Math.min(990, newX)); // Clamp to avoid pins being on the very edge
+            newX = Math.max(10, Math.min(990, newX));
             newY = Math.max(10, Math.min(990, newY));
 
             setEditableLocations(prev =>
                 prev.map(loc =>
                     loc.id === draggedLocationId
-                        ? { ...loc, coordinates: { x: newX, y: newY } }
+                        ? { ...loc, coordinates: { ...loc.coordinates, x: newX, y: newY } }
                         : loc
                 )
             );
         };
 
-        const handleMouseUp = () => setDraggedLocationId(null);
-        window.addEventListener('mousemove', handleMouseMove);
-        window.addEventListener('mouseup', handleMouseUp);
-        return () => {
-            window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('mouseup', handleMouseUp);
+        const handleInteractionEnd = () => {
+            setDraggedLocationId(null);
         };
-    }, [draggedLocationId, isEditing]);
+
+        window.addEventListener('mousemove', handleInteractionMove);
+        window.addEventListener('touchmove', handleInteractionMove);
+        window.addEventListener('mouseup', handleInteractionEnd);
+        window.addEventListener('touchend', handleInteractionEnd);
+        return () => {
+            window.removeEventListener('mousemove', handleInteractionMove);
+            window.removeEventListener('touchmove', handleInteractionMove);
+            window.removeEventListener('mouseup', handleInteractionEnd);
+            window.removeEventListener('touchend', handleInteractionEnd);
+        };
+    }, [draggedLocationId]);
 
     if (!isOpen) return null;
 
@@ -382,8 +401,8 @@ export const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, locations, 
                                    isDestroyed={isLocationOrAncestorDestroyed(loc)}
                                    isEditing={isEditing}
                                    isDragged={draggedLocationId === loc.id}
-                                   onClick={() => !isEditing && handleSelectLocationFromList(loc)}
-                                   onMouseDown={(e) => handlePinMouseDown(e, loc.id)}
+                                   onClick={() => handleSelectLocationFromList(loc)}
+                                   onInteractionStart={(e) => handlePinInteractionStart(e, loc.id)}
                                />
                            ))}
                            <style>{`.bg-grid { background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 20px 20px; }`}</style>

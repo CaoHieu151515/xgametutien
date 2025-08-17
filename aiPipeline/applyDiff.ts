@@ -1,6 +1,6 @@
 import {
     StoryResponse, CharacterProfile, NPC, WorldSettings, StatusEffect, Skill,
-    NewNPCFromAI, Item, ItemType, AppSettings, ApiProvider, Achievement, SkillType, Location, Choice, LocationType
+    NewNPCFromAI, Item, ItemType, AppSettings, ApiProvider, Achievement, SkillType, Location, Choice, LocationType, Coordinates
 } from '../types';
 import {
     processLevelUps, getRealmDisplayName, calculateBaseStatsForLevel,
@@ -409,17 +409,41 @@ export const applyStoryResponseToState = async ({
 
     // Apply location changes (using pre-processed response)
     if (response.newLocations?.length) {
-        // DEFENSIVE CODING: Correct missing parent IDs from AI response
-        const correctedNewLocations = response.newLocations.map((loc: Location) => {
-            // A location that is NOT a WORLD type MUST have a parent.
-            if (loc.type !== LocationType.WORLD && !loc.parentId) {
-                // The parent should be the location the player was in when they discovered this new place.
-                loc.parentId = characterProfile.currentLocationId;
+        const allCurrentCoordinates = [
+            ...nextProfile.discoveredLocations.map(l => l.coordinates),
+        ];
+
+        const deconflictedNewLocations = response.newLocations.map((newLoc: Location) => {
+             // DEFENSIVE CODING: Correct missing parent IDs from AI response
+            if (newLoc.type !== LocationType.WORLD && !newLoc.parentId) {
+                newLoc.parentId = characterProfile.currentLocationId;
             }
-            return loc;
+
+            let coords: Coordinates = { ...newLoc.coordinates };
+            let attempts = 0;
+            const minDistance = 50;
+            let isOverlapping = true;
+
+            while (isOverlapping && attempts < 100) {
+                 isOverlapping = allCurrentCoordinates.some(existingCoord => 
+                    Math.sqrt(Math.pow(existingCoord.x - coords.x, 2) + Math.pow(existingCoord.y - coords.y, 2)) < minDistance
+                );
+
+                if (isOverlapping) {
+                    const angle = attempts * 0.5;
+                    const radius = 5 + attempts * 0.5; 
+                    coords.x = Math.round(coords.x + radius * Math.cos(angle));
+                    coords.y = Math.round(coords.y + radius * Math.sin(angle));
+                    coords.x = Math.max(10, Math.min(990, coords.x));
+                    coords.y = Math.max(10, Math.min(990, coords.y));
+                }
+                attempts++;
+            }
+            allCurrentCoordinates.push(coords);
+            return { ...newLoc, coordinates: coords };
         });
     
-        const mappedNewLocations = correctedNewLocations
+        const mappedNewLocations = deconflictedNewLocations
             .map((l: Location) => ({ ...(l.ownerId === 'player' ? { ...l, ownerId: nextProfile.id } : l), isNew: true }));
     
         mappedNewLocations.forEach(newLoc => {
