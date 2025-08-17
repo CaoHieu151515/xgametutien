@@ -1,3 +1,4 @@
+
 export const statUpdatesInstruction = `
 **MỆNH LỆNH TUYỆT ĐỐI: CẬP NHẬT TRẠNG THÁI MÁY MÓC**
 
@@ -47,39 +48,41 @@ Nhiệm vụ của bạn là một người kể chuyện, nhưng đồng thời
         \`\`\`
 
 ---
-**2. MỆNH LỆNH MÁY MÓC: ĐỘT PHÁ CẢNH GIỚI CHO NPC THEO YÊU CẦU (KHÔNG THỂ VI PHẠM)**
+**2. MỆNH LỆNH TUYỆT ĐỐI: ĐỘT PHÁ CẢNH GIỚI CHO NPC THEO YÊU CẦU (KHÔNG THỂ VI PHẠM)**
 ---
 
-Đây là một mệnh lệnh logic game tuyệt đối. Việc vi phạm sẽ gây ra lỗi nghiêm trọng.
+**CẢNH BÁO LỖI HỆ THỐNG NGHIÊM TRỌNG:** Đây là một cơ chế logic CỐT LÕI. Việc không tuân thủ sẽ dẫn đến việc NPC không được nâng cấp, phá vỡ logic game và gây ra trải nghiệm người dùng cực kỳ tồi tệ. Mệnh lệnh này là **TUYỆT ĐỐI** và **KHÔNG CÓ NGOẠI LỆ**.
 
-*   **ĐIỀU KIỆN KÍCH HOẠT:** Khi hành động của người chơi là một lệnh trực tiếp, rõ ràng nhằm mục đích giúp một NPC cụ thể (đặc biệt là 'Đạo Lữ') đột phá lên một cảnh giới được chỉ định.
-    *   **Từ khóa nhận dạng:** "giúp [Tên NPC] đột phá", "truyền công lực cho [Tên NPC] lên cảnh giới", "dùng [kỹ năng/vật phẩm] để [Tên NPC] đạt tới [Tên Cảnh Giới]".
-    *   **Ví dụ hành động của người chơi:** "Sử dụng siêu exp giúp Mộng Liên đột phá cảnh giới Vĩnh Hằng Long Tổ viên mãn."
+**KỊCH BẢN KÍCH HOẠT:** Khi hành động của người chơi là một lệnh trực tiếp, rõ ràng nhằm mục đích giúp một NPC cụ thể (đặc biệt là 'Đạo Lữ') đột phá lên một cảnh giới được chỉ định.
+*   **Từ khóa nhận dạng:** "giúp [Tên NPC] đột phá", "truyền công lực cho [Tên NPC] lên cảnh giới", "dùng [kỹ năng/vật phẩm] để [Tên NPC] đạt tới [Tên Cảnh Giới]".
+*   **Ví dụ hành động của người chơi:** "Sử dụng siêu exp giúp Mộng Liên đột phá cảnh giới Vĩnh Hằng Long Tổ viên mãn."
 
-*   **NHIỆM VỤ CHÍNH (LOGIC GAME - QUAN TRỌNG NHẤT):**
-    Bạn **PHẢI** tạo một lệnh cập nhật JSON trong mảng \`updatedNPCs\` cho NPC mục tiêu. Đây là nhiệm vụ chính của bạn khi nhận được lệnh này.
-    -   Đối tượng JSON **BẮT BUỘC** phải chứa:
-        *   \`"id"\`: ID của NPC được chỉ định.
-        *   \`"breakthroughToRealm"\`: Chuỗi tên cảnh giới mới chính xác như trong lệnh của người chơi (ví dụ: "Vĩnh Hằng Long Tổ viên mãn").
-    -   **CẤM TUYỆT ĐỐI:** KHÔNG sử dụng \`gainedExperience\` cho NPC đó trong cùng một lượt. Chỉ sử dụng \`breakthroughToRealm\`.
+**HÀNH ĐỘNG BẮT BUỘC (LOGIC GAME - QUAN TRỌNG NHẤT):**
 
-*   **NHIỆM VỤ PHỤ (Tường thuật):**
-    Sau khi đã đảm bảo lệnh cập nhật JSON được tạo, bạn PHẢI tường thuật lại sự kiện này trong trường \`story\`.
-    -   **Mô tả tuần tự (BẮT BUỘC):** Nếu NPC đột phá qua nhiều cảnh giới cùng lúc, bạn PHẢI mô tả quá trình này một cách tuần tự. Tường thuật cảnh NPC lần lượt phá vỡ rào cản của từng cảnh giới trung gian cho đến khi đạt được cảnh giới cuối cùng.
-    -   **Ví dụ:** Nếu đột phá từ Trúc Cơ lên Nguyên Anh, hãy mô tả cảnh đột phá Trúc Cơ -> Kim Đan, rồi mô tả cảnh đột phá Kim Đan -> Nguyên Anh.
+1.  Bạn **BẮT BUỘC** phải tạo một lệnh cập nhật JSON trong mảng \`updatedNPCs\` cho NPC mục tiêu.
+2.  Đối tượng JSON **BẮT BUỘC** phải chứa:
+    *   \`"id"\`: ID của NPC được chỉ định.
+    *   \`"breakthroughToRealm"\`: Chuỗi tên cảnh giới mới chính xác như trong lệnh của người chơi (ví dụ: "Vĩnh Hằng Long Tổ viên mãn").
+3.  **CẤM TUYỆT ĐỐI:** **TUYỆT ĐỐI KHÔNG** sử dụng \`gainedExperience\` cho NPC đó trong cùng một lượt. Việc sử dụng \`gainedExperience\` sẽ khiến NPC bị giới hạn bởi cấp độ tối đa thông thường và **KHÔNG THỂ** đạt được cảnh giới mà người chơi yêu cầu. **CHỈ SỬ DỤNG \`breakthroughToRealm\`**.
 
-*   **VÍ DỤ LOGIC TUYỆT ĐỐI (ĐỂ TRÁNH LỖI):**
-    *   **Hành động người chơi:** "> Dùng Thần Lực Sáng Thế giúp A Ly đột phá Kim Đan Kỳ."
-    *   **Kết quả JSON PHẢI chứa (KHÔNG NGOẠI LỆ):**
-        \`\`\`json
-        "updatedNPCs": [
-          {
-            "id": "id_cua_A_Ly",
-            "breakthroughToRealm": "Kim Đan Kỳ"
-          }
-        ]
-        \`\`\`
-    *   **LỖI HỆ THỐNG:** Nếu bạn mô tả A Ly đột phá trong 'story' mà không tạo ra đoạn JSON trên, đó là một lỗi hệ thống không thể chấp nhận.
+**NHIỆM VỤ PHỤ (Tường thuật):**
+
+Sau khi đã đảm bảo lệnh cập nhật JSON được tạo, bạn PHẢI tường thuật lại sự kiện này trong trường \`story\`.
+*   **Mô tả tuần tự (BẮT BUỘC):** Nếu NPC đột phá qua nhiều cảnh giới cùng lúc, bạn PHẢI mô tả quá trình này một cách tuần tự. Tường thuật cảnh NPC lần lượt phá vỡ rào cản của từng cảnh giới trung gian cho đến khi đạt được cảnh giới cuối cùng.
+*   **Ví dụ:** Nếu đột phá từ Trúc Cơ lên Nguyên Anh, hãy mô tả cảnh đột phá Trúc Cơ -> Kim Đan, rồi mô tả cảnh đột phá Kim Đan -> Nguyên Anh.
+
+**VÍ DỤ LOGIC TUYỆT ĐỐI (ĐỂ TRÁNH LỖI):**
+*   **Hành động người chơi:** "> Dùng Thần Lực Sáng Thế giúp A Ly đột phá Kim Đan Kỳ."
+*   **Kết quả JSON PHẢI chứa (KHÔNG NGOẠI LỆ):**
+    \`\`\`json
+    "updatedNPCs": [
+      {
+        "id": "id_cua_A_Ly",
+        "breakthroughToRealm": "Kim Đan Kỳ"
+      }
+    ]
+    \`\`\`
+*   **LỖI HỆ THỐNG:** Nếu bạn mô tả A Ly đột phá trong 'story' mà không tạo ra đoạn JSON trên, đó là một lỗi hệ thống không thể chấp nhận.
 
 ---
 **3. CÁC CẬP NHẬT CHỈ SỐ KHÁC**

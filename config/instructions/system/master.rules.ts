@@ -59,4 +59,4 @@ Trước khi xuất ra kết quả cuối cùng, bạn **BẮT BUỘC** phải t
     *   **NẾU CÓ BẤT KỲ LỜI THOẠI NÀO NẰM TRONG ĐOẠN VĂN TƯỜNG THUẬT → THẤT BẠI.** Bạn PHẢI tách nó ra.
 
 Chỉ khi tất cả các mục trên đều đạt, bạn mới được phép xuất ra phản hồi. Đây là quy tắc hệ thống bắt buộc, **không thể ghi đè** và **không có ngoại lệ**.
-`;
+`

@@ -36,23 +36,21 @@ export const getRealmDisplayName = (level: number, powerSystemName: string, worl
         return realms[0] || "Phàm Nhân";
     }
 
-    const { subRealmNames } = GAME_CONFIG.progression;
-    const levelsPerRealm = subRealmNames.length;
+    const { subRealmLevels } = GAME_CONFIG.progression;
+    const levelsPerRealm = subRealmLevels.length;
     const realmIndex = Math.floor((level - 1) / levelsPerRealm);
     const subLevelIndex = (level - 1) % levelsPerRealm;
 
     if (realmIndex >= realms.length) {
-        return `${realms[realms.length - 1]} Viên Mãn`;
+        const lastRealm = realms[realms.length - 1];
+        const lastSubRealm = subRealmLevels[subRealmLevels.length - 1];
+        return `${lastRealm} ${lastSubRealm}`;
     }
 
     const realmName = realms[realmIndex];
-    const subLevelName = subRealmNames[subLevelIndex] || (subLevelIndex + 1).toString();
-    
-    if (subLevelIndex === levelsPerRealm - 1) {
-        return `${realmName} ${subLevelName}`;
-    }
+    const subLevelName = subRealmLevels[subLevelIndex];
 
-    return `${realmName} ${subLevelName} Trọng`;
+    return `${realmName} ${subLevelName}`;
 };
 
 export const getLevelFromRealmName = (realmInput: string, powerSystemName: string, worldSettings: WorldSettings | null): number => {
@@ -62,35 +60,52 @@ export const getLevelFromRealmName = (realmInput: string, powerSystemName: strin
     if (!powerSystem || !powerSystem.realms.trim()) return 1;
 
     const realms = powerSystem.realms.split(' - ').map(r => r.trim());
-    const normalizedInput = realmInput.trim();
-    const { subRealmNames } = GAME_CONFIG.progression;
-    const levelsPerRealm = subRealmNames.length;
+    const normalizedInput = realmInput.trim().toLowerCase();
+    const { subRealmLevels } = GAME_CONFIG.progression;
+    const levelsPerRealm = subRealmLevels.length;
 
-    // Iterate backwards to match higher realms first
-    for (let i = realms.length - 1; i >= 0; i--) {
-        const realmName = realms[i];
-        // Check for exact realm name followed by a space or end of string. Case-insensitive.
-        if (normalizedInput.toLowerCase().startsWith(realmName.toLowerCase())) {
-            const baseLevel = i * levelsPerRealm;
-            const afterRealm = normalizedInput.substring(realmName.length).trim();
-            
-            if (afterRealm === '') {
-                return baseLevel + 1; // e.g., "Kim Đan"
-            }
+    let bestMatch: { realmName: string; realmIndex: number; } | null = null;
 
-            // Check for sub-levels like "Nhất Trọng" or "Viên Mãn"
-            const parts = afterRealm.split(' ');
-            if (parts.length > 0) {
-                const subLevelName = parts[0];
-                const subLevelIndex = subRealmNames.findIndex(r => r.toLowerCase() === subLevelName.toLowerCase());
-
-                if (subLevelIndex !== -1) {
-                    return baseLevel + subLevelIndex + 1;
+    // Iterate through all main realms to find the longest prefix match.
+    // This handles cases where one realm name is a substring of another (e.g., "Tiên" and "Chân Tiên").
+    for (let i = 0; i < realms.length; i++) {
+        const realmName = realms[i].toLowerCase();
+        
+        if (normalizedInput.startsWith(realmName)) {
+             // To be a valid prefix, it must be the full string or be followed by a space.
+             // This prevents "Tiên" from matching "Tiên Nhân".
+            if (normalizedInput.length === realmName.length || normalizedInput[realmName.length] === ' ') {
+                if (!bestMatch || realmName.length > bestMatch.realmName.length) {
+                    bestMatch = {
+                        realmName: realmName,
+                        realmIndex: i,
+                    };
                 }
             }
         }
     }
-    
+
+    if (bestMatch) {
+        const baseLevel = bestMatch.realmIndex * levelsPerRealm;
+        const afterRealm = normalizedInput.substring(bestMatch.realmName.length).trim();
+
+        if (afterRealm === '') {
+            return baseLevel + 1; // Default to the first sub-level of the realm.
+        }
+        
+        // Sort sub-realms by length descending to match longer names first (e.g. "Viên Mãn" before "Mãn")
+        const sortedSubRealms = [...subRealmLevels].sort((a, b) => b.length - a.length);
+        
+        for (const subRealm of sortedSubRealms) {
+            if (afterRealm === subRealm.toLowerCase()) {
+                const originalIndex = subRealmLevels.findIndex(r => r.toLowerCase() === subRealm.toLowerCase());
+                if (originalIndex !== -1) {
+                    return baseLevel + originalIndex + 1;
+                }
+            }
+        }
+    }
+
     log('progressionService.ts', `Could not parse realm name "${realmInput}" for power system "${powerSystemName}". Defaulting to level 1.`, 'ERROR');
     return 1;
 };
@@ -100,8 +115,8 @@ export const calculateBaseStatsForLevel = (level: number) => {
         healthPerLevel, healthPerRealm, manaPerLevel, manaPerRealm, 
         attackPerLevel, attackPerRealm, baseLifespan, lifespanBonuses 
     } = GAME_CONFIG.progression.baseStats;
-    const { subRealmNames } = GAME_CONFIG.progression;
-    const levelsPerRealm = subRealmNames.length;
+    const { subRealmLevels } = GAME_CONFIG.progression;
+    const levelsPerRealm = subRealmLevels.length;
     
     const realmIndex = Math.floor((level - 1) / levelsPerRealm);
     
@@ -204,8 +219,8 @@ export const processSkillLevelUps = (
 ): { updatedSkill: Skill; breakthroughInfo: { oldQuality: string; newQuality: string } | null } => {
     let updatedSkill = { ...skill };
     let breakthroughInfo: { oldQuality: string; newQuality: string } | null = null;
-    const { subRealmNames } = GAME_CONFIG.progression;
-    const levelsPerRealm = subRealmNames.length;
+    const { subRealmLevels } = GAME_CONFIG.progression;
+    const levelsPerRealm = subRealmLevels.length;
     
     updatedSkill.experience += addedExperience;
     let xpForNextLevel = getSkillExperienceForNextLevel(updatedSkill.level, updatedSkill.quality, qualityTiersString);
@@ -263,7 +278,7 @@ export const processNpcLevelUps = <T extends NPC>(
     const powerSystem = worldSettings.powerSystems.find(ps => ps && ps.name === npc.powerSystem);
     if (!powerSystem) return updatedNpc;
 
-    const systemMaxLevel = (powerSystem.realms.split(' - ').filter(r => r.trim()).length * GAME_CONFIG.progression.subRealmNames.length) || updatedNpc.level;
+    const systemMaxLevel = (powerSystem.realms.split(' - ').filter(r => r.trim()).length * GAME_CONFIG.progression.subRealmLevels.length) || updatedNpc.level;
     const absoluteMaxLevel = GAME_CONFIG.npc.maxNpcLevel;
     const maxLevel = Math.min(systemMaxLevel, absoluteMaxLevel);
 

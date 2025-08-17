@@ -70,9 +70,9 @@ export const GAME_CONFIG = {
      * Cấu hình liên quan đến hệ thống tiến trình của nhân vật và kỹ năng.
      */
     progression: {
-        // Mảng định nghĩa tên và số lượng các cảnh giới phụ trong một đại cảnh giới.
-        // Ví dụ: ['Sơ Kỳ', 'Trung Kỳ', 'Hậu Kỳ', 'Viên Mãn']
-        subRealmNames: ['Nhất', 'Nhị', 'Tam', 'Tứ', 'Ngũ', 'Lục', 'Thất', 'Bát', 'Cửu', 'Viên Mãn'],
+        // Mảng định nghĩa tên đầy đủ của các cảnh giới phụ trong một đại cảnh giới.
+        // Thứ tự trong mảng này quyết định cấp độ (index + 1).
+        subRealmLevels: ['Nhất Trọng', 'Nhị Trọng', 'Tam Trọng', 'Tứ Trọng', 'Ngũ Trọng', 'Lục Trọng', 'Thất Trọng', 'Bát Trọng', 'Cửu Trọng', 'Viên Mãn'],
         // Cấu hình kinh nghiệm cho cấp độ nhân vật
         xp: {
             base: 100, // Lượng kinh nghiệm cơ bản ở cấp 1
@@ -139,7 +139,7 @@ export const GAME_CONFIG = {
      */
     npc: {
         // Cấp độ tối đa mà một NPC có thể đạt được.
-        maxNpcLevel: 100,
+        maxNpcLevel: 110,
         // Cấu hình các bậc quan hệ và màu sắc hiển thị.
         // Được sắp xếp từ cao đến thấp.
         relationshipTiers: [

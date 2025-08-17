@@ -39,7 +39,7 @@ export const InitialSkillsSection: React.FC<InitialSkillsSectionProps> = ({ prof
         }));
     };
     
-    const levelsPerRealm = GAME_CONFIG.progression.subRealmNames.length;
+    const levelsPerRealm = GAME_CONFIG.progression.subRealmLevels.length;
 
     return (
         <div className="space-y-4">
