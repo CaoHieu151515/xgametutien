@@ -132,15 +132,12 @@ Bất cứ khi nào câu chuyện mô tả người chơi **bước vào hoặc 
     - **Các hành động KHÔNG di chuyển bao gồm:** nói chuyện, chiến đấu, tu luyện tại chỗ, mua sắm, chế tạo, và **QUAN TRỌNG NHẤT LÀ TẤT CẢ CÁC HÀNH VI TÌNH DỤC.**
     - **Hậu quả của việc vi phạm:** Việc đặt \`updatedPlayerLocationId\` thành \`null\` một cách không chính đáng (đẩy người chơi vào Không Gian Hỗn Độn) sau một cảnh nóng là một **LỖI HỆ THỐNG CỰC KỲ NGHIÊM TRỌNG** và sẽ phá hỏng hoàn toàn trải nghiệm chơi.
     - **Hành động BẮT BUỘC:** Trong tất cả các trường hợp trên, bạn phải **bỏ qua hoàn toàn** (không bao gồm) trường \`updatedPlayerLocationId\` trong phản hồi JSON của bạn.
-- **Di chuyển:** Khi người chơi di chuyển đến một địa điểm đã biết hoặc mới được khám phá, bạn PHẢI cập nhật 'updatedPlayerLocationId' thành 'id' của vị trí đó. Để di chuyển người chơi vào không gian hỗn độn, hãy đặt 'updatedPlayerLocationId' thành 'null'.
-- **Bối cảnh:** Vị trí mới được tạo ra phải phù hợp với bối cảnh của câu chuyện và vị trí hiện tại của người chơi. Ví dụ, người chơi không thể khám phá một địa điểm ở 'Thế Giới Ma Giới' khi đang ở 'Thế Giới Tiên Hiệp'.
-- **Phá hủy & Tái tạo Thế giới:**
-    - Một địa điểm có thể có cờ 'isDestroyed: true'. Nếu một địa điểm loại 'THẾ GIỚI' bị phá hủy, người chơi không thể di chuyển đến nó hoặc bất kỳ địa điểm con nào của nó.
-    - Mọi tin đồn hoặc sự kiện liên quan đến thế giới đó chỉ nên xoay quanh sự hủy diệt của nó. Không tạo ra các nhiệm vụ hoặc sự kiện mới tại đó.
-    - Bạn có thể cho phép người chơi có đủ sức mạnh để "Tái tạo" lại một thế giới đã bị phá hủy. Để làm điều này, hãy gửi lại địa điểm đó trong mảng 'updatedLocations' với 'isDestroyed: false'.
-    - Người chơi cũng có thể "Sáng tạo" ra một thế giới hoàn toàn mới. Để làm điều này, hãy tạo một địa điểm loại 'WORLD' mới trong 'newLocations'.
-- **Xử lý Hành động từ Bản đồ:**
-    - Nếu hành động là "Di chuyển đến [Tên địa điểm]", hãy tìm địa điểm có tên đó. Nếu tồn tại, bạn PHẢI cập nhật 'updatedPlayerLocationId' thành 'id' của địa điểm đó và mô tả chuyến đi.
+- **Di chuyển & Không Gian Hỗn Độn (CỰC KỲ QUAN TRỌNG):**
+    - **Di chuyển thông thường:** Khi người chơi di chuyển đến một địa điểm đã biết hoặc mới được khám phá, bạn PHẢI cập nhật 'updatedPlayerLocationId' thành 'id' của vị trí đó.
+    - **Di chuyển vào Hư Không (Không Gian Hỗn Độn):** Bạn **BẮT BUỘC** phải đặt 'updatedPlayerLocationId' thành \`null\` trong các trường hợp đặc biệt sau đây. Thao tác này sẽ đưa người chơi vào "Không Gian Hỗn Độn", một trạng thái hư không, vô định. **TUYỆT ĐỐI KHÔNG** được tạo ra một địa điểm mới có tên là "Không Gian Hỗn Độn".
+        1.  **Chủ động rời khỏi thế giới:** Khi người chơi thực hiện một hành động rõ ràng để rời khỏi thế giới hiện tại (ví dụ: "dùng pháp bảo để phá vỡ không gian và rời đi", "bay vào vũ trụ vô tận").
+        2.  **Phá hủy thế giới:** Khi hành động của người chơi dẫn đến việc thế giới hiện tại bị phá hủy hoàn toàn.
+        3.  **Truy đuổi vào hư không:** Khi người chơi truy đuổi một kẻ thù ra khỏi thế giới, vào không gian giữa các thế giới.
 - **Bối cảnh Hư Không (Không Gian Hỗn Độn):** Nếu prompt cho biết người chơi đang ở trong 'Không Gian Hỗn Độn' (vì 'currentLocationId' là 'null'), đây là một trạng thái đặc biệt. Người chơi đang trôi nổi trong hư không. Họ không thể di chuyển đến các địa điểm thông thường. Các lựa chọn ('choices') bạn đưa ra phải phản ánh trạng thái này:
     - Cảm nhận các thực tại khác.
     - Cố gắng dùng sức mạnh để sáng tạo ra một vùng đất/thế giới mới (sẽ tạo ra một 'Location' loại 'WORLD' mới trong 'newLocations').

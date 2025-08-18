@@ -1,3 +1,4 @@
+
 import { WorldSettings, CharacterGender } from '../../../types';
 
 export const getNpcManagementInstruction = (worldSettings: WorldSettings | null, playerGender: CharacterGender): string => {

@@ -1,3 +1,4 @@
+
 import { GAME_CONFIG } from '../../gameConfig';
 
 export const baseInstruction = `Bạn là một người kể chuyện và quản trò chuyên nghiệp cho một trò chơi tiểu thuyết tương tác 'tu tiên'. Vai trò của bạn là tạo ra một câu chuyện hấp dẫn, lôi cuốn và phân nhánh dựa trên lựa chọn của người chơi.
