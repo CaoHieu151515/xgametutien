@@ -128,7 +128,7 @@ export const locationSchema = {
         },
         parentId: {
             type: Type.STRING,
-            description: "ID của địa điểm cha. Null nếu là địa điểm cấp cao nhất (THẾ GIỚI).",
+            description: "ID của địa điểm cha. Null nếu là địa điểm cấp cao nhất (THẾ GIỚỚI).",
         },
         ownerId: {
             type: Type.STRING,
@@ -360,6 +360,16 @@ export const storyWorldKnowledgeSchema = {
     required: ["id", "title", "content", "category"]
 };
 
+const newMonsterStorySchema = {
+    type: Type.OBJECT,
+    description: "Một sinh vật, yêu thú hoặc quái vật MỚI được phát hiện. Chỉ dành cho các thực thể không có tri giác hoặc tri giác thấp, không phải nhân vật có thể giao tiếp phức tạp.",
+    properties: {
+        name: { type: Type.STRING, description: "Tên của sinh vật." },
+        description: { type: Type.STRING, description: "Mô tả ngắn gọn về sinh vật, bao gồm ngoại hình và các khả năng đã biết." }
+    },
+    required: ["name", "description"]
+};
+
 const fullResponseProperties = {
     story: { type: Type.STRING, description: "Phần tiếp theo của câu chuyện, được viết theo phong cách đã chọn." },
     choices: {
@@ -435,6 +445,11 @@ const fullResponseProperties = {
         type: Type.ARRAY,
         description: "ID của các vật phẩm bị xóa hoàn toàn khỏi túi đồ.",
         items: { type: Type.STRING },
+    },
+    newMonsters: {
+        type: Type.ARRAY,
+        description: "Các sinh vật, yêu thú, hoặc quái vật MỚI được phát hiện trong lượt này. CHỈ dành cho các thực thể không có tri giác hoặc có tri giác thấp. TUYỆT ĐỐI KHÔNG sử dụng cho các nhân vật có thể giao tiếp phức tạp.",
+        items: newMonsterStorySchema,
     },
     newWorldKnowledge: {
         type: Type.ARRAY,

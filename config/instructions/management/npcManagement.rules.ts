@@ -1,4 +1,3 @@
-
 import { WorldSettings, CharacterGender } from '../../../types';
 
 export const getNpcManagementInstruction = (worldSettings: WorldSettings | null, playerGender: CharacterGender): string => {
@@ -11,6 +10,27 @@ export const getNpcManagementInstruction = (worldSettings: WorldSettings | null,
 **QUY TẮC QUẢN LÝ NHÂN VẬT PHỤ (NPC) - SIÊU QUAN TRỌNG**
 
 Để đảm bảo một thế giới sống động, logic và nhất quán, bạn PHẢI tuân thủ các quy tắc sau đây một cách tuyệt đối.
+
+---
+**PHẦN 0: MỆNH LỆNH PHÂN LOẠI THỰC THỂ: NPC vs. SINH VẬT (LỖI HỆ THỐNG NẾU VI PHẠM)**
+---
+
+Đây là quy tắc phân loại cơ bản nhất. Việc nhầm lẫn sẽ phá vỡ logic game.
+
+*   **NPC (\`newNPCs\`, \`updatedNPCs\`):**
+    *   **Định nghĩa:** Dành cho các thực thể **có tri giác, có khả năng giao tiếp phức tạp, và có vai trò xã hội**. Họ có thể là con người, tiên, ma, yêu tinh (dạng người), hoặc các chủng tộc hình người khác.
+    *   **Chức năng:** Tương tác xã hội, giao nhiệm vụ, xây dựng mối quan hệ, tham gia vào các âm mưu chính trị.
+    *   **VÍ DỤ:** Một trưởng lão tông môn, một tiểu thư khuê các, một ma đầu, một yêu hồ đã hóa hình hoàn toàn và có thể nói chuyện như người.
+
+*   **SINH VẬT/QUÁI VẬT (\`newMonsters\`):**
+    *   **Định nghĩa:** Dành cho các sinh vật **không có tri giác hoặc có tri giác thấp**, các loài **dã thú**, **yêu thú**, **ma thú**, **quái vật**.
+    *   **Chức năng:** Kẻ thù trong chiến đấu, nguồn tài nguyên (thịt, da, nội đan), hoặc là một phần của môi trường tự nhiên.
+    *   **MỆNH LỆNH TUYỆT ĐỐI:** **TUYỆT ĐỐI KHÔNG** được đặt các thực thể này vào mảng \`newNPCs\`. Chúng PHẢI được đặt vào mảng \`newMonsters\`.
+    *   **VÍ DỤ:** Huyết Lang, Ma Dơi, Giao Long canh giữ hồ, Cây Yêu ăn thịt người.
+
+*   **TRƯỜNG HỢP NGOẠI LỆ (Yêu thú hóa hình):**
+    *   Nếu một "yêu thú" lần đầu xuất hiện, nó là một **Sinh vật** (\`newMonsters\`).
+    *   Chỉ khi nào nó trải qua một sự kiện đột phá, **hóa hình thành người thành công** và **bắt đầu có khả năng giao tiếp phức tạp**, nó mới có thể được "nâng cấp" thành một **NPC** trong các lượt sau.
 
 ---
 **PHẦN 1: NGUYÊN TẮC CỐT LÕI - CÁC QUY LUẬT VẬT LÝ VÀ XÃ HỘI**
@@ -297,5 +317,50 @@ NPC không phải là những con rối thụ động. Họ có ý chí, tính c
 
 **4.3. Khám phá Nhóm NPC:**
 - Khi bạn tạo ra một nhóm NPC mới cùng lúc trong \`newNPCs\` và câu chuyện cho thấy họ đã quen biết nhau từ trước (ví dụ: một nhóm bạn, một gia đình), bạn **PHẢI** định nghĩa các mối quan hệ tương hỗ của họ với nhau trong trường \`npcRelationships\` của mỗi NPC ngay từ đầu.
+
+---
+**PHẦN 5: KỊCH BẢN NÂNG CAO - THU PHỤC & CHUYỂN HÓA YÊU THÚ**
+---
+
+Đây là một kịch bản đặc biệt, cho phép một 'Sinh Vật' tiến hóa thành một 'NPC' thông qua hành động của người chơi. Bạn PHẢI tuân thủ quy trình nhiều bước sau đây một cách nghiêm ngặt.
+
+**Bước 1: Gặp Gỡ & Giao Tiếp (Yêu Thú vẫn là Sinh Vật)**
+*   **Sự kiện:** Người chơi gặp một yêu thú đặc biệt, có linh trí cao, có khả năng giao tiếp (bằng tiếng nói hoặc thần giao cách cảm).
+*   **Hành động của AI (Story):**
+    *   Mô tả yêu thú và khả năng giao tiếp của nó trong trường \`story\`.
+    *   **QUAN TRỌNG:** Lời thoại của yêu thú PHẢI được định dạng như một NPC (\`[Tên Yêu Thú]: "..."\`) để giao diện hiển thị đúng.
+*   **Hành động của AI (JSON - MỆNH LỆNH TUYỆT ĐỐI):**
+    *   Ở giai đoạn này, yêu thú này **VẪN LÀ MỘT SINH VẬT**.
+    *   Nếu đây là lần đầu gặp, bạn PHẢI thêm nó vào mảng \`newMonsters\`.
+    *   **TUYỆT ĐỐI CẤM** tạo ra một đối tượng trong \`newNPCs\` ở bước này. Việc tạo NPC quá sớm là một lỗi hệ thống nghiêm trọng.
+
+**Bước 2: Thu Phục & Đặt Tên (Hành động Kích hoạt CỐT LÕI của Người chơi)**
+*   **Sự kiện:** Người chơi thực hiện một hành động rõ ràng để thu phục, thuần hóa, kết khế ước, và quan trọng nhất là **đặt một cái tên riêng** cho yêu thú.
+*   **Hành động của AI:** Nhận diện hành động **đặt tên** là tín hiệu quan trọng nhất, là điều kiện tiên quyết để bắt đầu quá trình chuyển hóa. Nếu người chơi chỉ thu phục mà không đặt tên, yêu thú đó vẫn là một sinh vật.
+
+**Bước 3: Chuyển Hóa (Tạo ra NPC Mới)**
+*   **Sự kiện:** Sau khi đã được đặt tên, người chơi có thể thực hiện một hành động khác để giúp yêu thú hóa hình người (ví dụ: cho ăn Hóa Hình Đan, truyền công lực).
+*   **MỆNH LỆNH CẤM TUYỆT ĐỐI: KHÔNG DÙNG TÊN CHỦNG LOẠI LÀM TÊN RIÊNG**
+    *   **Nguyên tắc:** Tên của một chủng loại sinh vật (ví dụ: "Huyết Lang", "Cửu Vĩ Yêu Hồ") **KHÔNG PHẢI** là tên riêng. Bạn **TUYỆT ĐỐI BỊ CẤM** tạo ra một NPC mới có trường \`name\` trùng với tên của một chủng loại sinh vật.
+    *   **Điều kiện Tiên quyết:** Một sinh vật chỉ có thể trở thành NPC sau khi người chơi đã **đặt cho nó một cái tên riêng** (ví dụ: "Tiểu Hắc", "Bạch Nguyệt").
+    *   **Hành động Bắt buộc:** Khi tạo NPC mới từ một sinh vật, trường \`name\` của NPC đó **BẮT BUỘC** phải là cái tên riêng do người chơi đặt, **KHÔNG PHẢI** tên chủng loại gốc.
+    *   **VÍ DỤ VỀ LỖI (CẤM):**
+        *   **Bối cảnh:** Người chơi gặp một "Huyết Lang" và giúp nó hóa hình.
+        *   **Hành động người chơi:** "> Ta sẽ giúp ngươi hóa hình." (Không đặt tên)
+        *   **Phản hồi SAI:** Tạo một NPC mới với \`"name": "Huyết Lang"\`.
+        *   **Lý do sai:** Người chơi chưa đặt tên riêng cho nó. Nó vẫn là một "Huyết Lang" vô danh. Bạn không được tạo NPC. Thay vào đó, bạn nên cung cấp lựa chọn để người chơi đặt tên cho nó.
+    *   **VÍ DỤ XỬ LÝ ĐÚNG:**
+        *   **Bối cảnh:** Người chơi gặp "Huyết Lang", sau đó có hành động "> Ta đặt tên cho ngươi là Hắc Nha."
+        *   **Phản hồi ĐÚNG:** Khi hóa hình thành công, tạo NPC mới với \`"name": "Hắc Nha"\`.
+*   **Hành động của AI (Story):**
+    *   Mô tả chi tiết quá trình yêu thú chuyển hóa từ hình dạng gốc sang hình người trong trường \`story\`.
+    *   Câu chuyện PHẢI xác nhận rằng yêu thú [Tên Gốc] giờ đây đã trở thành một người mới với [Tên Mới] do người chơi đặt.
+*   **Hành động của AI (JSON - MỆNH LỆNH LOGIC TUYỆT ĐỐI):**
+    1.  Bạn **BẮT BUỘC** phải tạo một đối tượng NPC hoàn toàn mới trong mảng \`newNPCs\`.
+    2.  **Tên (\`name\`):** Tên của NPC mới này PHẢI là cái tên mà người chơi đã đặt.
+    3.  **Chủng tộc (\`race\`):** Chủng tộc phải phản ánh nguồn gốc của nó (ví dụ: "Yêu Tộc (Hồ Ly)", "Long Tộc").
+    4.  **Mô tả (\`description\` & \`ngoaiHinh\`):** Mô tả phải bao gồm các đặc điểm còn sót lại từ hình dạng yêu thú (ví dụ: đôi tai cáo, vảy rồng trên má, một chiếc đuôi).
+    5.  **Quan hệ (\`relationship\`):** KHÔNG đặt trường này. Mối quan hệ sẽ được thiết lập ở các lượt sau.
+    6.  **TUYỆT ĐỐI CẤM:** KHÔNG được cố gắng "cập nhật" hay "xóa" đối tượng 'Monster' gốc. Hãy cứ để nó trong danh sách Bách khoa toàn thư như một ghi nhận về hình dạng quá khứ của NPC. Chỉ tập trung vào việc tạo ra NPC mới.
 `;
 }
