@@ -272,47 +272,24 @@ export const useGameLogic = () => {
         let historyText = '';
         const historySize = settings.historyContextSize;
         if (historySize > 0 && history.length > 0) {
-            const verbatimTurns = 3;
+            // Each turn is an action + a story result. We want `historySize` full turns.
+            // This means we take `historySize * 2` parts from the history array.
             const historyPartsToTake = historySize * 2;
             const relevantHistory = history.slice(-historyPartsToTake);
-        
-            const verbatimPartsCount = Math.min(relevantHistory.length, verbatimTurns * 2);
-            const verbatimHistory = relevantHistory.slice(-verbatimPartsCount);
-            const summaryHistory = relevantHistory.slice(0, relevantHistory.length - verbatimPartsCount);
-        
-            const summaryLines: string[] = [];
-            if (summaryHistory.length > 0) {
-                summaryLines.push("Tóm tắt các sự kiện trước đó:");
-                
-                let startIndex = 0;
-                // If the summary part starts with a story (S0), skip it and start pairing from A1.
-                if (summaryHistory.length > 0 && summaryHistory[0].type === 'story') {
-                    startIndex = 1;
-                }
-        
-                for (let i = startIndex; i < summaryHistory.length; i += 2) {
-                    const actionPart = summaryHistory[i];
-                    const storyPart = summaryHistory[i + 1];
-        
-                    if (actionPart && actionPart.type === 'action' && storyPart && storyPart.type === 'story') {
-                        const firstSentenceMatch = storyPart.text.match(/[^.!?]+[.!?]/);
-                        const storySummary = (firstSentenceMatch ? firstSentenceMatch[0] : (storyPart.text.substring(0, 150) + '...')).replace(/\s+/g, ' ').trim();
-                        summaryLines.push(`- Người chơi: ${actionPart.text}. Kết quả: ${storySummary}`);
+    
+            // The previous logic for creating history context was sometimes confusing for the AI,
+            // leading it to repeat content from past turns. This new logic sends the full content
+            // as requested, but structures it more clearly as a sequence of past events, preventing repetition.
+            historyText = relevantHistory
+                .map(part => {
+                    if (part.type === 'action') {
+                        // Clearly label the player's past actions.
+                        return `Người chơi đã làm: ${part.text}`;
                     }
-                }
-            }
-        
-            const summaryText = summaryLines.join('\n');
-        
-            const verbatimText = verbatimHistory
-                .map(part => `${part.type === 'story' ? 'Bối cảnh' : 'Người chơi'}: ${part.text}`)
-                .join('\n');
-        
-            if (summaryText) {
-                historyText = `${summaryText}\n\n---\n\nLịch sử gần đây (chi tiết):\n${verbatimText}`;
-            } else {
-                historyText = verbatimText;
-            }
+                    // Clearly label the story result of that action.
+                    return `Kết quả câu chuyện: ${part.text}`;
+                })
+                .join('\n\n');
         }
             
         const MAX_RETRIES = GAME_CONFIG.ai.maxRetries;
