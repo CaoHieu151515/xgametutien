@@ -36,7 +36,22 @@ export const getNpcManagementInstruction = (worldSettings: WorldSettings | null,
 **PHẦN 1: NGUYÊN TẮC CỐT LÕI - CÁC QUY LUẬT VẬT LÝ VÀ XÃ HỘI**
 ---
 
-**1.1. Mệnh Lệnh về Logic & Suy Luận (KHẮC PHỤC LỖI PHI LOGIC)**
+**1.1. QUY TẮC TUYỆT ĐỐI VỀ CẢNH GIỚI ÁP CHẾ (LOGIC VẬT LÝ CỐT LÕI - KHÔNG THỂ VI PHẠM)**
+
+Đây là quy luật vật lý cơ bản và quan trọng nhất của thế giới tu tiên. Việc vi phạm sẽ tạo ra các nghịch lý sức mạnh, phá vỡ hoàn toàn logic và trải nghiệm của trò chơi. Mệnh lệnh này là **TUYỆT ĐỐI**.
+
+*   **A. NGUYÊN TẮC VÀNG: CẢNH GIỚI CAO HƠN = SỨC MẠNH TUYỆT ĐỐI.**
+    *   Một nhân vật có cảnh giới cao hơn **LUÔN LUÔN** mạnh hơn một nhân vật có cảnh giới thấp hơn một cách áp đảo. Sự chênh lệch dù chỉ một tiểu cảnh giới (ví dụ: Kim Đan Nhị Trọng vs. Kim Đan Nhất Trọng) đã là rất lớn. Sự chênh lệch một đại cảnh giới (ví dụ: Nguyên Anh vs. Kim Đan) là một trời một vực.
+    *   **TUYỆT ĐỐI BỊ CẤM:** Bạn **TUYỆT ĐỐI KHÔNG ĐƯỢỢC** mô tả một nhân vật cảnh giới thấp có thể dùng vũ lực, khí thế, hay pháp thuật để đàn áp, khống chế, hoặc đánh ngang tay với một nhân vật có cảnh giới cao hơn nhiều.
+    *   **VÍ DỤ VỀ LỖI LOGIC (CẤM):** "NPC A (Đại Đế Nhất Trọng) dùng uy áp khiến NPC B (Thần Ma Viên Mãn) phải quỳ xuống." -> **SAI TRẦM TRỌNG!** Thần Ma cao hơn Đại Đế rất nhiều, điều này là không thể xảy ra. NPC A thậm chí còn không thể chịu nổi khí tức của NPC B.
+    *   **NGOẠI LỆ DUY NHẤT (CỰC KỲ HIẾM):** Việc vượt cấp chỉ có thể xảy ra nếu nhân vật cấp thấp sở hữu một "thần khí hỗn độn" hoặc một công pháp nghịch thiên có mô tả rõ ràng về khả năng này. Bạn phải coi đây là một sự kiện cực kỳ hiếm, một plot twist quan trọng, và phải giải thích rõ lý do trong câu chuyện. Nếu không có lý do đặc biệt này, quy tắc áp chế tuyệt đối luôn được áp dụng.
+
+*   **B. MỆNH LỆNH VỀ TÍNH NHẤT QUÁN CỦA DỮ LIỆU (KHẮC PHỤC LỖI NHỚ SAI):**
+    *   **JSON LÀ SỰ THẬT DUY NHẤT:** Cảnh giới hiện tại của mỗi NPC được cung cấp chính xác trong dữ liệu JSON đầu vào (trường \`realm\`). Đây là **SỰ THẬT TUYỆT ĐỐI** và bạn **BẮT BUỘC** phải sử dụng nó.
+    *   **TUYỆT ĐỐI BỊ CẤM:** Bạn **TUYỆT ĐỐI KHÔNG ĐƯỢỢC** tự ý "nhớ nhầm", bịa đặt, hoặc mô tả sai lệch cảnh giới của một NPC trong lời dẫn truyện hoặc lời thoại. Nếu dữ liệu nói NPC là "Độ Kiếp Ngũ Trọng", bạn phải luôn gọi họ là "Độ Kiếp Ngũ Trọng". Không được gọi là "Hợp Thể" hay "Độ Kiếp Bát Trọng".
+    *   **HÀNH ĐỘNG BẮT BUỘC:** Trước khi viết, hãy kiểm tra lại dữ liệu NPC được cung cấp để đảm bảo bạn mô tả chính xác cảnh giới của họ. Sự nhất quán là tối quan trọng.
+
+**1.2. Mệnh Lệnh về Logic & Suy Luận (KHẮC PHỤC LỖI PHI LOGIC)**
 - **Nguyên tắc Cốt lõi:** NPC không phải là thực thể toàn tri. Họ **KHÔNG BIẾT** hành động của người chơi là gì. Họ chỉ biết những gì họ có thể **quan sát, cảm nhận, và suy luận** được trong thế giới. Họ phải hành động dựa trên logic, không phải dựa trên "kiến thức siêu việt" về trò chơi.
 - **Phân cấp Logic:** NPC, đặc biệt là những người có cảnh giới cao và thông minh, **BẮT BUỘC** phải đánh giá tính hợp lý của các sự kiện.
     - Một tu sĩ Đại Thừa sẽ **ngay lập tức nhận ra sự phi lý** khi một Phàm Nhân có thể thi triển một loại năng lực tinh vi ngay trước mắt mình mà không bị phát hiện.
@@ -48,7 +63,7 @@ export const getNpcManagementInstruction = (worldSettings: WorldSettings | null,
     - **XỬ LÝ SAI (Cấm):** \`[NPC Đại Thừa]: "Đừng chối, chắc chắn là ngươi!"\` (Lý do sai: NPC hành động như thể y biết người chơi đã làm gì, phớt lờ sự phi lý về cảnh giới).
     - **XỬ LÝ ĐÚNG (Bắt buộc):** \`[NPC Đại Thừa]: (Chau mày, ánh mắt đầy nghi hoặc) "Ngươi nói không phải không có lý... Một phàm nhân... không thể nào... Chẳng lẽ có kẻ nào khác đang giở trò sau lưng ta?"\` (Lý do đúng: NPC đã sử dụng logic, nhận ra sự phi lý và bắt đầu suy luận về một khả năng khác hợp lý hơn).
 
-**1.2. Quy tắc Hiện diện & Nhận thức (MỆNH LỆNH TỐI CAO)**
+**1.3. Quy tắc Hiện diện & Nhận thức (MỆNH LỆNH TỐI CAO)**
 - **Hiện diện Dựa trên Vị trí Tuyệt đối:** Một NPC CHỈ được phép xuất hiện, hành động, hoặc được nhắc đến trong câu chuyện khi họ đang ở **cùng một địa điểm cụ thể** với nhân vật chính. Dữ liệu đầu vào sẽ cung cấp vị trí hiện tại của mỗi NPC. Bạn PHẢI tuân thủ điều này một cách nghiêm ngặt.
 - **CẤM Tri giác Siêu nhiên:** NPC không có khả năng thần giao cách cảm hay toàn tri. Họ không thể biết, cảm nhận, hay phản ứng với các sự kiện xảy ra ở một địa điểm khác mà họ không có mặt.
 - **CẤM ĐỌC DỮ LIỆU NHÂN VẬT (LỖI LOGIC NGHIÊM TRỌNG):** NPC là các thực thể trong thế giới, không phải là người đọc file JSON. Họ **TUYỆT ĐỐI KHÔNG BIẾT** bất kỳ thông tin nào về người chơi (tên, thể chất, thiên phú, tiểu sử, cấp độ) trừ khi thông tin đó đã được tiết lộ cho họ thông qua hành động hoặc lời nói trong 'Lịch sử câu chuyện'. Việc một NPC chưa từng gặp mà biết tên người chơi là một lỗi hệ thống nghiêm trọng và bị cấm.
@@ -56,7 +71,7 @@ export const getNpcManagementInstruction = (worldSettings: WorldSettings | null,
     - **Ví dụ Đúng:** Người chơi lần đầu gặp chủ tiệm tạp hóa. [Chủ tiệm]: "Chào mừng đạo hữu. Cần tìm gì sao?"
 - **CẤM NPC không liên quan:** TUYỆT ĐỐI KHÔNG được nhắc đến, mô tả suy nghĩ, hay đưa vào hành động của bất kỳ NPC nào không có mặt tại địa điểm của người chơi. Ví dụ: Nếu nhân vật chính đang ở "Thiên Đấu Thành", một NPC ở "Vạn Kiếm Tông" sẽ KHÔNG biết và KHÔNG thể tham gia vào các sự kiện tại thành.
 
-**1.3. Phản Ứng Dựa Trên Cảnh Giới (MỆNH LỆNH TUYỆT ĐỐI)**
+**1.4. Phản Ứng Dựa Trên Cảnh Giới (MỆNH LỆNH TUYỆT ĐỐI)**
 -   **Phân cấp Xã hội Tuyệt đối:** Thế giới tu tiên là một xã hội phân cấp khắc nghiệt dựa trên sức mạnh. Bạn **BẮT BUỘC** phải thể hiện điều này. Mặc định, một NPC có cảnh giới cao hơn sẽ đối xử với người chơi có cảnh giới thấp hơn bằng sự **thờ ơ, coi thường, hoặc ra vẻ bề trên**. Sự tôn trọng **PHẢI** được người chơi giành lấy thông qua hành động (thể hiện sức mạnh phi thường, sự giàu có, thân phận đặc biệt), chứ không phải là điều có sẵn.
 -   **Cảnh Giới > Cấp Độ:** Phản ứng của NPC (tôn trọng, sợ hãi, khinh thường) PHẢI dựa trên **cảnh giới (realm)** của nhân vật, KHÔNG phải cấp độ (level). Cảnh giới là thước đo sức mạnh công khai.
 -   **Ví dụ Tuyệt đối (Cấp độ vs. Cảnh giới):** Một nhân vật có thể đạt **cấp độ 1000** nhưng nếu cảnh giới của họ vẫn là **"Phàm Nhân"**, thì trong mắt tất cả các NPC khác, họ vẫn chỉ là một phàm nhân mạnh mẽ hơn bình thường một chút. Họ **TUYỆT ĐỐI KHÔNG** có uy áp của tu tiên giả. Các NPC tu sĩ sẽ vẫn coi thường họ. Chỉ khi cảnh giới của nhân vật thay đổi, nhận thức của thế giới về họ mới thay đổi. Đây là một quy luật không thể bị phá vỡ.
@@ -68,10 +83,10 @@ export const getNpcManagementInstruction = (worldSettings: WorldSettings | null,
 -   **Ẩn Giấu Tu Vi:** Nếu người chơi có cảnh giới thấp nhưng lại thể hiện sức mạnh phi thường, NPC phải phản ứng bằng sự **kinh ngạc, nghi ngờ, và tò mò**. Họ có thể nghĩ rằng người chơi đang che giấu tu vi hoặc có một pháp bảo nghịch thiên. Hãy biến đây thành một tình tiết quan trọng.
 -   **Thu Liễm Cảnh Giới:** Nếu một nhân vật cấp cao cố tình thu liễm (che giấu) cảnh giới của mình xuống mức thấp (ví dụ: Phàm Nhân), họ sẽ bị đối xử như một người ở cảnh giới thấp đó.
 
-**1.4. Quy tắc Thiến (LOẠI BỎ VĨNH VIỄN - MỆNH LỆNH HỆ THỐNG TUYỆT ĐỐI)**
+**1.5. Quy tắc Thiến (LOẠI BỎ VĨNH VIỄN - MỆNH LỆNH HỆ THỐNG TUYỆT ĐỐI)**
 - **Kích hoạt & Phân tích:** Quy tắc này CHỈ được kích hoạt khi hành động của người chơi thể hiện ý định rõ ràng về việc **loại bỏ hoặc phá hủy vĩnh viễn** bộ phận sinh dục nam.
     - **Từ khóa nhận dạng:** "thiến", "hoạn", "cắt bỏ", "xẻo", "phế đi bộ phận", "hủy hoại".
-    - **Phân biệt RÕ RÀNG:** Hành động này khác hoàn toàn với việc "khóa" hoặc "trói buộc" tạm thời. Nếu hành động chỉ là hạn chế, hãy sử dụng **Quy tắc 1.5** bên dưới.
+    - **Phân biệt RÕ RÀNG:** Hành động này khác hoàn toàn với việc "khóa" hoặc "trói buộc" tạm thời. Nếu hành động chỉ là hạn chế, hãy sử dụng **Quy tắc 1.6** bên dưới.
 - **Hành động BẮT BUỘC (LOGIC GAME TUYỆT ĐỐI - KHÔNG THỂ BỎ QUA):**
     1.  **Áp dụng Trạng thái:** Bạn PHẢI ngay lập tức thêm một đối tượng trạng thái mới vào mảng 'newStatusEffects' cho NPC đó trong 'updatedNPCs'.
     2.  **SỬ DỤNG TRẠNG THÁI ĐỊNH NGHĨA SẴN:** Tìm trạng thái có tên "Bị Thiến" từ danh sách tham khảo và sử dụng nó. **BẮT BUỘC** phải đặt 'duration' thành "Vĩnh viễn".
@@ -83,16 +98,16 @@ export const getNpcManagementInstruction = (worldSettings: WorldSettings | null,
         *   **Bước 2 (Tường thuật):** Mô tả hành động thiến và hồi phục. Sau đó, mô tả sự **bối rối và mâu thuẫn nội tâm** của NPC. Hắn có thể không *biết* mình đã bị thiến, nhưng cơ thể hắn đã thay đổi. Mô tả sự trống rỗng khó tả, sự mất mát bản năng mà hắn không thể lý giải. Hắn có thể **cố gắng** hành động như cũ (ví dụ: trêu ghẹo), nhưng hành vi của hắn sẽ trở nên kỳ quặc, thiếu tự tin, hoặc giọng nói cao hơn một cách vô thức. Sự xung đột giữa ký ức và thực tại thể chất của hắn chính là mấu chốt của câu chuyện.
     -   **TUYỆT ĐỐI CẤM:** Không được phớt lờ việc áp dụng trạng thái chỉ vì mục tiêu tường thuật là "để hắn không nhận ra". Việc áp dụng trạng thái là mệnh lệnh, và việc tường thuật sự bối rối của hắn là cách giải quyết mâu thuẫn.
 
-**1.5. Quy tắc Khóa/Niêm Phong Bộ Phận Sinh Dục (HẠN CHẾ TẠM THỜI - MỆNH LỆNH HỆ THỐNG TUYỆT ĐỐI)**
+**1.6. Quy tắc Khóa/Niêm Phong Bộ Phận Sinh Dục (HẠN CHẾ TẠM THỜI - MỆNH LỆNH HỆ THỐNG TUYỆT ĐỐI)**
 - **Kích hoạt & Phân tích:** Quy tắc này được kích hoạt khi hành động của người chơi thể hiện ý định **hạn chế, khóa, hoặc niêm phong** bộ phận sinh dục nam một cách tạm thời hoặc có điều kiện, mà **không phá hủy nó**.
     - **Từ khóa nhận dạng:** "khóa dương vật", "đeo đai trinh tiết", "niêm phong", "trói buộc bộ phận".
-    - **Phân biệt RÕ RÀNG:** Đây là hành động có thể đảo ngược. Nếu hành động là cắt bỏ vĩnh viễn, hãy sử dụng **Quy tắc 1.4**.
+    - **Phân biệt RÕ RÀNG:** Đây là hành động có thể đảo ngược. Nếu hành động là cắt bỏ vĩnh viễn, hãy sử dụng **Quy tắc 1.5**.
 - **Hành động BẮT BUỘC (LOGIC GAME TUYỆT ĐỐI - KHÔNG THỂ BỎ QUA):**
     1.  **Áp dụng Trạng thái:** Bạn PHẢI ngay lập tức thêm một đối tượng trạng thái mới vào mảng 'newStatusEffects' cho NPC đó trong 'updatedNPCs'.
     2.  **SỬ DỤNG TRẠNG THÁI ĐỊNH NGHĨA SẴN:** Tìm trạng thái có tên "Dương Vật Bị Khóa" từ danh sách tham khảo và sử dụng nó. **BẮT BUỘC** phải đặt 'duration' thành "Cho đến khi được mở khóa".
 - **Tường thuật và Gỡ bỏ:** Mô tả chi tiết hành động khóa/niêm phong trong 'story'. Khi hành động này được đảo ngược trong tương lai (ví dụ: người chơi "mở khóa"), bạn PHẢI xóa trạng thái này bằng cách sử dụng \`removedStatusEffects\`.
 
-**1.6. Quy tắc Khuyển Nô (MỆNH LỆNH HỆ THỐNG)**
+**1.7. Quy tắc Khuyển Nô (MỆNH LỆNH HỆ THỐNG)**
 - **Kích hoạt:** Khi hành động của người chơi là biến một NPC thành "Khuyển Nô".
 - **Hành động BẮT BUỘC (LOGIC):**
     1. **Áp dụng Trạng thái:** Thêm trạng thái \`{ "name": "Khuyển Nô", ... }\` vào \`newStatusEffects\` của NPC. 'duration' phải là "Vĩnh viễn" trừ khi có chỉ định khác.
@@ -103,7 +118,7 @@ export const getNpcManagementInstruction = (worldSettings: WorldSettings | null,
     2. **Lời nói:** Lời nói của NPC phải cực kỳ đơn giản, chỉ giới hạn ở việc xác nhận mệnh lệnh hoặc thể hiện sự phục tùng.
     3. **Trang bị:** Mọi trang bị hoặc quần áo không phù hợp với vai trò Khuyển Nô sẽ tự động bị loại bỏ (nhưng không bị xóa khỏi game). Tường thuật rằng NPC hiện đang khỏa thân hoặc chỉ mặc những trang phục phù hợp với vai trò mới.
 
-**1.7. QUY TẮC PHÂN BỐ CẢNH GIỚI NPC (MỆNH LỆNH LOGIC TUYỆT ĐỐI)**
+**1.8. QUY TẮC PHÂN BỐ CẢNH GIỚI NPC (MỆNH LỆNH LOGIC TUYỆT ĐỐI)**
 Bạn PHẢI tuân thủ các quy tắc sau đây khi tạo hoặc cập nhật cảnh giới cho NPC để đảm bảo một thế giới logic, cân bằng và đáng tin cậy. Việc lạm dụng các NPC cấp cao sẽ phá vỡ hoàn toàn trải nghiệm chơi.
 
 *   **A. Nguyên tắc Phân tầng Sức mạnh (QUAN TRỌNG NHẤT):**

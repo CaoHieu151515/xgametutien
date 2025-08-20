@@ -143,7 +143,7 @@ export const GAME_CONFIG = {
         // Cấu hình các bậc quan hệ và màu sắc hiển thị.
         // Được sắp xếp từ cao đến thấp.
         relationshipTiers: [
-            { threshold: 950, text: 'Tri Kỷ / Đạo Lữ', color: 'text-pink-400' },
+            { threshold: 950, text: 'Tri Kỷ', color: 'text-pink-400' },
             { threshold: 800, text: 'Thân Thiết', color: 'text-teal-400' },
             { threshold: 500, text: 'Bằng Hữu', color: 'text-green-400' },
             { threshold: 200, text: 'Thân thiện', color: 'text-lime-400' },

@@ -1,5 +1,3 @@
-
-
 import { useState, useCallback } from 'react';
 import { StoryPart, StoryResponse, CharacterProfile, WorldSettings, NPC, Choice, AppSettings, GameSnapshot, Item, StoryApiResponse, ToastMessage } from '../../types';
 import { log } from '../../services/logService';
