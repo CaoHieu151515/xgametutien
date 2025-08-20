@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { CharacterGender } from '../types';
+import { getDefaultAvatar } from '../utils/uiHelpers';
 
 interface ChatBubbleProps {
     speakerName: React.ReactNode;
@@ -10,13 +11,6 @@ interface ChatBubbleProps {
     gender: CharacterGender;
     isGeneric?: boolean; // For gray bubbles
 }
-
-const getDefaultAvatar = (gender: CharacterGender) => {
-    return gender === CharacterGender.MALE 
-        ? 'https://i.imgur.com/9CXRf64.png' 
-        : 'https://i.imgur.com/K8Z3w4q.png';
-};
-
 
 export const ChatBubble: React.FC<ChatBubbleProps> = ({ speakerName, speakerAvatar, message, isPlayer, gender, isGeneric }) => {
     

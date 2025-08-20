@@ -385,8 +385,8 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
     const renderStoryPart = (part: StoryPart) => {
         if (!characterProfile) return null;
     
-        const dialogueCaptureRegex = /(\s*\[[^\]]+\][:：]\s*["“].*?["”]\s*)/g;
-        const dialogueExtractRegex = /^\s*\[([^\]]+)\][:：]\s*["“](.*?)["”]\s*$/;
+        const dialogueCaptureRegex = /(\s*\[[^\]]+\][:：]\s*(?:\(.*\))?\s*["“].*?["”]\s*)/g;
+        const dialogueExtractRegex = /^\s*\[([^\]]+)\][:：]\s*(?:\(.*\))?\s*["“](.*?)["”]\s*$/;
     
         // Process the entire text block at once to handle mixed dialogue and narration.
         const segments = part.text.split(dialogueCaptureRegex);

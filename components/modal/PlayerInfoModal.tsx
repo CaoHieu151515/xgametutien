@@ -10,7 +10,8 @@ import { MilestonesTab } from './tabs/MilestonesTab';
 import { OwnedLocationsTab } from './tabs/OwnedLocationsTab';
 import { CreationTab } from './tabs/CreationTab';
 import { InfoTab } from './tabs/InfoTab';
-import { AccordionItem, getDefaultAvatar } from './tabs/shared/Common';
+import { AccordionItem } from './tabs/shared/Common';
+import { getDefaultAvatar } from '../../utils/uiHelpers';
 
 
 interface PlayerInfoModalProps {

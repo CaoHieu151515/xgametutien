@@ -1,9 +1,5 @@
 
 
-
-
-
-
 import React, { useState, useRef } from 'react';
 import { CharacterProfile, CharacterGender, WorldSettings, PowerSystemDefinition, Skill, NewNPCFromAI, Location, Item, ApiProvider, SkillType, LocationType, ItemType } from '../../types';
 import { Loader } from '../Loader';
@@ -73,6 +69,7 @@ const initialProfile: CharacterProfile = {
     statusEffects: [],
     achievements: [],
     milestones: [],
+    events: [],
     skills: [],
     items: [],
     equipment: {},
@@ -206,6 +203,7 @@ export const WorldSetup: React.FC<WorldSetupProps> = ({ onStartGame, onBackToMen
             skills: profile.skills,
             achievements: profile.achievements,
             milestones: profile.milestones,
+            events: profile.events,
             initialItems: profile.initialItems,
             initialNpcs: profile.initialNpcs,
             initialLocations: profile.initialLocations,
@@ -252,8 +250,12 @@ export const WorldSetup: React.FC<WorldSetupProps> = ({ onStartGame, onBackToMen
                 const data = JSON.parse(text);
 
                 if (data && typeof data === 'object' && data.worldSettings && data.profile) {
-                    const completeProfile: CharacterProfile = { ...initialProfile, ...data.profile, specialConstitution: { ...initialProfile.specialConstitution, ...(data.profile.specialConstitution || {}) }, talent: { ...initialProfile.talent, ...(data.profile.talent || {}) }, skills: data.profile.skills || [], initialNpcs: data.profile.initialNpcs || [], initialLocations: data.profile.initialLocations || [], initialItems: data.profile.initialItems || [], discoveredLocations: data.profile.discoveredLocations || [], statusEffects: data.profile.statusEffects || [], equipment: data.profile.equipment || {}, initialMonsters: data.profile.initialMonsters || [], discoveredMonsters: data.profile.discoveredMonsters || [], discoveredItems: data.profile.discoveredItems || [], achievements: data.profile.achievements || [], milestones: data.profile.milestones || [] };
-                    const completeWorldSettings: WorldSettings = { ...initialWorldSettings, ...data.worldSettings, powerSystems: data.worldSettings.powerSystems || [], playerDefinedRules: data.worldSettings.playerDefinedRules || [], initialKnowledge: data.worldSettings.initialKnowledge || [] };
+                    const completeProfile: CharacterProfile = { 
+                        ...initialProfile, 
+                        ...data.profile, 
+                        events: data.profile.events || [], // Backward compatibility for events
+                    };
+                    const completeWorldSettings: WorldSettings = { ...initialWorldSettings, ...data.worldSettings };
                     
                     setWorldSettings(completeWorldSettings);
                     setProfile(completeProfile);
@@ -286,7 +288,14 @@ export const WorldSetup: React.FC<WorldSetupProps> = ({ onStartGame, onBackToMen
             const generateWorldFromIdea = apiProvider === ApiProvider.OPENAI ? openaiService.generateWorldFromIdea : geminiService.generateWorldFromIdea;
             const { characterProfile, worldSettings: newWorldSettings } = await generateWorldFromIdea(worldSettings.storyIdea, worldSettings.openingScene, apiKey);
     
-            const mergedProfile = { ...initialProfile, ...characterProfile, discoveredLocations: [], discoveredMonsters: characterProfile.initialMonsters || [], discoveredItems: characterProfile.initialItems || [] };
+            const mergedProfile: CharacterProfile = { 
+                ...initialProfile, 
+                ...characterProfile, 
+                events: characterProfile.events || [], // Ensure events array exists
+                discoveredLocations: [], 
+                discoveredMonsters: characterProfile.initialMonsters || [], 
+                discoveredItems: characterProfile.initialItems || [] 
+            };
             const mergedWorldSettings = { ...initialWorldSettings, ...newWorldSettings, storyIdea: worldSettings.storyIdea, openingScene: worldSettings.openingScene };
     
             setProfile(mergedProfile);

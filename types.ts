@@ -1,5 +1,24 @@
 
 
+export interface GameEventLogEntry {
+  turnNumber: number;
+  entry: string;
+}
+
+export interface GameEvent {
+  id: string;
+  title: string;
+  description: string;
+  status: 'active' | 'completed';
+  rewards?: {
+    experience?: number;
+    currency?: number;
+    items?: Item[];
+  };
+  log: GameEventLogEntry[];
+  isNew?: boolean;
+}
+
 export interface StoryPart {
   id: number;
   type: 'story' | 'action';
@@ -10,10 +29,10 @@ export interface StoryPart {
 export interface Choice {
   title: string;
   benefit: string;
-
   risk: string;
   successChance: number;
   durationInMinutes: number;
+  specialNote?: string; // Chú thích đặc biệt, vd: "Tiếp tục nhiệm vụ: Điều tra..."
   isCustom?: boolean; 
   isTimeSkip?: boolean;
   turnsToSkip?: number;
@@ -59,7 +78,7 @@ export interface SkillUpdate {
 }
 
 export enum LocationType {
-  WORLD = 'THẾ GIỚI',
+  WORLD = 'THẾ GIỚỚI',
   CITY = 'THÀNH TRẤN',
   THE_LUC = 'THẾ LỰC',
   TOWN = 'THÔN LÀNG',
@@ -205,6 +224,10 @@ export interface StoryResponse {
   newMonsters?: { name: string; description: string }[];
   newWorldKnowledge?: WorldKnowledge[];
   newMilestone?: string;
+  // Event System
+  newEvent?: Omit<GameEvent, 'log' | 'status' | 'id'> & { initialLog: string };
+  updateEventLog?: { eventId: string; logEntry: string; };
+  completeEvent?: { eventId: string; finalLog: string; };
 }
 
 export enum GameState {
@@ -361,6 +384,7 @@ export interface CharacterProfile {
   statusEffects: StatusEffect[];
   achievements: Achievement[];
   milestones: Milestone[];
+  events: GameEvent[];
 
   // Skills
   skills: Skill[];

@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { NPC, CharacterGender, StatusEffect, WorldSettings, CharacterProfile } from '../../types';
 import { calculateBaseStatsForLevel } from '../../services/progressionService';

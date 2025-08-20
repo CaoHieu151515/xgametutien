@@ -2,6 +2,7 @@
 import React from 'react';
 import { StatusEffect, CharacterGender } from '../../../../types';
 import { getExperienceForNextLevel, getSkillExperienceForNextLevel } from '../../../../services/progressionService';
+import { getDefaultAvatar } from '../../../../utils/uiHelpers';
 
 export const NewBadge = () => <span className="ml-2 px-1.5 py-0.5 text-[10px] font-bold text-slate-900 bg-yellow-300 rounded-full">NEW</span>;
 
@@ -122,6 +123,4 @@ export const statusStyles: Record<StatusEffectType, { border: string; bg: string
     special: { border: 'border-purple-500/30', bg: 'bg-purple-900/30', text: 'text-purple-300' }
 };
 
-export const getDefaultAvatar = (gender: CharacterGender) => {
-    return gender === CharacterGender.MALE ? 'https://i.imgur.com/9CXRf64.png' : 'https://i.imgur.com/K8Z3w4q.png';
-};
+export { getDefaultAvatar };

@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { NPC } from '../../../types';
-import { NewBadge, getDefaultAvatar } from './shared/Common';
-import { getRelationshipDisplay } from '../../../utils/uiHelpers';
+import { NewBadge } from './shared/Common';
+import { getRelationshipDisplay, getDefaultAvatar } from '../../../utils/uiHelpers';
 
 interface RelationshipsTabProps {
     npcs: NPC[];

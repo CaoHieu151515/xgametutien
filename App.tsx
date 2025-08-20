@@ -8,6 +8,7 @@ import { NpcModal } from './components/modal/NpcModal';
 import { GameLogModal } from './components/modal/GameLogModal';
 import { InventoryModal } from './components/modal/InventoryModal';
 import { TimeSkipModal } from './components/modal/TimeSkipModal';
+import { EventModal } from './components/modal/EventModal';
 import { log } from './services/logService';
 import { DebugLogPanel } from './components/DebugLogPanel';
 import { useComponentLog } from './hooks/useComponentLog';
@@ -85,6 +86,7 @@ const App: React.FC = () => {
         openGameLogModal: () => openModal('gameLog'),
         openInventoryModal: () => openModal('inventory'),
         openTimeSkipModal: () => openModal('timeSkip'),
+        openEventModal: () => openModal('event'),
     };
 
     return (
@@ -171,6 +173,13 @@ const App: React.FC = () => {
                     onTimeSkip={handleTimeSkip}
                     characterProfile={characterProfile}
                     npcs={npcs}
+                />
+            )}
+            {characterProfile && modals.event && (
+                <EventModal
+                    isOpen={modals.event}
+                    onClose={() => closeModal('event')}
+                    events={characterProfile.events}
                 />
             )}
             {isDebugLogVisible && <DebugLogPanel onClose={() => setIsDebugLogVisible(false)} />}

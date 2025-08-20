@@ -1,12 +1,7 @@
 
+
 import React from 'react';
 import { Choice } from '../types';
-
-interface AdventureCardProps {
-  choice: Choice;
-  onClick: () => void;
-  disabled: boolean;
-}
 
 const CheckIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-green-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
@@ -32,18 +27,26 @@ const formatDuration = (minutes: number) => {
     return `${days} ngày`;
 }
 
+interface AdventureCardProps {
+    choice: Choice;
+    onClick: () => void;
+    disabled: boolean;
+}
+
 export const AdventureCard: React.FC<AdventureCardProps> = ({ choice, onClick, disabled }) => {
-    const { title, benefit, risk, successChance, durationInMinutes } = choice;
+    const { title, benefit, risk, successChance, durationInMinutes, specialNote } = choice;
     const chanceColor = successChance >= 70 ? 'text-green-400' : successChance >= 40 ? 'text-yellow-400' : 'text-red-400';
     const chanceBgColorClass = successChance >= 70 ? 'bg-green-500/20 border-green-500' : successChance >= 40 ? 'bg-yellow-500/20 border-yellow-500' : 'bg-red-500/20 border-red-500';
+
+    const showSpecialNote = specialNote && specialNote.trim().toLowerCase() !== 'không có';
 
     return (
         <button
             onClick={onClick}
             disabled={disabled}
-            className="w-full text-left p-2 bg-slate-800/70 border border-slate-700 rounded-lg hover:bg-slate-700/70 hover:border-amber-400/50 focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-800/70 flex flex-col justify-between"
+            className="w-full h-full text-left p-2 bg-slate-800/70 border border-slate-700 rounded-lg hover:bg-slate-700/70 hover:border-amber-400/50 focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-800/70 flex flex-col"
         >
-            <div>
+            <div className="flex-grow">
                 <div className="flex justify-between items-start mb-1.5">
                     <h3 className="font-bold text-sm text-slate-100 pr-2">{title}</h3>
                     <div className={`flex-shrink-0 w-8 h-8 rounded-full border-2 ${chanceBgColorClass} flex items-center justify-center`}>
@@ -61,8 +64,22 @@ export const AdventureCard: React.FC<AdventureCardProps> = ({ choice, onClick, d
                     </div>
                 </div>
             </div>
-            <div className="text-right text-xs text-slate-400 font-semibold mt-1.5 border-t border-slate-700/50 pt-1.5">
-                {formatDuration(durationInMinutes)}
+            
+            <div className="flex-shrink-0">
+                 <div className={`mt-1.5 pt-1.5 border-t text-xs sm:text-sm ${showSpecialNote ? 'border-slate-700/50' : 'border-transparent'}`}>
+                    {showSpecialNote ? (
+                        <div className="text-yellow-400 break-words">
+                            <p><span className="font-semibold">Đặc biệt:</span> {specialNote}</p>
+                        </div>
+                    ) : (
+                        <div className="invisible">
+                           <p><span className="font-semibold">Đặc biệt:</span>&nbsp;</p>
+                        </div>
+                    )}
+                </div>
+                <div className="text-right text-xs text-slate-400 font-semibold mt-1.5 border-t border-slate-700/50 pt-1.5">
+                    {formatDuration(durationInMinutes)}
+                </div>
             </div>
         </button>
     );

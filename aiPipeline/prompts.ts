@@ -1,5 +1,4 @@
-
-import { CharacterProfile, WorldSettings, NPC, Location, Skill, StoryResponse, Milestone } from '../types';
+import { CharacterProfile, WorldSettings, NPC, Location, Skill, StoryResponse, Milestone, GameEvent } from '../types';
 import { buildContextForPrompt } from './promptUtils';
 import { GAME_CONFIG } from '../config/gameConfig';
 
@@ -104,6 +103,7 @@ export const buildUnifiedPrompt = (
         achievements,
         milestones,
         discoveredMonsters,
+        activeEvents,
     } = buildContextForPrompt(characterProfile, worldSettings, npcs, historyText);
 
     const locationMap = new Map(characterProfile.discoveredLocations.map(loc => [loc.id, loc]));
@@ -151,6 +151,13 @@ ${JSON.stringify(discoveredMonsters.map(m => m.name), null, 2)}
 \`\`\`
 ` : '';
 
+    const activeEventsContext = (activeEvents && activeEvents.length > 0) ? `
+**Sự Kiện/Nhiệm Vụ Đang Diễn Ra (TRÍ NHỚ DÀI HẠN - BỐI CẢNH CHÍNH YẾU):**
+\`\`\`json
+${JSON.stringify(activeEvents, null, 2)}
+\`\`\`
+` : '';
+
     return `
 **Bối cảnh nhân vật (Tối ưu hóa):**
 \`\`\`json
@@ -170,6 +177,8 @@ ${JSON.stringify(equippedItems, null, 2)}
 \`\`\`json
 ${JSON.stringify(summarizedBagItems, null, 2)}
 \`\`\`
+
+${activeEventsContext}
 
 **Các NPC có liên quan trong ngữ cảnh:**
 \`\`\`json
@@ -203,7 +212,7 @@ ${milestonesContext}
 **Lịch sử câu chuyện:**
 ${historyText}
 
-**Hành động mới nhất của người chơi:**
+**Hành động và Kết quả Lượt Này:**
 ${actionText}
 
 **NHIỆM VỤ:**

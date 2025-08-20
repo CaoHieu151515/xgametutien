@@ -18,6 +18,7 @@ import { itemManagementInstruction } from './management/itemManagement.rules';
 import { locationManagementInstruction } from './management/locationManagement.rules';
 import { getNpcManagementInstruction } from './management/npcManagement.rules';
 import { statusEffectManagementInstruction } from './management/statusEffectManagement.rules';
+import { eventManagementInstruction } from './management/eventManagement.rules';
 
 // Mature
 import { matureContentInstruction } from './mature/matureContent.rules';
@@ -55,6 +56,7 @@ export const getSystemInstruction = (
         locationManagementInstruction,
         getNpcManagementInstruction(worldSettings, gender),
         itemManagementInstruction,
+        eventManagementInstruction,
         creationInstruction,
         playerDefinedRulesInstruction
     ];

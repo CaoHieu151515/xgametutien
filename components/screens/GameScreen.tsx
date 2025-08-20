@@ -6,7 +6,7 @@ import { CustomInput } from '../CustomInput';
 import { AdventureCard } from '../AdventureCard';
 import { 
     HomeIcon, PlayerIcon, NpcsIcon, WorldIcon, MapIcon, 
-    GameLogIcon, BagIcon, LocationIcon, SettingsIcon, SaveIcon, TimeIcon
+    GameLogIcon, BagIcon, LocationIcon, SettingsIcon, SaveIcon, TimeIcon, EventIcon
 } from '../ui/Icons';
 import { useComponentLog } from '../../hooks/useComponentLog';
 import { GAME_CONFIG } from '../../config/gameConfig';
@@ -32,6 +32,7 @@ interface GameScreenProps {
     openGameLogModal: () => void;
     openInventoryModal: () => void;
     openTimeSkipModal: () => void;
+    openEventModal: () => void;
 }
 
 const getFormattedGameTime = (isoString: string | null): string => {
@@ -94,7 +95,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     openNpcModal,
     openGameLogModal,
     openInventoryModal,
-    openTimeSkipModal
+    openTimeSkipModal,
+    openEventModal,
 }) => {
     useComponentLog('GameScreen.tsx');
     const [backgroundAvatars, setBackgroundAvatars] = useState<string[]>([]);
@@ -149,6 +151,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                         </HeaderButton>
                         <HeaderButton label="Túi Đồ" onClick={openInventoryModal} disabled={isLoading}>
                             <BagIcon />
+                        </HeaderButton>
+                        <HeaderButton label="Nhiệm Vụ" onClick={openEventModal} disabled={isLoading}>
+                            <EventIcon />
                         </HeaderButton>
                         <HeaderButton label="NPC" onClick={openNpcModal} disabled={isLoading}>
                             <NpcsIcon />

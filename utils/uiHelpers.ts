@@ -1,3 +1,4 @@
+
 import { GAME_CONFIG } from '../config/gameConfig';
 import { CharacterGender } from '../types';
 

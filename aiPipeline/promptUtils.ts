@@ -1,4 +1,4 @@
-import { CharacterProfile, WorldSettings, NPC, Location, Item, Achievement, Monster, LocationType, Milestone } from '../types';
+import { CharacterProfile, WorldSettings, NPC, Location, Item, Achievement, Monster, LocationType, Milestone, GameEvent } from '../types';
 
 interface ContextualPromptData {
     contextualNpcs: Partial<NPC>[];
@@ -14,6 +14,7 @@ interface ContextualPromptData {
     achievements: Achievement[];
     milestones: Milestone[];
     discoveredMonsters: Monster[];
+    activeEvents: Partial<GameEvent>[];
 }
 
 /**
@@ -109,7 +110,12 @@ export const buildContextForPrompt = (
         }
     });
 
-    // 6. Tối giản Character Profile: loại bỏ các danh sách lớn sẽ được xử lý riêng.
+    // 6. Lọc các sự kiện/nhiệm vụ đang hoạt động
+    const activeEvents = (characterProfile.events || [])
+        .filter(event => event.status === 'active')
+        .map(({ id, title, description }) => ({ id, title, description }));
+
+    // 7. Tối giản Character Profile: loại bỏ các danh sách lớn sẽ được xử lý riêng.
     const { 
         items, equipment, discoveredLocations, discoveredMonsters, discoveredItems, 
         initialItems, initialLocations, initialNpcs, initialMonsters,
@@ -118,6 +124,7 @@ export const buildContextForPrompt = (
         achievements,
         milestones,
         skills,
+        events, // exclude events from minimal profile
         ...rest 
     } = characterProfile;
     
@@ -139,5 +146,6 @@ export const buildContextForPrompt = (
         achievements: achievements || [],
         milestones: milestones || [],
         discoveredMonsters: discoveredMonsters || [],
+        activeEvents,
     };
 };
