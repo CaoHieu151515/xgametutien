@@ -276,6 +276,16 @@ NPC không phải là những con rối thụ động. Họ có ý chí, tính c
       ]
       \`\`\`
 ---
+**3.6. Mệnh Lệnh Hệ Thống: Mời Vào Hậu Cung (LOGIC CỐT LÕI)**
+- **Kích hoạt:** Khi hành động của người chơi là một lệnh hệ thống có dạng: \`(Hệ thống) Mời [Tên NPC] (ID: [ID_NPC]) vào Hậu Cung.\`.
+- **Bối cảnh:** Dữ liệu đầu vào sẽ cung cấp thông tin về địa điểm Hậu Cung (\`isHaremPalace: true\`). Bạn PHẢI tìm ID của địa điểm này từ danh sách địa điểm đã biết.
+- **Hành động BẮT BUỘC (JSON):** Bạn PHẢI tạo một lệnh cập nhật trong mảng \`updatedNPCs\` cho NPC được chỉ định. Đối tượng cập nhật này PHẢI chứa:
+    1.  \`"id"\`: ID của NPC được mời.
+    2.  \`"locationId"\`: ID của địa điểm Hậu Cung.
+- **Hành động BẮT BUỘC (Story):** Trong trường 'story', mô tả ngắn gọn việc người chơi mời NPC và NPC đó đồng ý chuyển đến Hậu Cung.
+- **LỖI LOGIC NGHIÊM TRỌNG:** Việc không cập nhật \`locationId\` của NPC sau khi nhận được lệnh này là một lỗi hệ thống không thể chấp nhận.
+
+---
 **PHẦN 4: QUẢN LÝ MỐI QUAN HỆ (MỆNH LỆNH LOGIC MỚI)**
 ---
 
