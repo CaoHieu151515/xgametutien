@@ -1,13 +1,12 @@
-import { CharacterGender, SkillType, LocationType, ItemType, EquipmentType } from '../types';
 import { Type } from '@google/genai';
 import { GAME_CONFIG } from '../config/gameConfig';
 
 export const statusEffectSchema = {
     type: Type.OBJECT,
     properties: {
-        name: { type: Type.STRING, description: "Tên của trạng thái (ví dụ: 'Trúng Độc', 'Tăng Sức Mạnh')." },
-        description: { type: Type.STRING, description: "Mô tả ngắn gọn về ảnh hưởng của trạng thái." },
-        duration: { type: Type.STRING, description: "Thời hạn của trạng thái. BẮT BUỘC phải là chuỗi 'Vĩnh viễn' hoặc một chuỗi theo định dạng 'X lượt' (ví dụ: '3 lượt', '270 lượt'). TUYỆT ĐỐI KHÔNG sử dụng các định dạng khác." }
+        name: { type: Type.STRING, description: "Tên trạng thái (vd: 'Trúng Độc')." },
+        description: { type: Type.STRING, description: "Mô tả ảnh hưởng." },
+        duration: { type: Type.STRING, description: "Thời hạn. Định dạng: 'Vĩnh viễn' hoặc 'X lượt' (vd: '3 lượt')." }
     },
     required: ["name", "description", "duration"]
 };
@@ -15,40 +14,40 @@ export const statusEffectSchema = {
 export const achievementSchema = {
     type: Type.OBJECT,
     properties: {
-        name: { type: Type.STRING, description: "Tên của thành tích hoặc danh hiệu (ví dụ: 'Đan Sư', 'Kẻ Diệt Rồng')." },
-        description: { type: Type.STRING, description: "Mô tả về thành tích và các lợi ích (nếu có)." },
-        tier: { type: Type.STRING, description: "Cấp bậc của thành tích nếu có thể nâng cấp (ví dụ: 'Sơ cấp', 'Trung cấp')." }
+        name: { type: Type.STRING, description: "Tên thành tích." },
+        description: { type: Type.STRING, description: "Mô tả thành tích." },
+        tier: { type: Type.STRING, description: "Cấp bậc thành tích." }
     },
     required: ["name", "description"]
 };
 
 export const updatedStatsSchema = {
     type: Type.OBJECT,
-    description: "Một đối tượng tùy chọn chứa các chỉ số của nhân vật đã được cập nhật. Chỉ bao gồm các chỉ số đã thay đổi. Hệ thống sẽ tự xử lý việc lên cấp, bạn chỉ cần cung cấp điểm kinh nghiệm nhận được.",
+    description: "Chỉ số nhân vật đã thay đổi. Chỉ bao gồm các trường thay đổi.",
     properties: {
-        health: { type: Type.NUMBER, description: "Sinh lực hiện tại của nhân vật (ví dụ: sau khi chịu sát thương)." },
-        mana: { type: Type.NUMBER, description: "Linh lực/Năng lượng hiện tại của nhân vật (ví dụ: sau khi dùng phép)." },
-        currencyAmount: { type: Type.NUMBER, description: "Số lượng tiền tệ hiện tại của nhân vật." },
-        gainedExperience: { type: Type.NUMBER, description: "Điểm kinh nghiệm nhân vật NHẬN ĐƯỢỢC từ hành động này (không phải tổng kinh nghiệm). Hệ thống sẽ tự cộng dồn." },
-        breakthroughToRealm: { type: Type.STRING, description: "Tên cảnh giới MỚI mà nhân vật đột phá đến (ví dụ: 'Kim Đan Viên Mãn'). Hệ thống sẽ tự tính toán và cộng dồn toàn bộ kinh nghiệm cần thiết để đạt được cảnh giới này. Bỏ qua gainedExperience khi dùng trường này." },
+        health: { type: Type.NUMBER, description: "Sinh lực hiện tại." },
+        mana: { type: Type.NUMBER, description: "Linh lực hiện tại." },
+        currencyAmount: { type: Type.NUMBER, description: "Tiền tệ hiện tại." },
+        gainedExperience: { type: Type.NUMBER, description: "EXP nhận được trong lượt này." },
+        breakthroughToRealm: { type: Type.STRING, description: "Tên cảnh giới mới đột phá đến. Hệ thống sẽ tự tính EXP." },
         newStatusEffects: {
             type: Type.ARRAY,
-            description: "Một mảng các trạng thái mới được thêm cho nhân vật do sự kiện trong truyện. Bỏ qua nếu không có.",
+            description: "Mảng các trạng thái mới.",
             items: statusEffectSchema,
         },
         removedStatusEffects: {
             type: Type.ARRAY,
-            description: "Một mảng tên các trạng thái cần được xóa bỏ khỏi nhân vật (do hết hạn hoặc bị giải trừ). Bỏ qua nếu không có.",
+            description: "Mảng tên các trạng thái cần xóa.",
             items: { type: Type.STRING },
         },
         newAchievements: {
             type: Type.ARRAY,
-            description: "Một mảng các thành tích hoặc danh hiệu vĩnh viễn MỚI mà nhân vật đạt được. Bỏ qua nếu không có.",
+            description: "Mảng thành tích mới.",
             items: achievementSchema,
         },
         updatedAchievements: {
             type: Type.ARRAY,
-            description: "Một mảng để cập nhật các thành tích đã có (ví dụ: nâng cấp 'Đan Sư Sơ Cấp' lên 'Đan Sư Trung Cấp'). Cung cấp tên và các trường cần thay đổi.",
+            description: "Cập nhật thành tích đã có.",
             items: {
                 type: Type.OBJECT,
                 properties: {
@@ -65,10 +64,10 @@ export const updatedStatsSchema = {
 export const newSkillSchema = {
     type: Type.OBJECT,
     properties: {
-        name: { type: Type.STRING, description: "Tên của kỹ năng mới." },
-        type: { type: Type.STRING, enum: Object.values(SkillType), description: "Loại kỹ năng." },
-        quality: { type: Type.STRING, description: "Phẩm chất khởi đầu của kỹ năng (ví dụ: Phàm Phẩm)." },
-        description: { type: Type.STRING, description: "Mô tả về kỹ năng mới." },
+        name: { type: Type.STRING, description: "Tên kỹ năng mới." },
+        type: { type: Type.STRING, description: "Loại kỹ năng. Ví dụ: 'Công Kích', 'Phòng Ngự',..." },
+        quality: { type: Type.STRING, description: "Phẩm chất khởi đầu (vd: Phàm Phẩm)." },
+        description: { type: Type.STRING, description: "Mô tả kỹ năng mới." },
         effect: { type: Type.STRING, description: "Hiệu ứng cụ thể của kỹ năng mới." }
     },
     required: ["name", "type", "quality", "description", "effect"]
@@ -77,7 +76,7 @@ export const newSkillSchema = {
 export const equipmentStatSchema = {
     type: Type.OBJECT,
     properties: {
-        key: { type: Type.STRING, description: "Mã chỉ số. CHỈ SỬ DỤNG: 'attack', 'maxHealth', hoặc 'maxMana'.", enum: ['attack', 'maxHealth', 'maxMana'] },
+        key: { type: Type.STRING, description: "Chỉ số. Dùng 'attack', 'maxHealth', hoặc 'maxMana'.", },
         value: { type: Type.NUMBER, description: "Giá trị cộng thêm." }
     },
     required: ["key", "value"]
@@ -86,9 +85,9 @@ export const equipmentStatSchema = {
 export const equipmentDetailsSchema = {
     type: Type.OBJECT,
     properties: {
-        type: { type: Type.STRING, enum: Object.values(EquipmentType), description: "Loại trang bị." },
-        stats: { type: Type.ARRAY, items: equipmentStatSchema, description: "Các chỉ số mà trang bị này cộng thêm." },
-        effect: { type: Type.STRING, description: "Mô tả hiệu ứng đặc biệt của trang bị." }
+        type: { type: Type.STRING, description: "Loại trang bị. Ví dụ: 'Vũ Khí', 'Áo',..." },
+        stats: { type: Type.ARRAY, items: equipmentStatSchema, description: "Các chỉ số cộng thêm." },
+        effect: { type: Type.STRING, description: "Mô tả hiệu ứng đặc biệt." }
     },
     required: ["type", "stats"]
 };
@@ -96,30 +95,30 @@ export const equipmentDetailsSchema = {
 export const itemSchema = {
     type: Type.OBJECT,
     properties: {
-        id: { type: Type.STRING, description: "ID duy nhất cho vật phẩm." },
+        id: { type: Type.STRING, description: "ID duy nhất." },
         name: { type: Type.STRING, description: "Tên vật phẩm." },
         description: { type: Type.STRING, description: "Mô tả vật phẩm." },
-        type: { type: Type.STRING, enum: Object.values(ItemType), description: "Loại vật phẩm." },
-        quality: { type: Type.STRING, description: "Phẩm chất của vật phẩm, dựa trên worldSettings.qualityTiers." },
-        quantity: { type: Type.NUMBER, description: "Số lượng vật phẩm." },
-        value: { type: Type.NUMBER, description: "Giá trị tham khảo của vật phẩm bằng tiền tệ trong game." },
-        equipmentDetails: { ...equipmentDetailsSchema, description: "Chi tiết nếu vật phẩm là một trang bị." },
-        effectsDescription: { type: Type.STRING, description: "Mô tả hiệu ứng cụ thể của vật phẩm nếu nó là 'Dược Phẩm'. Ví dụ: 'Hồi phục 500 sinh lực', 'Tăng 10% tấn công trong 3 lượt', 'Gây trúng độc, giảm 100 sinh lực mỗi lượt trong 5 lượt.'" }
+        type: { type: Type.STRING, description: "Loại vật phẩm. Ví dụ: 'Trang Bị', 'Dược Phẩm',..." },
+        quality: { type: Type.STRING, description: "Phẩm chất vật phẩm." },
+        quantity: { type: Type.NUMBER, description: "Số lượng." },
+        value: { type: Type.NUMBER, description: "Giá trị tham khảo." },
+        equipmentDetails: { ...equipmentDetailsSchema, description: "Chi tiết nếu là trang bị." },
+        effectsDescription: { type: Type.STRING, description: "Mô tả hiệu ứng của Dược Phẩm (vd: 'Hồi phục 500 sinh lực')." }
     },
     required: ["id", "name", "description", "type", "quality", "quantity"]
 };
 
 export const locationSchema = {
     type: Type.OBJECT,
-    description: "Một địa điểm trong thế giới game.",
+    description: "Một địa điểm trong game.",
     properties: {
-        id: { type: Type.STRING, description: "Một ID duy nhất cho địa điểm, ví dụ sử dụng một chuỗi ngẫu nhiên." },
-        name: { type: Type.STRING, description: "Tên của địa điểm." },
-        description: { type: Type.STRING, description: "Mô tả chi tiết về địa điểm." },
-        type: { type: Type.STRING, enum: Object.values(LocationType), description: "Loại địa điểm." },
+        id: { type: Type.STRING, description: "ID duy nhất." },
+        name: { type: Type.STRING, description: "Tên địa điểm." },
+        description: { type: Type.STRING, description: "Mô tả địa điểm." },
+        type: { type: Type.STRING, description: "Loại địa điểm. Ví dụ: 'THÀNH TRẤN', 'BÍ CẢNH',..." },
         coordinates: {
             type: Type.OBJECT,
-            description: "Tọa độ x và y của địa điểm trên bản đồ (từ 0 đến 1000).",
+            description: "Tọa độ x, y trên bản đồ (0-1000).",
             properties: {
                 x: { type: Type.NUMBER },
                 y: { type: Type.NUMBER }
@@ -128,20 +127,24 @@ export const locationSchema = {
         },
         parentId: {
             type: Type.STRING,
-            description: "ID của địa điểm cha. Null nếu là địa điểm cấp cao nhất (THẾ GIỚỚI).",
+            description: "ID của địa điểm cha. Null nếu là địa điểm gốc.",
         },
         ownerId: {
             type: Type.STRING,
-            description: "ID của nhân vật sở hữu địa điểm. Dùng giá trị 'player' nếu người chơi là chủ sở hữu. Null nếu không có chủ.",
+            description: "ID của chủ sở hữu. 'player' nếu là người chơi.",
         },
         rules: {
             type: Type.ARRAY,
-            description: "Một mảng các chuỗi mô tả luật lệ hoặc đặc tính vật lý/siêu nhiên của địa điểm này (ví dụ: 'Không thể bay trong thành', 'Linh khí ở đây dày đặc gấp đôi').",
+            description: "Mảng các luật lệ của địa điểm.",
             items: { type: Type.STRING },
         },
         isDestroyed: {
             type: Type.BOOLEAN,
-            description: "Đặt thành true nếu địa điểm này (và tất cả các địa điểm con của nó) đã bị phá hủy. Không thể di chuyển đến địa điểm đã bị phá hủy.",
+            description: "True nếu địa điểm bị phá hủy.",
+        },
+        isHaremPalace: {
+            type: Type.BOOLEAN,
+            description: "True nếu là Hậu Cung.",
         },
     },
     required: ["id", "name", "description", "type", "coordinates", "rules"]
@@ -149,23 +152,23 @@ export const locationSchema = {
 
 export const mienLucSchema = {
     type: Type.OBJECT,
-    description: "Thang điểm vẻ đẹp (Mị Lực) của NPC, bao gồm 4 thành phần.",
+    description: "Thang điểm vẻ đẹp (Mị Lực) của NPC.",
     properties: {
-        body: { type: Type.NUMBER, description: "Điểm vóc dáng (tối đa 25)." },
-        face: { type: Type.NUMBER, description: "Điểm khuôn mặt (tối đa 30)." },
-        aura: { type: Type.NUMBER, description: "Điểm khí chất (tối đa 25)." },
-        power: { type: Type.NUMBER, description: "Điểm tu vi/sức mạnh ảnh hưởng đến vẻ ngoài (tối đa 25)." }
+        body: { type: Type.NUMBER, description: "Điểm vóc dáng (/25)." },
+        face: { type: Type.NUMBER, description: "Điểm khuôn mặt (/30)." },
+        aura: { type: Type.NUMBER, description: "Điểm khí chất (/25)." },
+        power: { type: Type.NUMBER, description: "Điểm tu vi ảnh hưởng vẻ ngoài (/25)." }
     },
     required: ["body", "face", "aura", "power"]
 };
 
 export const npcRelationshipSchema = {
     type: Type.OBJECT,
-    description: "Mô tả mối quan hệ giữa một NPC với một NPC khác.",
+    description: "Mối quan hệ giữa một NPC với NPC khác.",
     properties: {
         targetNpcId: { type: Type.STRING, description: "ID của NPC mục tiêu." },
-        value: { type: Type.NUMBER, description: "Giá trị quan hệ, từ -1000 (kẻ thù) đến 1000 (tri kỷ)." },
-        relationshipType: { type: Type.STRING, description: "Loại mối quan hệ cụ thể (ví dụ: 'Phụ thân', 'Mẫu thân', 'Sư phụ', 'Nô lệ', 'Đạo lữ')." }
+        value: { type: Type.NUMBER, description: "Giá trị quan hệ (-1000 đến 1000)." },
+        relationshipType: { type: Type.STRING, description: "Loại quan hệ (vd: 'Phụ thân', 'Sư phụ')." }
     },
     required: ["targetNpcId", "value"]
 };
@@ -174,7 +177,7 @@ export const specialConstitutionSchema = {
     type: Type.OBJECT,
     properties: {
         name: { type: Type.STRING, description: "Tên thể chất đặc biệt." },
-        description: { type: Type.STRING, description: "Mô tả chi tiết về thể chất." },
+        description: { type: Type.STRING, description: "Mô tả thể chất." },
     },
     required: ["name", "description"],
 };
@@ -183,34 +186,34 @@ export const talentSchema = {
     type: Type.OBJECT,
     properties: {
         name: { type: Type.STRING, description: "Tên thiên phú." },
-        description: { type: Type.STRING, description: "Mô tả chi tiết về thiên phú." },
+        description: { type: Type.STRING, description: "Mô tả thiên phú." },
     },
     required: ["name", "description"],
 };
 
 export const newNpcSchema = {
     type: Type.OBJECT,
-    description: "Mô tả một Nhân Vật Phụ (NPC) trong thế giới.",
+    description: "Mô tả một Nhân Vật Phụ (NPC).",
     properties: {
-        id: { type: Type.STRING, description: "ID duy nhất cho NPC." },
-        name: { type: Type.STRING, description: "Tên của NPC." },
-        aliases: { type: Type.STRING, description: "Các biệt danh hoặc tên gọi khác của NPC." },
-        gender: { type: Type.STRING, enum: Object.values(CharacterGender), description: "Giới tính của NPC." },
-        race: { type: Type.STRING, description: "Chủng tộc của NPC." },
-        personality: { type: Type.STRING, description: "Mô tả tính cách của NPC." },
-        description: { type: Type.STRING, description: "Mô tả ngoại hình và tiểu sử của NPC." },
-        ngoaiHinh: { type: Type.STRING, description: "Mô tả chi tiết và gợi cảm ngoại hình của NPC. BẮT BUỘC phải bao gồm: Chức vụ, đặc điểm chủng tộc (nếu có), màu tóc, kiểu tóc, và mô tả chi tiết số đo ba vòng (vòng 1, 2, 3) đối với nhân vật nữ. Trường này là BẮT BUỘC." },
-        avatarUrl: { type: Type.STRING, description: "URL ảnh đại diện cho NPC (tùy chọn)." },
-        level: { type: Type.NUMBER, description: "Cấp độ khởi đầu của NPC." },
-        powerSystem: { type: Type.STRING, description: "Tên hệ thống tu luyện NPC theo." },
-        aptitude: { type: Type.STRING, description: "Tên tư chất của NPC." },
-        mienLuc: { ...mienLucSchema, description: "Thang điểm vẻ đẹp (Mị Lực) của NPC." },
-        locationId: { type: Type.STRING, description: "ID của địa điểm nơi NPC sinh sống ban đầu." },
-        specialConstitution: { ...specialConstitutionSchema, description: "Thể chất đặc biệt của NPC (nếu có)." },
-        innateTalent: { ...talentSchema, description: "Thiên phú bẩm sinh của NPC (nếu có)." },
-        statusEffects: { type: Type.ARRAY, items: statusEffectSchema, description: "Các trạng thái ban đầu của NPC." },
-        npcRelationships: { type: Type.ARRAY, items: npcRelationshipSchema, description: "Mối quan hệ ban đầu của NPC này với các NPC khác." },
-        isDaoLu: { type: Type.BOOLEAN, description: "Trạng thái Đạo Lữ với người chơi (luôn là false khi khởi tạo)." }
+        id: { type: Type.STRING, description: "ID duy nhất." },
+        name: { type: Type.STRING, description: "Tên NPC." },
+        aliases: { type: Type.STRING, description: "Biệt danh." },
+        gender: { type: Type.STRING, description: "Giới tính. Dùng 'male' hoặc 'female'." },
+        race: { type: Type.STRING, description: "Chủng tộc." },
+        personality: { type: Type.STRING, description: "Tính cách." },
+        description: { type: Type.STRING, description: "Mô tả ngoại hình và tiểu sử." },
+        ngoaiHinh: { type: Type.STRING, description: "Mô tả chi tiết ngoại hình. BẮT BUỘC bao gồm: Chức vụ, đặc điểm chủng tộc (nếu có), tóc, và số đo ba vòng (cho nữ)." },
+        avatarUrl: { type: Type.STRING, description: "URL ảnh đại diện (tùy chọn)." },
+        level: { type: Type.NUMBER, description: "Cấp độ khởi đầu." },
+        powerSystem: { type: Type.STRING, description: "Tên hệ thống tu luyện." },
+        aptitude: { type: Type.STRING, description: "Tên tư chất." },
+        mienLuc: { ...mienLucSchema, description: "Thang điểm vẻ đẹp (Mị Lực)." },
+        locationId: { type: Type.STRING, description: "ID địa điểm ban đầu." },
+        specialConstitution: { ...specialConstitutionSchema, description: "Thể chất đặc biệt (nếu có)." },
+        innateTalent: { ...talentSchema, description: "Thiên phú bẩm sinh (nếu có)." },
+        statusEffects: { type: Type.ARRAY, items: statusEffectSchema, description: "Trạng thái ban đầu." },
+        npcRelationships: { type: Type.ARRAY, items: npcRelationshipSchema, description: "Mối quan hệ ban đầu với NPC khác." },
+        isDaoLu: { type: Type.BOOLEAN, description: "Trạng thái Đạo Lữ (luôn false khi tạo)." }
     },
     required: ["id", "name", "gender", "race", "personality", "description", "ngoaiHinh", "level", "powerSystem", "aptitude", "mienLuc", "statusEffects"]
 };
@@ -218,7 +221,7 @@ export const newNpcSchema = {
 export const monsterSchema = {
     type: Type.OBJECT,
     properties: {
-        id: { type: Type.STRING, description: "ID duy nhất cho sinh vật." },
+        id: { type: Type.STRING, description: "ID duy nhất." },
         name: { type: Type.STRING, description: "Tên sinh vật." },
         description: { type: Type.STRING, description: "Mô tả sinh vật." }
     },
@@ -228,14 +231,14 @@ export const monsterSchema = {
 export const skillSchema = {
     type: Type.OBJECT,
     properties: {
-        id: { type: Type.STRING, description: "ID duy nhất cho kỹ năng." },
+        id: { type: Type.STRING, description: "ID duy nhất." },
         name: { type: Type.STRING, description: "Tên kỹ năng." },
-        type: { type: Type.STRING, enum: Object.values(SkillType) },
-        quality: { type: Type.STRING, description: "Phẩm chất khởi đầu của kỹ năng." },
-        level: { type: Type.NUMBER, description: "Cấp độ khởi đầu của kỹ năng (thường là 1)." },
+        type: { type: Type.STRING, description: "Loại kỹ năng. Ví dụ: 'Công Kích', 'Phòng Ngự',..." },
+        quality: { type: Type.STRING, description: "Phẩm chất khởi đầu." },
+        level: { type: Type.NUMBER, description: "Cấp độ khởi đầu (thường là 1)." },
         experience: { type: Type.NUMBER, description: "Kinh nghiệm khởi đầu (thường là 0)." },
         description: { type: Type.STRING, description: "Mô tả kỹ năng." },
-        effect: { type: Type.STRING, description: "Hiệu ứng của kỹ năng." },
+        effect: { type: Type.STRING, description: "Hiệu ứng kỹ năng." },
     },
     required: ["id", "name", "type", "quality", "level", "experience", "description", "effect"],
 };
@@ -243,24 +246,24 @@ export const skillSchema = {
 export const characterProfileSchema = {
     type: Type.OBJECT,
     properties: {
-        name: { type: Type.STRING, description: "Tên nhân vật chính." },
-        gender: { type: Type.STRING, enum: Object.values(CharacterGender) },
-        race: { type: Type.STRING, description: "Chủng tộc của nhân vật chính." },
-        powerSystem: { type: Type.STRING, description: "Tên hệ thống sức mạnh nhân vật theo." },
-        level: { type: Type.NUMBER, description: "Cấp độ khởi đầu của nhân vật, từ 1 đến 5." },
-        currencyName: { type: Type.STRING, description: "Tên đơn vị tiền tệ trong thế giới." },
+        name: { type: Type.STRING, description: "Tên nhân vật." },
+        gender: { type: Type.STRING, description: "Giới tính. Dùng 'male' hoặc 'female'." },
+        race: { type: Type.STRING, description: "Chủng tộc." },
+        powerSystem: { type: Type.STRING, description: "Tên hệ thống sức mạnh." },
+        level: { type: Type.NUMBER, description: "Cấp độ khởi đầu (1-5)." },
+        currencyName: { type: Type.STRING, description: "Tên tiền tệ." },
         currencyAmount: { type: Type.NUMBER, description: "Số tiền khởi đầu." },
-        personality: { type: Type.STRING, description: "Tính cách của nhân vật." },
-        backstory: { type: Type.STRING, description: "Tiểu sử của nhân vật." },
-        goal: { type: Type.STRING, description: "Mục tiêu chính của nhân vật." },
+        personality: { type: Type.STRING, description: "Tính cách." },
+        backstory: { type: Type.STRING, description: "Tiểu sử." },
+        goal: { type: Type.STRING, description: "Mục tiêu." },
         specialConstitution: specialConstitutionSchema,
         talent: talentSchema,
         avatarUrl: { type: Type.STRING, description: "URL ảnh đại diện." },
-        skills: { type: Type.ARRAY, items: skillSchema, description: "Các kỹ năng khởi đầu." },
-        initialItems: { type: Type.ARRAY, items: itemSchema, description: "Các vật phẩm và trang bị khởi đầu. BẮT BUỘC phải có." },
-        initialNpcs: { type: Type.ARRAY, items: newNpcSchema, description: "Danh sách NPC khởi đầu." },
-        initialLocations: { type: Type.ARRAY, items: locationSchema, description: "Danh sách các địa điểm khởi đầu. Nhân vật sẽ bắt đầu tại địa điểm đầu tiên trong danh sách này." },
-        initialMonsters: { type: Type.ARRAY, items: monsterSchema, description: "Danh sách các sinh vật/quái vật khởi đầu." },
+        skills: { type: Type.ARRAY, items: skillSchema, description: "Kỹ năng khởi đầu." },
+        initialItems: { type: Type.ARRAY, items: itemSchema, description: "Vật phẩm/trang bị khởi đầu. BẮT BUỘC." },
+        initialNpcs: { type: Type.ARRAY, items: newNpcSchema, description: "NPC khởi đầu." },
+        initialLocations: { type: Type.ARRAY, items: locationSchema, description: "Địa điểm khởi đầu." },
+        initialMonsters: { type: Type.ARRAY, items: monsterSchema, description: "Sinh vật/quái vật khởi đầu." },
     },
     required: ["name", "gender", "race", "powerSystem", "level", "currencyName", "currencyAmount", "personality", "backstory", "goal", "specialConstitution", "talent", "skills", "initialItems", "initialNpcs", "initialLocations", "initialMonsters"]
 };
@@ -268,9 +271,9 @@ export const characterProfileSchema = {
 export const powerSystemDefinitionSchema = {
     type: Type.OBJECT,
     properties: {
-        id: { type: Type.STRING, description: "ID duy nhất cho hệ thống sức mạnh, ví dụ: 'tu_tien_1'." },
-        name: { type: Type.STRING, description: "Tên hệ thống sức mạnh, ví dụ: 'Tu Tiên'." },
-        realms: { type: Type.STRING, description: "Chuỗi các cảnh giới, phân cách bởi ' - ', ví dụ: 'Luyện Khí - Trúc Cơ - Kim Đan'." },
+        id: { type: Type.STRING, description: "ID duy nhất." },
+        name: { type: Type.STRING, description: "Tên hệ thống." },
+        realms: { type: Type.STRING, description: "Chuỗi cảnh giới, phân cách bởi ' - '." },
     },
     required: ["id", "name", "realms"],
 };
@@ -278,10 +281,10 @@ export const powerSystemDefinitionSchema = {
 export const worldKnowledgeSchema = {
     type: Type.OBJECT,
     properties: {
-        id: { type: Type.STRING, description: "ID duy nhất cho mục tri thức, ví dụ: 'lore_1'." },
-        title: { type: Type.STRING, description: "Tiêu đề của mục tri thức." },
-        content: { type: Type.STRING, description: "Nội dung chi tiết của tri thức." },
-        category: { type: Type.STRING, enum: ['Bang Phái', 'Lịch Sử', 'Nhân Vật', 'Khác'], description: "Phân loại tri thức." }
+        id: { type: Type.STRING, description: "ID duy nhất." },
+        title: { type: Type.STRING, description: "Tiêu đề." },
+        content: { type: Type.STRING, description: "Nội dung." },
+        category: { type: Type.STRING, description: "Phân loại. Dùng 'Bang Phái', 'Lịch Sử', 'Nhân Vật', 'Khác'." }
     },
     required: ["id", "title", "content", "category"],
 };
@@ -289,13 +292,13 @@ export const worldKnowledgeSchema = {
 export const worldSettingsSchema = {
     type: Type.OBJECT,
     properties: {
-        theme: { type: Type.STRING, description: "Chủ đề bao quát của thế giới." },
-        genre: { type: Type.STRING, description: "Thể loại của câu chuyện." },
-        context: { type: Type.STRING, description: "Bối cảnh chi tiết của thế giới." },
-        powerSystems: { type: Type.ARRAY, items: powerSystemDefinitionSchema, description: "Danh sách các hệ thống sức mạnh trong thế giới." },
-        qualityTiers: { type: Type.STRING, description: "Chuỗi các phẩm chất, từ thấp đến cao, phân cách bởi ' - '." },
-        aptitudeTiers: { type: Type.STRING, description: "Chuỗi các tư chất, từ thấp đến cao, phân cách bởi ' - '." },
-        initialKnowledge: { type: Type.ARRAY, items: worldKnowledgeSchema, description: "Danh sách các tri thức nền tảng của thế giới (lore)." },
+        theme: { type: Type.STRING, description: "Chủ đề thế giới." },
+        genre: { type: Type.STRING, description: "Thể loại." },
+        context: { type: Type.STRING, description: "Bối cảnh." },
+        powerSystems: { type: Type.ARRAY, items: powerSystemDefinitionSchema, description: "Danh sách hệ thống sức mạnh." },
+        qualityTiers: { type: Type.STRING, description: "Chuỗi phẩm chất, từ thấp đến cao, phân cách bởi ' - '." },
+        aptitudeTiers: { type: Type.STRING, description: "Chuỗi tư chất, từ thấp đến cao, phân cách bởi ' - '." },
+        initialKnowledge: { type: Type.ARRAY, items: worldKnowledgeSchema, description: "Danh sách tri thức nền (lore)." },
     },
     required: ["theme", "genre", "context", "powerSystems", "qualityTiers", "aptitudeTiers", "initialKnowledge"]
 };
@@ -311,26 +314,26 @@ export const worldCreationSchema = {
 
 export const updatedNpcSchema = {
     type: Type.OBJECT,
-    description: "Các trường để cập nhật một NPC đã tồn tại. Chỉ bao gồm ID và các trường đã thay đổi.",
+    description: "Cập nhật NPC đã tồn tại. Chỉ bao gồm ID và các trường thay đổi.",
     properties: {
         id: { type: Type.STRING, description: "ID của NPC cần cập nhật." },
-        gainedExperience: { type: Type.NUMBER, description: "Kinh nghiệm NPC nhận được. Hệ thống sẽ tự xử lý việc lên cấp." },
-        breakthroughToRealm: { type: Type.STRING, description: "Tên cảnh giới MỚI mà NPC đột phá đến. Hệ thống sẽ tự tính toán và cộng dồn toàn bộ kinh nghiệm. Bỏ qua gainedExperience khi dùng trường này." },
-        relationship: { type: Type.NUMBER, description: "SỰ THAY ĐỔI trong quan hệ với người chơi (ví dụ: +20, -50), không phải giá trị tuyệt đối mới." },
-        newMemories: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Một mảng CHỈ chứa các ký ức MỚI mà NPC có được trong lượt này. KHÔNG gửi lại toàn bộ lịch sử ký ức." },
-        health: { type: Type.NUMBER, description: "Sinh lực hiện tại của NPC." },
-        mana: { type: Type.NUMBER, description: "Linh lực hiện tại của NPC." },
-        gender: { type: Type.STRING, enum: Object.values(CharacterGender), description: "Giới tính mới của NPC nếu bị thay đổi bởi phép thuật hoặc sự kiện." },
-        personality: { type: Type.STRING, description: "Tính cách mới của NPC nếu có sự thay đổi lớn." },
-        description: { type: Type.STRING, description: "Mô tả mới của NPC nếu có sự thay đổi." },
-        ngoaiHinh: { type: Type.STRING, description: "Mô tả ngoại hình mới của NPC nếu có thay đổi. BẮT BUỘC phải tuân theo quy tắc mô tả chi tiết: Chức vụ, đặc điểm chủng tộc, tóc, và số đo ba vòng (cho nữ)." },
-        locationId: { type: Type.STRING, description: "ID vị trí mới của NPC." },
-        aptitude: { type: Type.STRING, description: "Tư chất mới của NPC nếu bị thay đổi bởi độc dược hoặc sự kiện." },
-        specialConstitution: { ...specialConstitutionSchema, description: "Thể chất đặc biệt MỚI của NPC nếu có sự thay đổi." },
-        innateTalent: { ...talentSchema, description: "Thiên phú bẩm sinh MỚI của NPC nếu có sự thay đổi." },
-        updatedNpcRelationships: { type: Type.ARRAY, items: npcRelationshipSchema, description: "Toàn bộ danh sách mối quan hệ MỚI của NPC này với các NPC khác." },
-        isDaoLu: { type: Type.BOOLEAN, description: "Đặt thành true nếu NPC trở thành Đạo Lữ của người chơi." },
-        isDead: { type: Type.BOOLEAN, description: "Đặt thành true nếu NPC đã chết." },
+        gainedExperience: { type: Type.NUMBER, description: "Kinh nghiệm nhận được." },
+        breakthroughToRealm: { type: Type.STRING, description: "Tên cảnh giới mới đột phá đến." },
+        relationship: { type: Type.NUMBER, description: "SỰ THAY ĐỔI trong quan hệ với người chơi (+20, -50), không phải giá trị tuyệt đối." },
+        newMemories: { type: Type.ARRAY, items: { type: Type.STRING }, description: "CHỈ chứa các ký ức MỚI. KHÔNG gửi lại toàn bộ ký ức." },
+        health: { type: Type.NUMBER, description: "Sinh lực hiện tại." },
+        mana: { type: Type.NUMBER, description: "Linh lực hiện tại." },
+        gender: { type: Type.STRING, description: "Giới tính mới. Dùng 'male' hoặc 'female'." },
+        personality: { type: Type.STRING, description: "Tính cách mới." },
+        description: { type: Type.STRING, description: "Mô tả mới." },
+        ngoaiHinh: { type: Type.STRING, description: "Mô tả ngoại hình mới." },
+        locationId: { type: Type.STRING, description: "ID vị trí mới." },
+        aptitude: { type: Type.STRING, description: "Tư chất mới." },
+        specialConstitution: { ...specialConstitutionSchema, description: "Thể chất đặc biệt MỚI." },
+        innateTalent: { ...talentSchema, description: "Thiên phú bẩm sinh MỚI." },
+        updatedNpcRelationships: { type: Type.ARRAY, items: npcRelationshipSchema, description: "Toàn bộ danh sách mối quan hệ MỚI." },
+        isDaoLu: { type: Type.BOOLEAN, description: "True nếu trở thành Đạo Lữ." },
+        isDead: { type: Type.BOOLEAN, description: "True nếu đã chết." },
         newStatusEffects: { type: Type.ARRAY, items: statusEffectSchema },
         removedStatusEffects: { type: Type.ARRAY, items: { type: Type.STRING } }
     },
@@ -340,11 +343,11 @@ export const updatedNpcSchema = {
 export const choiceSchema = {
     type: Type.OBJECT,
     properties: {
-        title: { type: Type.STRING, description: "Tiêu đề của lựa chọn, ngắn gọn, hấp dẫn và là hành động người chơi sẽ thực hiện (ví dụ: 'Thám hiểm hang động')." },
-        benefit: { type: Type.STRING, description: "Lợi ích chính nếu thành công (ví dụ: 'Linh thạch, pháp bảo')." },
-        risk: { type: Type.STRING, description: "Rủi ro chính nếu thất bại hoặc trong quá trình thực hiện (ví dụ: 'Gặp yêu thú, cạm bẫy')." },
-        successChance: { type: Type.NUMBER, description: "Tỷ lệ thành công (0-100), dựa trên cấp độ và trang bị của người chơi so với độ khó của nhiệm vụ." },
-        durationInMinutes: { type: Type.NUMBER, description: "Thời gian ước tính để hoàn thành (tính bằng phút). Ví dụ: khám phá nhỏ 15 phút, vào bí cảnh 240 phút (4 giờ)." }
+        title: { type: Type.STRING, description: "Tiêu đề lựa chọn (hành động)." },
+        benefit: { type: Type.STRING, description: "Lợi ích nếu thành công." },
+        risk: { type: Type.STRING, description: "Rủi ro nếu thất bại." },
+        successChance: { type: Type.NUMBER, description: "Tỷ lệ thành công (0-100)." },
+        durationInMinutes: { type: Type.NUMBER, description: "Thời gian hoàn thành (phút)." }
     },
     required: ["title", "benefit", "risk", "successChance", "durationInMinutes"]
 };
@@ -352,76 +355,76 @@ export const choiceSchema = {
 export const storyWorldKnowledgeSchema = {
     type: Type.OBJECT,
     properties: {
-        id: { type: Type.STRING, description: "ID duy nhất cho mục tri thức." },
-        title: { type: Type.STRING, description: "Tiêu đề của mục tri thức." },
-        content: { type: Type.STRING, description: "Nội dung chi tiết của tri thức." },
-        category: { type: Type.STRING, enum: ['Bang Phái', 'Lịch Sử', 'Nhân Vật', 'Khác'], description: "Phân loại tri thức." }
+        id: { type: Type.STRING, description: "ID duy nhất." },
+        title: { type: Type.STRING, description: "Tiêu đề." },
+        content: { type: Type.STRING, description: "Nội dung." },
+        category: { type: Type.STRING, description: "Phân loại. Dùng 'Bang Phái', 'Lịch Sử', 'Nhân Vật', 'Khác'." }
     },
     required: ["id", "title", "content", "category"]
 };
 
 const newMonsterStorySchema = {
     type: Type.OBJECT,
-    description: "Một sinh vật, yêu thú hoặc quái vật MỚI được phát hiện. Chỉ dành cho các thực thể không có tri giác hoặc tri giác thấp, không phải nhân vật có thể giao tiếp phức tạp.",
+    description: "Một sinh vật/quái vật MỚI. KHÔNG dùng cho nhân vật có tri giác.",
     properties: {
-        name: { type: Type.STRING, description: "Tên của sinh vật." },
-        description: { type: Type.STRING, description: "Mô tả ngắn gọn về sinh vật, bao gồm ngoại hình và các khả năng đã biết." }
+        name: { type: Type.STRING, description: "Tên sinh vật." },
+        description: { type: Type.STRING, description: "Mô tả ngắn gọn." }
     },
     required: ["name", "description"]
 };
 
 const fullResponseProperties = {
-    story: { type: Type.STRING, description: "Phần tiếp theo của câu chuyện, được viết theo phong cách đã chọn." },
+    story: { type: Type.STRING, description: "Phần tiếp theo của câu chuyện." },
     choices: {
         type: Type.ARRAY,
-        description: `Một mảng gồm chính xác ${GAME_CONFIG.ai.numberOfChoices} đối tượng lựa chọn, mỗi lựa chọn đại diện cho một hành động/nhiệm vụ mà người chơi có thể thực hiện. Các lựa chọn phải đa dạng và hấp dẫn.`,
+        description: `Một mảng gồm chính xác ${GAME_CONFIG.ai.numberOfChoices} lựa chọn.`,
         items: choiceSchema
     },
     updatedStats: updatedStatsSchema,
     updatedGameTime: {
         type: Type.STRING,
-        description: "Một chuỗi ISO 8601 cho thời gian mới trong game, chỉ sử dụng cho các bước nhảy thời gian dài hoặc không xác định (ví dụ: 'tu luyện trăm năm', 'chờ đến khi con sinh ra'). Bỏ qua trường này cho các hành động ngắn. Nếu được cung cấp, nó sẽ ghi đè 'durationInMinutes' từ lựa chọn.",
+        description: "Chuỗi ISO 8601 cho thời gian mới. Chỉ dùng cho time skip dài.",
     },
-    updatedGender: { type: Type.STRING, enum: Object.values(CharacterGender), description: "Giới tính mới của nhân vật chính nếu có sự thay đổi." },
+    updatedGender: { type: Type.STRING, description: "Giới tính mới của người chơi. Dùng 'male' hoặc 'female'." },
     newSkills: {
         type: Type.ARRAY,
-        description: "Một mảng các kỹ năng MỚI mà nhân vật đã học được hoặc ngộ ra. Bỏ qua nếu không có.",
+        description: "Mảng kỹ năng MỚI.",
         items: newSkillSchema,
     },
     updatedSkills: {
         type: Type.ARRAY,
-        description: "Một mảng các kỹ năng đã tồn tại nhận được kinh nghiệm. Chỉ bao gồm các kỹ năng đã được sử dụng hoặc có liên quan.",
+        description: "Mảng kỹ năng đã có nhận được kinh nghiệm.",
         items: {
             type: Type.OBJECT,
             properties: {
-                skillName: { type: Type.STRING, description: "Tên chính xác của kỹ năng đã được sử dụng." },
-                gainedExperience: { type: Type.NUMBER, description: "Lượng kinh nghiệm kỹ năng nhận được." }
+                skillName: { type: Type.STRING, description: "Tên chính xác của kỹ năng." },
+                gainedExperience: { type: Type.NUMBER, description: "Lượng kinh nghiệm nhận được." }
             },
             required: ["skillName", "gainedExperience"]
         },
     },
     newLocations: {
         type: Type.ARRAY,
-        description: "Các địa điểm mới được khám phá trong lượt này. Chỉ bao gồm nếu có.",
+        description: "Địa điểm mới được khám phá.",
         items: locationSchema,
     },
     updatedLocations: {
         type: Type.ARRAY,
-        description: "Các địa điểm đã tồn tại nhưng có sự thay đổi (ví dụ: thay đổi chủ sở hữu, thêm luật lệ, bị phá hủy). Chỉ bao gồm nếu có.",
+        description: "Địa điểm đã tồn tại có thay đổi.",
         items: locationSchema,
     },
     updatedPlayerLocationId: {
         type: Type.STRING,
-        description: "ID của địa điểm mới của người chơi nếu họ đã di chuyển. Cung cấp giá trị null nếu người chơi di chuyển vào không gian hỗn độn.",
+        description: "ID vị trí mới của người chơi. Null nếu vào không gian hỗn độn.",
     },
     newNPCs: {
         type: Type.ARRAY,
-        description: "Các NPC mới mà người chơi gặp trong lượt này. Chỉ bao gồm nếu có.",
+        description: "NPC mới gặp.",
         items: newNpcSchema,
     },
     updatedNPCs: {
         type: Type.ARRAY,
-        description: "Các NPC đã tồn tại có sự thay đổi (kinh nghiệm, quan hệ, ký ức...). Chỉ bao gồm nếu có.",
+        description: "NPC đã tồn tại có thay đổi.",
         items: updatedNpcSchema,
     },
     newItems: {
@@ -431,46 +434,47 @@ const fullResponseProperties = {
     },
     updatedItems: {
         type: Type.ARRAY,
-        description: "Cập nhật số lượng vật phẩm đã có. Tìm vật phẩm theo tên và ghi đè số lượng.",
+        description: "Cập nhật số lượng vật phẩm đã có.",
         items: {
             type: Type.OBJECT,
             properties: {
-                name: { type: Type.STRING, description: "Tên chính xác của vật phẩm cần cập nhật." },
-                quantity: { type: Type.NUMBER, description: "Số lượng mới của vật phẩm." },
+                name: { type: Type.STRING, description: "Tên chính xác của vật phẩm." },
+                quantity: { type: Type.NUMBER, description: "Số lượng MỚI." },
             },
             required: ["name", "quantity"],
         },
     },
     removedItemIds: {
         type: Type.ARRAY,
-        description: "ID của các vật phẩm bị xóa hoàn toàn khỏi túi đồ.",
+        description: "ID của vật phẩm bị xóa.",
         items: { type: Type.STRING },
     },
     newMonsters: {
         type: Type.ARRAY,
-        description: "Các sinh vật, yêu thú, hoặc quái vật MỚI được phát hiện trong lượt này. CHỈ dành cho các thực thể không có tri giác hoặc có tri giác thấp. TUYỆT ĐỐI KHÔNG sử dụng cho các nhân vật có thể giao tiếp phức tạp.",
+        description: "Sinh vật/quái vật MỚI. KHÔNG dùng cho nhân vật có tri giác.",
         items: newMonsterStorySchema,
     },
     newWorldKnowledge: {
         type: Type.ARRAY,
-        description: "Các tri thức mới được khám phá trong lượt này (ví dụ: một Bang Phái mới). Chỉ bao gồm nếu có.",
+        description: "Tri thức mới được khám phá.",
         items: storyWorldKnowledgeSchema,
     },
     newMilestone: {
         type: Type.STRING,
-        description: "MỘT CƠ CHẾ CỰC KỲ QUAN TRỌNG ĐỂ GHI NHỚ LỊCH SỬ. Nếu lượt này giải quyết dứt điểm một sự kiện, một mối quan hệ, hoặc một chương truyện một cách vĩnh viễn, bạn BẮT BUỘC phải cung cấp một câu tóm tắt ngắn gọn về nó. Đây là 'trí nhớ vĩnh viễn' của game. Ví dụ: 'Đã phá hủy Hắc Phong Trại, cứu được dân làng.', 'Chính thức trở thành Đạo Lữ với Mộng Liên.', 'Rời khỏi Vô Cực Tông sau khi hoàn thành tu luyện.', 'Giết chết kẻ thù không đội trời chung là Hắc Ma Lão Tổ.', 'Mất đi toàn bộ tu vi và trở thành phàm nhân.' Bỏ qua nếu không có sự kiện nào kết thúc dứt điểm."
+        description: "Tóm tắt ngắn gọn nếu một sự kiện/chương truyện kết thúc VĨNH VIỄN."
     },
 };
 
 const stateUpdateProperties = { ...fullResponseProperties };
+// @ts-ignore
 delete stateUpdateProperties.story;
+// @ts-ignore
 delete stateUpdateProperties.choices;
 
 export const responseSchema = {
     type: Type.OBJECT,
     properties: {
         ...stateUpdateProperties,
-        // The full response schema for initial story generation still needs story/choices
         story: fullResponseProperties.story,
         choices: fullResponseProperties.choices,
     },
@@ -495,8 +499,8 @@ export const narrativeSchema = {
 export const newSkillDescriptionSchema = {
     type: Type.OBJECT,
     properties: {
-        description: { type: Type.STRING, description: "Mô tả mới, hoành tráng hơn cho kỹ năng." },
-        effect: { type: Type.STRING, description: "Hiệu ứng mới, mạnh mẽ hơn cho kỹ năng." }
+        description: { type: Type.STRING, description: "Mô tả mới, hoành tráng hơn." },
+        effect: { type: Type.STRING, description: "Hiệu ứng mới, mạnh mẽ hơn." }
     },
     required: ["description", "effect"]
 };

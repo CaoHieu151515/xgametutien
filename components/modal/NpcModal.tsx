@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { NPC, CharacterGender, StatusEffect, WorldSettings, CharacterProfile } from '../../types';
 import { calculateBaseStatsForLevel } from '../../services/progressionService';
 import { ImageLibraryModal } from './ImageLibraryModal';
-import { getRelationshipDisplay } from '../../utils/uiHelpers';
+import { getRelationshipDisplay, getDefaultAvatar } from '../../utils/uiHelpers';
 
 interface NpcModalProps {
     isOpen: boolean;
@@ -99,12 +99,6 @@ const ManaBar = ({ value, maxValue }: { value: number; maxValue: number; }) => {
             </div>
         </div>
     );
-};
-
-const getDefaultAvatar = (gender: CharacterGender) => {
-    return gender === CharacterGender.MALE 
-        ? 'https://i.imgur.com/9CXRf64.png' 
-        : 'https://i.imgur.com/K8Z3w4q.png';
 };
 
 type StatusEffectType = 'positive' | 'negative' | 'special';

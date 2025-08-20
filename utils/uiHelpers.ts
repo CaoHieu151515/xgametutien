@@ -1,4 +1,5 @@
 import { GAME_CONFIG } from '../config/gameConfig';
+import { CharacterGender } from '../types';
 
 /**
  * Lấy văn bản và màu sắc hiển thị cho một giá trị quan hệ.
@@ -25,4 +26,15 @@ export const getRelationshipDisplay = (value: number | undefined): { text: strin
     // Fallback đến bậc cuối cùng (thường là thù địch nhất)
     const lastTier = GAME_CONFIG.npc.relationshipTiers[GAME_CONFIG.npc.relationshipTiers.length - 1];
     return { text: lastTier.text, color: lastTier.color };
+};
+
+/**
+ * Lấy URL ảnh đại diện mặc định dựa trên giới tính.
+ * @param gender - Giới tính của nhân vật.
+ * @returns URL của ảnh đại diện mặc định.
+ */
+export const getDefaultAvatar = (gender: CharacterGender) => {
+    return gender === CharacterGender.MALE 
+        ? 'https://i.imgur.com/9CXRf64.png' 
+        : 'https://i.imgur.com/K8Z3w4q.png';
 };

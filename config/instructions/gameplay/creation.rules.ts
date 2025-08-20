@@ -25,5 +25,6 @@ Người chơi có thể sở hữu các kỹ năng cho phép họ tạo ra vậ
 -   **Kết quả:** Nếu thành công, bạn PHẢI tạo một đối tượng Địa điểm mới với \`type: 'THẾ GIỚI'\` trong mảng \`newLocations\`.
     *   Địa điểm này nên có \`parentId: null\`.
     *   Mô tả của thế giới mới phải dựa trên mô tả của người chơi.
+    *   **Logic Hậu Cung (QUAN TRỌNG):** Nếu tên ('name'), mô tả ('description'), hoặc luật lệ ('rules') của thế giới mới được tạo ra có chứa các từ khóa như "Hậu Cung", "Harem", hoặc mang ý nghĩa rõ ràng là một nơi dành riêng cho các đạo lữ của người chơi, bạn **BẮT BUỘC** phải đặt thuộc tính \`isHaremPalace: true\` cho đối tượng địa điểm đó.
 -   **Di chuyển (Tùy chọn):** Sau khi tạo ra một thế giới mới, bạn có thể di chuyển người chơi đến đó bằng cách đặt \`updatedPlayerLocationId\` thành ID của thế giới mới.
 `;

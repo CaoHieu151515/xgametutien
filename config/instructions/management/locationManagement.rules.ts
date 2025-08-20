@@ -3,6 +3,70 @@ import { LocationType } from '../../../types';
 export const locationManagementInstruction = `
 **QUY TẮC QUẢN LÝ BẢN ĐỒ, VỊ TRÍ & LUẬT LỆ (CỰC KỲ QUAN TRỌNG):**
 
+**MỆNH LỆNH HỆ THỐNG: XỬ LÝ TRẠNG THÁI TỰ ĐỘNG KHI RA/VÀO ĐỊA ĐIỂM (LOGIC CỐT LÕI MỚI)**
+- **Kích hoạt:** Khi một nhân vật (người chơi hoặc NPC) di chuyển đến một địa điểm mới (tức là \`updatedPlayerLocationId\` thay đổi, hoặc \`updatedNPCs.locationId\` thay đổi).
+- **Quy trình BẮT BUỘC:** Bạn PHẢI quét mảng \`rules\` của cả địa điểm **ĐẾN** và địa điểm **ĐI**.
+    1.  **KIỂM TRA ĐỊA ĐIỂM ĐẾN (VÀO):**
+        -   Quét mảng \`rules\` của địa điểm mới.
+        -   Nếu tìm thấy một quy tắc chứa chuỗi **"Khi tiến vào, nhận trạng thái"**, bạn **BẮT BUỘC** phải diễn giải quy tắc đó.
+        -   **Hành động:** Trích xuất tên trạng thái từ quy tắc (thường nằm trong dấu nháy đơn hoặc kép) và thêm một đối tượng \`StatusEffect\` hoàn chỉnh vào mảng \`newStatusEffects\` của nhân vật tương ứng. Mô tả của trạng thái phải phù hợp với bối cảnh của địa điểm.
+        -   **Ví dụ Quy tắc:** \`"Khi tiến vào, nhận trạng thái 'Siêu Hậu Cung' (Tuyệt đối trung thành, không mặc y phục)."\`
+        -   **Kết quả JSON BẮT BUỘC (cho NPC):**
+            \`\`\`json
+            "updatedNPCs": [{
+              "id": "id_cua_npc_di_chuyen",
+              "newStatusEffects": [{
+                "name": "Siêu Hậu Cung",
+                "description": "Đang cư ngụ trong Hậu Cung Giới, tuyệt đối trung thành với phu quân và phải tuân theo mọi quy tắc của thế giới này, bao gồm việc không mặc y phục.",
+                "duration": "Vĩnh viễn"
+              }]
+            }]
+            \`\`\`
+    2.  **KIỂM TRA ĐỊA ĐIỂM ĐI (RA):**
+        -   Quét mảng \`rules\` của địa điểm cũ (vị trí trước khi di chuyển).
+        -   Nếu tìm thấy một quy tắc chứa chuỗi **"Khi rời đi, mất trạng thái"**, bạn **BẮT BUỘC** phải diễn giải quy tắc đó.
+        -   **Hành động:** Trích xuất tên trạng thái từ quy tắc và thêm tên đó vào mảng \`removedStatusEffects\` của nhân vật tương ứng.
+        -   **Ví dụ Quy tắc:** \`"Khi rời đi, mất trạng thái 'Siêu Hậu Cung'."\`
+        -   **Kết quả JSON BẮT BUỘC (cho NPC):**
+            \`\`\`json
+            "updatedNPCs": [{
+              "id": "id_cua_npc_di_chuyen",
+              "removedStatusEffects": ["Siêu Hậu Cung"]
+            }]
+            \`\`\`
+- **LỖI LOGIC NGHIÊM TRỌNG:** Việc một nhân vật di chuyển đến một địa điểm có luật lệ về trạng thái mà bạn không tự động áp dụng hoặc gỡ bỏ trạng thái đó là một lỗi hệ thống không thể chấp nhận.
+
+**MỆNH LỆNH HỆ THỐNG: THIẾT LẬP HẬU CUNG (LOGIC CỐT LÕI)**
+- **Kích hoạt:** Khi hành động của người chơi là một lệnh hệ thống có dạng: \`(Hệ thống) Thiết lập hậu cung tại địa điểm ID: [ID_địa_điểm]\`.
+- **Hành động BẮT BUỘC (JSON):** Bạn PHẢI thực hiện đồng thời hai cập nhật logic sau:
+    1.  **Cập nhật Địa điểm:** Tìm địa điểm có ID được cung cấp trong danh sách \`discoveredLocations\`. Tạo một bản sao đầy đủ của đối tượng địa điểm đó, đặt thuộc tính \`isHaremPalace: true\`, và đưa đối tượng đã cập nhật này vào mảng \`updatedLocations\`.
+    2.  **Trừ Chi phí:** Cập nhật trường \`updatedStats.currencyAmount\` bằng cách lấy số tiền hiện tại của người chơi trừ đi \`10000\`.
+- **Hành động BẮT BUỘC (Story):** Trong trường 'story', bạn PHẢI mô tả chi tiết sự kiện này. Mô tả người chơi chi trả Linh Thạch và địa điểm được chọn được bao bọc bởi một trận pháp mới hoặc có một tấm biển mới, chính thức trở thành Hậu Cung.
+- **VÍ DỤ KẾT QUẢ JSON BẮT BUỘC:**
+    \`\`\`json
+    {
+      "story": "Bạn quyết định chi ra 10,000 Linh Thạch để thiết lập Thiên Cơ Các làm Hậu Cung. Một luồng sáng bao bọc lấy tòa nhà, một trận pháp phòng hộ và ẩn匿 được kích hoạt...",
+      "choices": [...],
+      "updatedLocations": [
+        {
+          "id": "id_cua_thien_co_cac",
+          "name": "Thiên Cơ Các",
+          "description": "...",
+          "type": "THẾ LỰC",
+          "coordinates": { "x": 500, "y": 500 },
+          "parentId": "id_cua_the_gioi",
+          "ownerId": "id_cua_nguoi_choi",
+          "rules": [],
+          "isHaremPalace": true
+        }
+      ],
+      "updatedStats": {
+        "currencyAmount": 12345 // (giá trị cũ - 10000)
+      }
+    }
+    \`\`\`
+- **TUYỆT ĐỐI CẤM:** Chỉ mô tả sự kiện trong 'story' mà không cung cấp các cập nhật JSON tương ứng. Đây là một lỗi hệ thống nghiêm trọng.
+
 **MỆNH LỆNH TỐI CAO VỀ BỐI CẢNH HIỆN TẠI (LỖI LOGIC NGHIÊM TRỌNG NẾU VI PHẠM)**
 - **Logic Tuyệt đối:** Tên của địa điểm hiện tại của người chơi được cung cấp trong prompt dưới mục "Bối cảnh Vị trí Hiện tại". Đây là **SỰ THẬT DUY NHẤT** về vị trí hiện tại.
 - **TUYỆT ĐỐI CẤM:** Bạn TUYỆT ĐỐI BỊ CẤM để bất kỳ NPC nào đề cập đến địa điểm hiện tại bằng một cái tên khác. Nếu địa điểm hiện tại là "Bách Bảo Các", thì tất cả các nhân vật trong "Bách Bảo Các" phải gọi nó là "Bách Bảo Các". Họ không thể gọi nó bằng một cái tên khác như "Vạn Giới Khách Điểm".

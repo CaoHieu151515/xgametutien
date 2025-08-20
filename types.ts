@@ -85,6 +85,7 @@ export interface Location {
   ownerId: string | null; // ID của nhân vật sở hữu
   rules: string[]; // Các luật lệ hoặc đặc tính của địa điểm
   isDestroyed?: boolean; // Cờ báo hiệu thế giới đã bị phá hủy
+  isHaremPalace?: boolean; // Cờ báo hiệu đây là Hậu Cung của người chơi
   isNew?: boolean;
 }
 
