@@ -151,12 +151,17 @@ export const useActionLogic = (props: UseActionLogicProps) => {
 
         setChoices([]);
         
-        let historyText = '';
+        let historyText = 'Chưa có lịch sử.';
         const historySize = settings.historyContextSize;
-        if (historySize > 0 && history.length > 0) {
-            const historyPartsToTake = historySize * 2;
-            const relevantHistory = history.slice(-historyPartsToTake);
-            historyText = relevantHistory.map(part => part.type === 'action' ? `Người chơi đã làm: ${part.text}` : `Kết quả câu chuyện: ${part.text}`).join('\n\n');
+        if (historySize > 0 && gameLog.length > 0) {
+            const relevantSnapshots = gameLog.slice(-historySize);
+            historyText = relevantSnapshots.map(snapshot => {
+                const action = snapshot.turnContent.playerAction
+                    ? `> Hành động: ${snapshot.turnContent.playerAction.text}`
+                    : '> Bắt đầu câu chuyện.';
+                const result = `>> Kết quả: ${snapshot.turnContent.storyResult.text}`;
+                return `--- Lượt ${snapshot.turnNumber} ---\n${action}\n${result}`;
+            }).join('\n\n');
         }
             
         const MAX_RETRIES = GAME_CONFIG.ai.maxRetries;

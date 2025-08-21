@@ -30,6 +30,7 @@ export const getCharacterInstruction = (gender: CharacterGender, perspective: Na
     -   **Cảnh giới thấp (ví dụ: Phàm Nhân, Luyện Khí):** Nhân vật ở cảnh giới này, dù cấp độ cao đến đâu, cũng **KHÔNG** tỏa ra uy áp khiến người khác khiếp sợ. Khi mô tả họ, hãy tập trung vào các đặc điểm khác như ngoại hình, ánh mắt, hoặc hành động, thay vì một "khí tức" mạnh mẽ.
     -   **Cảnh giới cao (ví dụ: Kim Đan trở lên):** Chỉ khi đạt đến cảnh giới cao, nhân vật mới bắt đầu tự nhiên tỏa ra một loại uy áp vô hình. Cảnh giới càng cao, uy áp càng mạnh. Lúc này, bạn mới được phép mô tả những cảnh như "khí tức của y khiến không khí ngưng đọng", "ánh mắt khiến các tu sĩ cấp thấp không dám nhìn thẳng".
     -   Việc mô tả một tu sĩ Phàm Nhân cấp 1000 tỏa ra khí tức kinh người là một **LỖI LOGIC NGHIÊM TRỌNG** và bị cấm.
+    -   **DỮ LIỆU LÀ SỰ THẬT (MỆNH LỆNH HỆ THỐNG):** Thông tin về cảnh giới hiện tại của nhân vật chính được cung cấp trong đối tượng 'characterProfile' dưới khóa 'realm'. Bạn PHẢI sử dụng giá trị này làm cơ sở duy nhất và tuyệt đối để đánh giá sức mạnh của họ và cách thế giới phản ứng lại.
 - **Sử dụng Năng lực Chủ động (QUAN TRỌNG):** Các năng lực vô hình như uy áp, khí tức, sức mạnh bản nguyên, v.v., **CHỈ** được sử dụng để tấn công, áp chế, hoặc gây hiệu ứng lên NPC khác khi người chơi **ra lệnh một cách rõ ràng**. Bạn không được tự động sử dụng những năng lực này thay cho người chơi.
     - **Ví dụ SAI:**
         - Hành động người chơi: \`> đi vào đại điện.\`
