@@ -60,7 +60,15 @@ export const applyNpcMutations = async ({
             const npcIndex = nextNpcs.findIndex(n => n.id === update.id);
             if (npcIndex !== -1) {
                 let modifiedNpc = { ...nextNpcs[npcIndex] };
+                const npcMaxStats = calculateBaseStatsForLevel(modifiedNpc.level);
                 
+                // Handle full restoration first as it's an absolute state change.
+                if (update.usedFullRestoreSkill) {
+                    modifiedNpc.health = npcMaxStats.maxHealth;
+                    modifiedNpc.mana = npcMaxStats.maxMana;
+                    notifications.push(`✨ <b>${modifiedNpc.name}</b> đã khôi phục hoàn toàn Sinh Lực và Linh Lực!`);
+                }
+
                 if (update.isDead === true) {
                     modifiedNpc.isDead = true;
                     modifiedNpc.locationId = null;
@@ -83,6 +91,41 @@ export const applyNpcMutations = async ({
                         modifiedNpc = processNpcLevelUps(modifiedNpc, update.gainedExperience, worldSettings);
                         if (modifiedNpc.level > oldLevel) notifications.push(`✨ <b>${modifiedNpc.name}</b> đã đạt đến <b>cấp độ ${modifiedNpc.level}</b>!`);
                     }
+
+                    // Health & Mana updates are skipped if full restoration happened.
+                    if (!update.usedFullRestoreSkill) {
+                        const healthChangeInput = update.health;
+                        if (healthChangeInput) {
+                            let actualHealthChange = 0;
+                            if (typeof healthChangeInput === 'string' && healthChangeInput.endsWith('%')) {
+                                const percentage = parseFloat(healthChangeInput) / 100;
+                                actualHealthChange = Math.round(npcMaxStats.maxHealth * percentage);
+                            } else if (typeof healthChangeInput === 'number') {
+                                actualHealthChange = healthChangeInput;
+                            }
+                            modifiedNpc.health += actualHealthChange;
+                            if (actualHealthChange > 0) notifications.push(`💚 <b>${modifiedNpc.name}</b> hồi phục <b>${actualHealthChange.toLocaleString()} Sinh Lực</b>.`);
+                            else if (actualHealthChange < 0) notifications.push(`🩸 <b>${modifiedNpc.name}</b> mất <b>${Math.abs(actualHealthChange).toLocaleString()} Sinh Lực</b>.`);
+                        }
+
+                        const manaChangeInput = update.mana;
+                        if (manaChangeInput) {
+                            let actualManaChange = 0;
+                            if (typeof manaChangeInput === 'string' && manaChangeInput.endsWith('%')) {
+                                const percentage = parseFloat(manaChangeInput) / 100;
+                                actualManaChange = Math.round(npcMaxStats.maxMana * percentage);
+                            } else if (typeof manaChangeInput === 'number') {
+                                actualManaChange = manaChangeInput;
+                            }
+                            modifiedNpc.mana += actualManaChange;
+                            if (actualManaChange > 0) notifications.push(`💧 <b>${modifiedNpc.name}</b> hồi phục <b>${actualManaChange.toLocaleString()} Linh Lực</b>.`);
+                            else if (actualManaChange < 0) notifications.push(`💧 <b>${modifiedNpc.name}</b> tiêu hao <b>${Math.abs(actualManaChange).toLocaleString()} Linh Lực</b>.`);
+                        }
+                    }
+                    
+                    modifiedNpc.health = Math.max(0, Math.min(npcMaxStats.maxHealth, modifiedNpc.health));
+                    modifiedNpc.mana = Math.max(0, Math.min(npcMaxStats.maxMana, modifiedNpc.mana));
+
 
                     if (update.isDaoLu && !modifiedNpc.isDaoLu) {
                         modifiedNpc.isDaoLu = true;
@@ -120,8 +163,6 @@ export const applyNpcMutations = async ({
 
                     // Apply other direct updates
                     Object.assign(modifiedNpc, {
-                        health: update.health ?? modifiedNpc.health,
-                        mana: update.mana ?? modifiedNpc.mana,
                         locationId: update.locationId ?? modifiedNpc.locationId,
                         gender: update.gender ?? modifiedNpc.gender,
                         personality: update.personality ?? modifiedNpc.personality,

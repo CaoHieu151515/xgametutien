@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { StoryPart, StoryResponse, CharacterProfile, WorldSettings, NPC, Choice, AppSettings, GameSnapshot, Item, StoryApiResponse, ToastMessage } from '../../types';
 import { log } from '../../services/logService';
 import { applyStoryResponseToState } from '../../aiPipeline/applyDiff';
-import { verifyStoryResponse } from '../../utils/stateVerifier';
+import { verifyStoryResponse } from '../../aiPipeline/validate';
 import { findBestAvatar } from '../../services/avatarService';
 import { GAME_CONFIG } from '../../config/gameConfig';
 import * as saveService from '../../services/saveService';
@@ -184,11 +184,64 @@ export const useActionLogic = (props: UseActionLogicProps) => {
                 storyResponse = apiResponse.storyResponse;
                 usageMetadata = apiResponse.usageMetadata;
                 
-                // **FIX: Trim duplicate content from AI response**
-                const lastStoryPart = history.length > 0 ? history[history.length - 1] : null;
-                if (lastStoryPart && lastStoryPart.type === 'story' && storyResponse.story.trim().startsWith(lastStoryPart.text.trim())) {
-                    log('useActionLogic.ts', 'AI response contained duplicate of previous turn. Trimming it.', 'INFO');
-                    storyResponse.story = storyResponse.story.trim().substring(lastStoryPart.text.trim().length).trim();
+                // FIX+: Trim recap/duplicate content from AI response
+                const lastStories = history.filter(p => p.type === 'story').slice(-3);
+                if (storyResponse?.story) {
+                    let cleaned = storyResponse.story.trim();
+                    // 1) Chặn các câu mở đầu "recap keywords"
+                    const recapOpeners = [
+                        /^tóm\stắt/i,
+                        /^trước\sđó/i,
+                        /^như\sđã/i,
+                        /^ở\slượt\strước/i,
+                        /^sau\snhững\sgì/i,
+                        /^từ\snhững\sdiễn\sbiến\s*trước/i
+                    ];
+                    const lines = cleaned.split(/\n+/);
+                    while (lines.length > 0 && recapOpeners.some(rx => rx.test(lines[0].trim()))) {
+                        lines.shift();
+                    }
+                    cleaned = lines.join('\n').trim();
+
+                    // 2) Loại các block “--- Lượt X --- …” nếu AI cố tự liệt kê lại lịch sử
+                    cleaned = cleaned.replace(/(^|\n)---\sLượt\s\d+\s*---[\s\S]?(?=\n---\sLượt\s*\d+\s*---|\n*$)/g, '').trim();
+
+                    // 3) Cắt phần đầu nếu gần-trùng với 1 trong 3 đoạn story gần nhất (fuzzy)
+                    const similarity = (a: string, b: string) => {
+                        const norm = (t: string) => t.toLowerCase().replace(/\s+/g, ' ').slice(0, 400);
+                        const A = norm(a), B = norm(b);
+                        if (!A || !B) return 0;
+                        // n-gram 5 từ, Jaccard
+                        const grams = (s: string) => {
+                            const ws = s.split(' ');
+                            const set = new Set<string>();
+                            for (let i = 0; i <= ws.length - 5; i++) set.add(ws.slice(i, i + 5).join(' '));
+                            return set;
+                        };
+                        const GA = grams(A), GB = grams(B);
+                        const inter = [...GA].filter(x => GB.has(x)).length;
+                        const union = new Set([...GA, ...GB]).size;
+                        return union ? inter / union : 0;
+                    };
+
+                    for (const prev of lastStories) {
+                        const prevText = prev.text.trim();
+                        if (!prevText) continue;
+                        // Nếu đoạn đầu có độ giống cao với prev, cắt bỏ đoạn đầu tiên (đến xuống dòng kế tiếp)
+                        const firstPara = cleaned.split(/\n\n+/)[0] || cleaned;
+                        if (similarity(firstPara, prevText) >= 0.35) {
+                            cleaned = cleaned.slice(firstPara.length).trim();
+                            break; 
+                        }
+                    }
+                    
+                    // 4) Vẫn giữ check "startsWith" cũ như một chốt chặn cuối
+                    const lastStoryPart = history.length > 0 ? history[history.length - 1] : null;
+                    if (lastStoryPart && lastStoryPart.type === 'story' &&
+                        cleaned.startsWith(lastStoryPart.text.trim())) {
+                        cleaned = cleaned.substring(lastStoryPart.text.trim().length).trim();
+                    }
+                    storyResponse.story = cleaned;
                 }
 
                 // Structural and logical verification

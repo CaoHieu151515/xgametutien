@@ -1,11 +1,10 @@
-
 import { useCallback } from 'react';
 import { CharacterProfile, WorldSettings, GameState, AppSettings, NPC, StoryPart, NewNPCFromAI, GameSnapshot, Choice, ToastMessage } from '../../types';
 import * as saveService from '../../services/saveService';
 import { log } from '../../services/logService';
 import { processLevelUps, calculateBaseStatsForLevel, getRealmDisplayName } from '../../services/progressionService';
 import { applyStoryResponseToState } from '../../aiPipeline/applyDiff';
-import { verifyStoryResponse } from '../../utils/stateVerifier';
+import { verifyStoryResponse } from '../../aiPipeline/validate';
 
 interface UseGameStartLogicProps {
     api: any;

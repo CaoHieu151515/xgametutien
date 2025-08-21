@@ -28,6 +28,7 @@ export const updatedStatsSchema = {
         currencyAmount: { type: Type.NUMBER },
         gainedExperience: { type: Type.NUMBER },
         breakthroughToRealm: { type: Type.STRING },
+        usedFullRestoreSkill: { type: Type.BOOLEAN },
         newStatusEffects: {
             type: Type.ARRAY,
             items: statusEffectSchema,
@@ -176,6 +177,8 @@ export const newNpcSchema = {
         aptitude: { type: Type.STRING },
         mienLuc: mienLucSchema,
         locationId: { type: Type.STRING },
+        specialConstitution: specialConstitutionSchema,
+        innateTalent: talentSchema,
         statusEffects: { type: Type.ARRAY, items: statusEffectSchema },
     },
     required: ["id", "name", "gender", "race", "personality", "description", "ngoaiHinh", "level", "powerSystem", "aptitude", "mienLuc", "statusEffects"]
@@ -290,9 +293,12 @@ export const updatedNpcSchema = {
         ngoaiHinh: { type: Type.STRING },
         locationId: { type: Type.STRING },
         aptitude: { type: Type.STRING },
+        specialConstitution: specialConstitutionSchema,
+        innateTalent: talentSchema,
         updatedNpcRelationships: { type: Type.ARRAY, items: npcRelationshipSchema },
         isDaoLu: { type: Type.BOOLEAN },
         isDead: { type: Type.BOOLEAN },
+        usedFullRestoreSkill: { type: Type.BOOLEAN },
         newStatusEffects: { type: Type.ARRAY, items: statusEffectSchema },
         removedStatusEffects: { type: Type.ARRAY, items: { type: Type.STRING } }
     },

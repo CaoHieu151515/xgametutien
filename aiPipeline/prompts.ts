@@ -214,6 +214,10 @@ ${historyText}
 
 **Hành động và Kết quả Lượt Này:**
 ${actionText}
+-QUY TẮC CHO LƯỢT NÀY (CỰC KỲ QUAN TRỌNG):
+KHÔNG TÓM TẮT LỊCH SỬ. Tuyệt đối không mở đầu bằng "Trước đó", "Tóm tắt", "Như đã kể", "Ở lượt trước", hay các biến thể tương tự.
+CHỈ viết tiếp nội dung mới phát sinh từ hành động ở lượt này và bối cảnh hiện tại.
+Nếu cần chuyển cảnh, dùng tối đa 1 câu chuyển mạch không chứa chi tiết từ lịch sử.
 
 **NHIỆM VỤ:**
 Dựa trên hành động của người chơi và toàn bộ bối cảnh, hãy thực hiện ĐỒNG THỜI hai việc sau:

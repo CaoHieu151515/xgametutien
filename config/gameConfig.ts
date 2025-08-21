@@ -17,7 +17,7 @@ export const GAME_CONFIG = {
         // Giúp ngăn chặn việc nội dung bị cắt ngắn đột ngột.
         maxOutputTokens: 8192,
         // (Chỉ dành cho Gemini) Ngân sách token cho "suy nghĩ".
-        thinkingBudget: 2048,
+        thinkingBudget: 4096,
         /**
          * Cấu hình liên quan đến phong cách và cấu trúc kể chuyện của AI.
          */

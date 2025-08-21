@@ -5,6 +5,7 @@ export const getNpcUpdateRules = (daoLuTermPlayer: string, playerGenderVietnames
 -   **Cập nhật NPC:**
     -   Sử dụng mảng 'updatedNPCs' để sửa đổi các NPC đã tồn tại. Chỉ bao gồm 'id' và các trường đã thay đổi.
     -   **Kinh nghiệm và Đột phá:** Cung cấp 'gainedExperience' hoặc 'breakthroughToRealm' để NPC tiến bộ.
+    -   **QUY TẮC HỒI PHỤC HOÀN TOÀN (LOGIC CỐT LÕI):** Nếu trong câu chuyện, một NPC sử dụng một kỹ năng hoặc vật phẩm có tác dụng **hồi phục hoàn toàn/đầy** sinh lực và linh lực, bạn **BẮT BUỘC** phải đặt trường \`"usedFullRestoreSkill": true\` trong đối tượng cập nhật của NPC đó. Hệ thống sẽ tự động tính toán và đặt lại sinh lực/linh lực về mức tối đa. **KHÔNG** cần cung cấp giá trị cho \`health\` và \`mana\` trong trường hợp này.
     -   **Quan hệ:** Trường 'relationship' phản ánh mối quan hệ của NPC với người chơi. Nó là một số từ -1000 (kẻ thù không đội trời chung) đến 1000 (tri kỷ, đạo lữ).
         -   Hành động tích cực (giúp đỡ, tặng quà): tăng điểm.
         -   Hành động tiêu cực (xúc phạm, tấn công): giảm điểm.
@@ -133,4 +134,4 @@ export const getNpcUpdateRules = (daoLuTermPlayer: string, playerGenderVietnames
 
 **4.3. Khám phá Nhóm NPC:**
 - Khi bạn tạo ra một nhóm NPC mới cùng lúc trong \`newNPCs\` và câu chuyện cho thấy họ đã quen biết nhau từ trước (ví dụ: một nhóm bạn, một gia đình), bạn **PHẢI** định nghĩa các mối quan hệ tương hỗ của họ với nhau trong trường \`npcRelationships\` của mỗi NPC ngay từ đầu.
-`;
+`

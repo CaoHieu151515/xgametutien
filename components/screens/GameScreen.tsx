@@ -1,3 +1,5 @@
+
+
 import React, { useMemo, useState, useCallback } from 'react';
 import { GameState, CharacterProfile, WorldSettings, StoryPart, NPC, Choice, AppSettings } from '../../types';
 import { Loader } from '../Loader';
@@ -6,10 +8,13 @@ import { CustomInput } from '../CustomInput';
 import { AdventureCard } from '../AdventureCard';
 import { 
     HomeIcon, PlayerIcon, NpcsIcon, WorldIcon, MapIcon, 
-    GameLogIcon, BagIcon, LocationIcon, SettingsIcon, SaveIcon, TimeIcon, EventIcon
+    GameLogIcon, BagIcon, LocationIcon, SettingsIcon, SaveIcon, TimeIcon, EventIcon,
+    ChevronDownIcon, ChevronUpIcon
 } from '../ui/Icons';
 import { useComponentLog } from '../../hooks/useComponentLog';
 import { GAME_CONFIG } from '../../config/gameConfig';
+import { PlayerHUD } from '../PlayerHUD';
+import { NpcHUDCard } from '../NpcHUDCard';
 
 
 interface GameScreenProps {
@@ -100,6 +105,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
 }) => {
     useComponentLog('GameScreen.tsx');
     const [backgroundAvatars, setBackgroundAvatars] = useState<string[]>([]);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const handleUpdateBackgroundAvatars = useCallback((urls: string[]) => {
         setBackgroundAvatars(currentUrls => {
@@ -114,6 +120,13 @@ export const GameScreen: React.FC<GameScreenProps> = ({
         if (!characterProfile.currentLocationId) return null;
         return characterProfile.discoveredLocations.find(loc => loc.id === characterProfile.currentLocationId);
     }, [characterProfile]);
+
+    const nearbyNpcs = useMemo(() => {
+        if (!characterProfile?.currentLocationId) return [];
+        return npcs
+            .filter(npc => npc.locationId === characterProfile.currentLocationId && !npc.isDead)
+            .sort((a, b) => (a.isNew === b.isNew) ? 0 : a.isNew ? -1 : 1); // Show new NPCs first
+    }, [npcs, characterProfile?.currentLocationId]);
 
     const voidKnowledgeTitle = "Không Gian Hỗn Độn";
     const voidKnowledgeName = worldSettings?.initialKnowledge.find(k => k.title === voidKnowledgeTitle)?.title || voidKnowledgeTitle;
@@ -142,7 +155,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
             {/* CONTENT */}
             <div className="relative z-20 h-full flex flex-col">
                 {isLoading && <Loader />}
-                <div className="flex-shrink-0 px-2 sm:px-6 py-2 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 gap-2 sm:gap-4">
+                <div className="flex-shrink-0 relative px-2 sm:px-6 py-2 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 gap-2 sm:gap-4">
                     
                     {/* Left Icons */}
                     <div className="flex items-center gap-1 flex-wrap justify-start">
@@ -198,14 +211,43 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                             <HomeIcon />
                         </HeaderButton>
                     </div>
+                     <button 
+                        onClick={() => setIsSidebarOpen(prev => !prev)} 
+                        className="absolute right-6 top-full mt-4 bg-slate-800 border border-slate-700 h-8 w-16 rounded-full items-center justify-center text-slate-300 hover:bg-slate-700 hover:text-amber-300 transition-all z-40 group hidden sm:flex"
+                        title={isSidebarOpen ? "Thu gọn" : "Thông tin"}
+                    >
+                        {isSidebarOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
+                    </button>
                 </div>
-                <StoryDisplay 
-                    history={displayHistory} 
-                    characterProfile={characterProfile}
-                    worldSettings={worldSettings}
-                    npcs={npcs}
-                    onUpdateBackgroundAvatars={handleUpdateBackgroundAvatars}
-                />
+
+                {/* HUD Sidebar */}
+                <div className={`relative z-30 overflow-hidden transition-all duration-500 ease-in-out ${isSidebarOpen ? 'max-h-[13rem]' : 'max-h-0'}`}>
+                    <div className="p-4 bg-black/20 border-b border-slate-800">
+                        <div className="flex items-start gap-4 overflow-x-auto custom-scrollbar pb-3">
+                            <PlayerHUD profile={characterProfile} />
+                            {nearbyNpcs.map(npc => (
+                                <NpcHUDCard key={npc.id} npc={npc} />
+                            ))}
+                        </div>
+                         <style>{`
+                            .custom-scrollbar::-webkit-scrollbar { height: 6px; }
+                            .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #475569; border-radius: 3px; }
+                            .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #64748b; }
+                            .custom-scrollbar { scrollbar-width: thin; scrollbar-color: #475569 transparent; }
+                        `}</style>
+                    </div>
+                </div>
+
+
+                <div className="flex-grow min-h-0 relative">
+                    <StoryDisplay 
+                        history={displayHistory} 
+                        characterProfile={characterProfile}
+                        worldSettings={worldSettings}
+                        npcs={npcs}
+                        onUpdateBackgroundAvatars={handleUpdateBackgroundAvatars}
+                    />
+                </div>
                 <div className="flex-shrink-0 p-4 border-t border-slate-800 bg-slate-900/50">
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                         {choices.map((choice, index) => (

@@ -1,9 +1,11 @@
 
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { NPC, CharacterGender, StatusEffect, WorldSettings, CharacterProfile } from '../../types';
 import { calculateBaseStatsForLevel } from '../../services/progressionService';
 import { ImageLibraryModal } from './ImageLibraryModal';
 import { getRelationshipDisplay, getDefaultAvatar } from '../../utils/uiHelpers';
+import { HealthBar, ManaBar } from './tabs/shared/Common';
 
 interface NpcModalProps {
     isOpen: boolean;
@@ -71,36 +73,6 @@ const Section = ({ title, children }: { title: string, children: React.ReactNode
         </div>
     </div>
 );
-
-const HealthBar = ({ value, maxValue }: { value: number; maxValue: number; }) => {
-    const percentage = maxValue > 0 ? (value / maxValue) * 100 : 0;
-    return (
-        <div className="w-full">
-            <div className="flex justify-between items-baseline mb-1 text-xs">
-                <span className="text-slate-300 font-medium">Sinh Lực</span>
-                <span className="font-semibold text-red-400">{Math.round(value).toLocaleString()} / {maxValue.toLocaleString()}</span>
-            </div>
-            <div className="w-full bg-slate-700 rounded-full h-2">
-                <div className="bg-gradient-to-r from-red-600 to-red-500 h-2 rounded-full" style={{ width: `${percentage}%` }}></div>
-            </div>
-        </div>
-    );
-};
-
-const ManaBar = ({ value, maxValue }: { value: number; maxValue: number; }) => {
-    const percentage = maxValue > 0 ? (value / maxValue) * 100 : 0;
-    return (
-        <div className="w-full">
-            <div className="flex justify-between items-baseline mb-1 text-xs">
-                <span className="text-slate-300 font-medium">Linh Lực</span>
-                <span className="font-semibold text-blue-400">{Math.round(value).toLocaleString()} / {maxValue.toLocaleString()}</span>
-            </div>
-            <div className="w-full bg-slate-700 rounded-full h-2">
-                <div className="bg-gradient-to-r from-blue-500 to-cyan-500 h-2 rounded-full" style={{ width: `${percentage}%` }}></div>
-            </div>
-        </div>
-    );
-};
 
 type StatusEffectType = 'positive' | 'negative' | 'special';
 

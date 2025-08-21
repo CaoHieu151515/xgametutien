@@ -37,8 +37,8 @@ export const generateNotifications = (
     }
 
     // Main notifications
-    if (response.updatedStats?.currencyAmount !== undefined && response.updatedStats.currencyAmount !== originalProfile.currencyAmount) {
-        const change = response.updatedStats.currencyAmount - originalProfile.currencyAmount;
+    if (response.updatedStats?.currencyAmount) {
+        const change = response.updatedStats.currencyAmount;
         const currencyName = originalProfile.currencyName || 'tiền';
         if (change > 0) {
             notifications.push(`💰 Bạn nhận được <b>${change.toLocaleString()} ${currencyName}</b>.`);

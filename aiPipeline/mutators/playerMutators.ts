@@ -61,6 +61,18 @@ export const applyPlayerMutations = async ({
             ? USE_DEFAULT_KEY_IDENTIFIER
             : (settings.gemini.customKeys.find(k => k.id === settings.gemini.activeCustomKeyId)?.key || ''));
 
+    // Handle full restoration first as it's an absolute state change.
+    if (response.updatedStats?.usedFullRestoreSkill) {
+        const healthRestored = nextProfile.maxHealth - nextProfile.health;
+        const manaRestored = nextProfile.maxMana - nextProfile.mana;
+
+        if (healthRestored > 0 || manaRestored > 0) {
+            nextProfile.health = nextProfile.maxHealth;
+            nextProfile.mana = nextProfile.maxMana;
+            notifications.push(`✨ Bạn đã khôi phục hoàn toàn Sinh Lực và Linh Lực!`);
+        }
+    }
+
     // --- XP & Leveling ---
     const gainedXpFromAI = response.updatedStats?.gainedExperience ?? 0;
     let finalGainedXp = 0;
@@ -143,10 +155,44 @@ export const applyPlayerMutations = async ({
     if (response.updatedStats) {
         const stats = response.updatedStats;
         if (!didLevelUp) {
-            nextProfile.health = stats.health ?? nextProfile.health;
-            nextProfile.mana = stats.mana ?? nextProfile.mana;
+            // Health Change
+            const healthChangeInput = stats.health;
+            if (healthChangeInput && !stats.usedFullRestoreSkill) {
+                let actualHealthChange = 0;
+                if (typeof healthChangeInput === 'string' && healthChangeInput.endsWith('%')) {
+                    const percentage = parseFloat(healthChangeInput) / 100;
+                    actualHealthChange = Math.round(nextProfile.maxHealth * percentage);
+                } else if (typeof healthChangeInput === 'number') {
+                    actualHealthChange = healthChangeInput;
+                }
+                nextProfile.health += actualHealthChange;
+                if (actualHealthChange > 0) notifications.push(`💚 Bạn hồi phục <b>${actualHealthChange.toLocaleString()} Sinh Lực</b>.`);
+                else if (actualHealthChange < 0) notifications.push(`🩸 Bạn mất <b>${Math.abs(actualHealthChange).toLocaleString()} Sinh Lực</b>.`);
+            }
+
+            // Mana Change
+            const manaChangeInput = stats.mana;
+            if (manaChangeInput && !stats.usedFullRestoreSkill) {
+                let actualManaChange = 0;
+                if (typeof manaChangeInput === 'string' && manaChangeInput.endsWith('%')) {
+                    const percentage = parseFloat(manaChangeInput) / 100;
+                    actualManaChange = Math.round(nextProfile.maxMana * percentage);
+                } else if (typeof manaChangeInput === 'number') {
+                    actualManaChange = manaChangeInput;
+                }
+                nextProfile.mana += actualManaChange;
+                if (actualManaChange > 0) notifications.push(`💧 Bạn hồi phục <b>${actualManaChange.toLocaleString()} Linh Lực</b>.`);
+                else if (actualManaChange < 0) notifications.push(`💧 Bạn tiêu hao <b>${Math.abs(actualManaChange).toLocaleString()} Linh Lực</b>.`);
+            }
         }
-        nextProfile.currencyAmount = stats.currencyAmount ?? nextProfile.currencyAmount;
+        
+        // Currency
+        if (stats.currencyAmount) {
+            const change = stats.currencyAmount;
+            nextProfile.currencyAmount += change;
+             if (change > 0) notifications.push(`💰 Bạn nhận được <b>${change.toLocaleString()} ${nextProfile.currencyName}</b>.`);
+             else if (change < 0) notifications.push(`💸 Bạn đã tiêu <b>${Math.abs(change).toLocaleString()} ${nextProfile.currencyName}</b>.`);
+        }
         
         let newStatusEffectsList = [...nextProfile.statusEffects];
         if (stats.removedStatusEffects?.length) {
@@ -262,6 +308,11 @@ export const applyPlayerMutations = async ({
     if (response.updatedPlayerLocationId !== undefined) {
         nextProfile.currentLocationId = response.updatedPlayerLocationId;
     }
+
+    // --- Final Stat Clamping ---
+    nextProfile.health = Math.max(0, Math.min(nextProfile.maxHealth, nextProfile.health));
+    nextProfile.mana = Math.max(0, Math.min(nextProfile.maxMana, nextProfile.mana));
+    nextProfile.currencyAmount = Math.max(0, nextProfile.currencyAmount);
 
     return nextProfile;
 };

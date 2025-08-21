@@ -168,11 +168,12 @@ export interface NPCUpdate {
     gainedExperience?: number;
     relationship?: number;
     newMemories?: string[]; // Mảng CHỈ chứa các ký ức MỚI.
-    health?: number; // Cập nhật sinh lực hiện tại
-    mana?: number; // Cập nhật linh lực hiện tại
+    health?: number | string; // Cập nhật sinh lực hiện tại (có thể là số hoặc chuỗi %)
+    mana?: number | string; // Cập nhật linh lực hiện tại (có thể là số hoặc chuỗi %)
     newStatusEffects?: StatusEffect[];
     removedStatusEffects?: string[];
     breakthroughToRealm?: string; // Tên cảnh giới mới, hệ thống sẽ tự tính EXP.
+    usedFullRestoreSkill?: boolean; // NEW: Flag for full health/mana restoration
     // Các trường khác có thể được AI cập nhật
     gender?: CharacterGender;
     personality?: string;
@@ -198,12 +199,13 @@ export interface StoryResponse {
   story: string;
   choices: Choice[];
   updatedStats?: Partial<{
-    health: number;
-    mana: number;
+    health: number | string; // Có thể là số hoặc chuỗi %
+    mana: number | string; // Có thể là số hoặc chuỗi %
     gainedExperience: number; // Điểm kinh nghiệm NHẬN ĐƯỢỢC, không phải tổng số.
     currencyAmount: number;
     updatedLevel?: number; // (Không dùng nữa) Cấp độ mới của nhân vật nếu có đột phá trực tiếp.
     breakthroughToRealm?: string; // Tên cảnh giới mới, hệ thống sẽ tự tính EXP.
+    usedFullRestoreSkill?: boolean; // NEW: Flag for full health/mana restoration
     newStatusEffects?: StatusEffect[];
     removedStatusEffects?: string[]; // Mảng tên các trạng thái cần xóa
     newAchievements?: Achievement[];

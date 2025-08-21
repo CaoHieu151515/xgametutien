@@ -57,11 +57,7 @@ export const useGameLogic = () => {
     }, [gameState]);
     
     useEffect(() => {
-        if (history.length === 0) {
-            setDisplayHistory([]);
-        } else {
-            setDisplayHistory(history.slice(-1));
-        }
+        setDisplayHistory(history);
     }, [history]);
 
     const handleRestart = useCallback(() => {

@@ -11,6 +11,8 @@ const KeywordTooltip: React.FC<{ keyword: string; description: string; isNew?: b
   const ref = React.useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
+    // This effect ensures that if the user scrolls, any open tooltip will be closed.
+    // This improves user experience and prevents rendering glitches on some browsers.
     if (!show) {
       return;
     }
@@ -26,12 +28,13 @@ const KeywordTooltip: React.FC<{ keyword: string; description: string; isNew?: b
         scrollContainer.removeEventListener('scroll', handleScroll);
       };
     }
-  }, [show]);
+  }, [show]); // Re-run this effect whenever the 'show' state changes.
 
   const handlePositionCalculation = () => {
     if (ref.current) {
       const rect = ref.current.getBoundingClientRect();
       
+      // Estimate tooltip height to decide whether to show it above or below.
       const estimatedTooltipHeight = 150; 
       if (rect.top < estimatedTooltipHeight) { 
         setVerticalPosition('bottom');
@@ -39,17 +42,21 @@ const KeywordTooltip: React.FC<{ keyword: string; description: string; isNew?: b
         setVerticalPosition('top');
       }
 
-      const tooltipWidth = 288;
+      // Horizontal positioning to avoid viewport overflow
+      const tooltipWidth = 288; // from w-72 class
       const viewportWidth = window.innerWidth;
-      const margin = 16;
+      const margin = 16; // 1rem screen padding
 
       const keywordCenter = rect.left + rect.width / 2;
 
       if (keywordCenter + tooltipWidth / 2 > viewportWidth - margin) {
+          // overflows right, so align to the right of the keyword
           setHorizontalAlign('right');
       } else if (keywordCenter - tooltipWidth / 2 < margin) {
+          // overflows left, so align to the left of the keyword
           setHorizontalAlign('left');
       } else {
+          // it fits, so center it
           setHorizontalAlign('center');
       }
     }
@@ -63,18 +70,21 @@ const KeywordTooltip: React.FC<{ keyword: string; description: string; isNew?: b
   const handleClick = (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
+      // Recalculate position on click as well, for mobile devices
       handlePositionCalculation();
       setShow(s => !s);
   }
 
   const getPositionClasses = () => {
       let classes = 'absolute z-30';
+      // Vertical
       classes += verticalPosition === 'top' ? ' bottom-full mb-2' : ' top-full mt-2';
+      // Horizontal
       if (horizontalAlign === 'center') {
           classes += ' left-1/2 -translate-x-1/2';
       } else if (horizontalAlign === 'left') {
           classes += ' left-0';
-      } else {
+      } else { // 'right'
           classes += ' right-0';
       }
       return classes;
@@ -153,189 +163,221 @@ interface StoryDisplayProps {
   onUpdateBackgroundAvatars: (urls: string[]) => void;
 }
 
+/**
+ * A fallback formatter for when the AI returns one long block of text.
+ * It splits the text into sentences and groups them into paragraphs.
+ * @param text The long narration block.
+ * @returns Text formatted with paragraph breaks, or the original text if it's already formatted or too short.
+ */
 const formatLongNarration = (text: string): string => {
+    // If AI already formatted with paragraphs or the text is short, trust it.
     if (text.includes('\n\n') || text.length < 400) {
         return text;
     }
+
+    // Split into sentences, keeping the punctuation and handling quotes.
     const sentences = text.match(/[^.!?]+[.!?]("|”|\s)*/g);
+    
+    // If it can't be split or has few sentences, return as is.
     if (!sentences || sentences.length <= 3) {
         return text;
     }
+
     const paragraphs: string[] = [];
+    // Aim for paragraphs of 2-4 sentences for good readability.
     const sentencesPerParagraph = Math.min(4, Math.max(2, Math.ceil(sentences.length / 4)));
+
     for (let i = 0; i < sentences.length; i += sentencesPerParagraph) {
         const chunk = sentences.slice(i, i + sentencesPerParagraph);
         paragraphs.push(chunk.join(' ').trim());
     }
+
     return paragraphs.join('\n\n');
 };
 
-const escapeRegExp = (string: string) => {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-};
 
 export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterProfile, worldSettings, npcs, onUpdateBackgroundAvatars }) => {
-    const storyContainerRef = useRef<HTMLDivElement>(null);
+  const storyContainerRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        storyContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-    }, [history]);
+  useEffect(() => {
+    // When a new turn starts, scroll to the top of the story display.
+    storyContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [history]);
 
-    useEffect(() => {
-        if (!history.length || !characterProfile) {
-            onUpdateBackgroundAvatars([]);
-            return;
-        }
+  useEffect(() => {
+    if (!history.length || !characterProfile) {
+        onUpdateBackgroundAvatars([]);
+        return;
+    }
 
-        const lastPart = history[history.length - 1];
+    const lastPart = history[history.length - 1];
 
-        if (lastPart.type === 'action') {
-            onUpdateBackgroundAvatars([]);
-            return;
-        }
+    if (lastPart.type === 'action') {
+        onUpdateBackgroundAvatars([]);
+        return;
+    }
 
-        const speakerRegex = /\[([^\]]+?)\][:：]/g;
-        const matches = [...lastPart.text.matchAll(speakerRegex)];
-        
-        if (matches.length === 0) {
-            onUpdateBackgroundAvatars([]);
-            return;
-        }
-        
-        const speakerNames = new Set(matches.map(match => match[1].trim()));
-        speakerNames.delete(characterProfile.name);
-        
-        const avatarUrls = Array.from(speakerNames)
-          .map(name => {
-            const cleanName = name.replace(/\s+(?:NEW|MỚI)\s*$/i, '').trim();
-            return npcs.find(npc => npc.name === cleanName || npc.aliases?.includes(cleanName));
-          })
-          .filter((npc): npc is NPC => !!npc && !!npc.avatarUrl)
-          .map(npc => npc.avatarUrl as string);
-          
-        const uniqueUrls = [...new Set(avatarUrls)];
-        onUpdateBackgroundAvatars(uniqueUrls.slice(0, 3));
-
-    }, [history, npcs, characterProfile, onUpdateBackgroundAvatars]);
-
-    const keywords = useMemo((): Keyword[] => {
-        if (!characterProfile || !worldSettings) return [];
-        
-        const allKeywords: Keyword[] = [];
-
-        // Player name
-        allKeywords.push({ keyword: characterProfile.name, description: `[Nhân vật chính] ${characterProfile.backstory || 'Đây là bạn.'}` });
-
-        // Player special abilities
-        if (characterProfile.specialConstitution.name) {
-            allKeywords.push({ keyword: characterProfile.specialConstitution.name, description: `[Thể chất] ${characterProfile.specialConstitution.description}` });
-        }
-        if (characterProfile.talent.name) {
-            allKeywords.push({ keyword: characterProfile.talent.name, description: `[Thiên phú] ${characterProfile.talent.description}` });
-        }
-
-        // NPCs
-        npcs.forEach(npc => {
-            allKeywords.push({ keyword: npc.name, description: `[NPC] ${npc.description}`, isNew: npc.isNew });
-            if (npc.aliases) {
-                npc.aliases.split(',').forEach(alias => {
-                    if (alias.trim()) {
-                        allKeywords.push({ keyword: alias.trim(), description: `[NPC] ${npc.description}`, isNew: false });
-                    }
-                });
-            }
-        });
-
-        // Locations
-        characterProfile.discoveredLocations.forEach(loc => {
-            allKeywords.push({ keyword: loc.name, description: `[Địa Điểm] ${loc.description}`, isNew: loc.isNew });
-        });
-
-        // Skills
-        characterProfile.skills.forEach(skill => {
-            allKeywords.push({ keyword: skill.name, description: `[Kỹ Năng] ${skill.description}`, isNew: skill.isNew });
-        });
-
-        // World Knowledge & Factions
-        worldSettings.initialKnowledge.forEach(k => {
-            allKeywords.push({ keyword: k.title, description: `[Tri Thức] ${k.content}`, isNew: k.isNew });
-        });
-
-        // Items
-        (characterProfile.discoveredItems || []).forEach(item => {
-            allKeywords.push({ keyword: item.name, description: `[Vật Phẩm] ${item.description}`, isNew: item.isNew });
-        });
-
-        // Monsters
-        characterProfile.discoveredMonsters.forEach(monster => {
-            allKeywords.push({ keyword: monster.name, description: `[Sinh Vật] ${monster.description}`, isNew: monster.isNew });
-        });
-
-        // Achievements
-        (characterProfile.achievements || []).forEach(achievement => {
-            const description = `[Thành Tích] ${achievement.description}${achievement.tier ? ` (Bậc: ${achievement.tier})` : ''}`;
-            allKeywords.push({ keyword: achievement.name, description: description, isNew: achievement.isNew });
-        });
-
-        return allKeywords;
-    }, [characterProfile, worldSettings, npcs]);
-
-    const renderedNewKeywordsThisTurn = useRef(new Set<string>());
+    // Regex to find all speaker names like [Speaker Name]:
+    const speakerRegex = /\[([^\]]+?)\][:：]/g;
+    const matches = [...lastPart.text.matchAll(speakerRegex)];
     
-    useEffect(() => {
-        renderedNewKeywordsThisTurn.current.clear();
-    }, [history.length]);
+    if (matches.length === 0) {
+        // It's narration, clear the background
+        onUpdateBackgroundAvatars([]);
+        return;
+    }
+    
+    const speakerNames = new Set(matches.map(match => match[1].trim()));
 
-    const linkifyStory = (text: string): React.ReactNode[] => {
-        if (!text) return [];
+    // Remove player from the list of speakers
+    speakerNames.delete(characterProfile.name);
+    
+    const avatarUrls = Array.from(speakerNames)
+      .map(name => {
+        // Remove NEW/MỚI tag if present for lookup
+        const cleanName = name.replace(/\s+(?:NEW|MỚI)\s*$/i, '').trim();
+        return npcs.find(npc => npc.name === cleanName || npc.aliases?.includes(cleanName));
+      })
+      .filter((npc): npc is NPC => !!npc && !!npc.avatarUrl)
+      .map(npc => npc.avatarUrl as string);
+      
+    // Get unique URLs and limit to 3
+    const uniqueUrls = [...new Set(avatarUrls)];
+    onUpdateBackgroundAvatars(uniqueUrls.slice(0, 3));
+
+  }, [history, npcs, characterProfile, onUpdateBackgroundAvatars]);
+
+  const keywords = useMemo((): Keyword[] => {
+    if (!characterProfile || !worldSettings) return [];
+    
+    const allKeywords: Keyword[] = [];
+
+    // NPCs
+    npcs.forEach(npc => {
+        allKeywords.push({ keyword: npc.name, description: npc.description, isNew: npc.isNew });
+        if (npc.aliases) {
+            npc.aliases.split(',').forEach(alias => {
+                if (alias.trim()) {
+                    allKeywords.push({ keyword: alias.trim(), description: npc.description, isNew: false });
+                }
+            });
+        }
+    });
+
+    // Locations
+    characterProfile.discoveredLocations.forEach(loc => {
+        allKeywords.push({ keyword: loc.name, description: loc.description, isNew: loc.isNew });
+    });
+
+    // Skills
+    characterProfile.skills.forEach(skill => {
+        allKeywords.push({ keyword: skill.name, description: skill.description, isNew: skill.isNew });
+    });
+
+    // World Knowledge
+    worldSettings.initialKnowledge.forEach(k => {
+        allKeywords.push({ keyword: k.title, description: k.content, isNew: k.isNew });
+    });
+
+    // Items (from discoveredItems for encyclopedia-style highlighting)
+    (characterProfile.discoveredItems || []).forEach(item => {
+        allKeywords.push({ keyword: item.name, description: item.description, isNew: item.isNew });
+    });
+
+    // Monsters
+    characterProfile.discoveredMonsters.forEach(monster => {
+        allKeywords.push({ keyword: monster.name, description: `Sinh vật: ${monster.description}`, isNew: monster.isNew });
+    });
+
+    // Player special abilities
+    if (characterProfile.specialConstitution.name) {
+        allKeywords.push({ keyword: characterProfile.specialConstitution.name, description: `Thể chất: ${characterProfile.specialConstitution.description}` });
+    }
+    if (characterProfile.talent.name) {
+        allKeywords.push({ keyword: characterProfile.talent.name, description: `Thiên phú: ${characterProfile.talent.description}` });
+    }
+
+    // Achievements
+    (characterProfile.achievements || []).forEach(achievement => {
+        const description = `Thành Tích: ${achievement.description}${achievement.tier ? ` (Bậc: ${achievement.tier})` : ''}`;
+        allKeywords.push({ keyword: achievement.name, description: description, isNew: achievement.isNew });
+    });
+
+    // Player name
+    allKeywords.push({ keyword: characterProfile.name, description: "Đây là bạn!" });
+
+    return allKeywords;
+  }, [characterProfile, worldSettings, npcs]);
+
+    const renderedNewKeywordsThisTurn = new Set<string>();
+
+    const escapeRegExp = (string: string) => {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    const linkifyStory = (text: string): React.ReactNode => {
+        if (!text) return text;
 
         const sortedKeywords = keywords
-            .filter(k => k.keyword && k.keyword.trim().length > 1)
+            .filter(k => k.keyword && k.keyword.trim() !== "")
             .sort((a, b) => b.keyword.length - a.keyword.length);
     
         const keywordRegexPart = sortedKeywords.length > 0
             ? sortedKeywords.map(k => escapeRegExp(k.keyword)).join('|')
             : null;
 
+        if (!keywordRegexPart && !text.includes('[[')) {
+            return text;
+        }
+
         const newNounPattern = '\\[\\[[^\\]]+\\]\\]';
         let finalPattern = newNounPattern;
         if (keywordRegexPart) {
-            // Removed word boundaries (\b) to correctly match multi-word Vietnamese keywords.
-            // The descending sort by length prevents partial matches of shorter keywords.
-            finalPattern = `${newNounPattern}|(?:${keywordRegexPart})`;
+            finalPattern = `${newNounPattern}|${keywordRegexPart}`;
         }
         
-        const combinedRegex = new RegExp(`(${finalPattern})`, 'gi');
+        // The key fix is to use a single capturing group for all patterns.
+        // This ensures the array from .split() is clean and doesn't contain `undefined` values,
+        // which was causing rendering glitches with inline elements.
+        const combinedRegex = new RegExp(`(${finalPattern})`, 'g');
+
         const parts = text.split(combinedRegex);
         
         return parts.map((part, index) => {
             if (!part) return null;
     
+            // Check if it's a new noun, e.g., [[Lý Hàn Thiên]]
             if (part.startsWith('[[') && part.endsWith(']]')) {
                 const content = part.substring(2, part.length - 2);
-                const knownKeywordData = sortedKeywords.find(k => k.keyword.toLowerCase() === content.toLowerCase());
+                
+                // Cross-check if this "new" noun is actually a known keyword.
+                const knownKeywordData = sortedKeywords.find(k => k.keyword === content);
                 if (knownKeywordData) {
-                    let showNewBadge = false;
-                    if (knownKeywordData.isNew && !renderedNewKeywordsThisTurn.current.has(knownKeywordData.keyword)) {
+                    // It is a known keyword that the AI mistakenly marked as new. Render it correctly.
+                     let showNewBadge = false;
+                    if (knownKeywordData.isNew && !renderedNewKeywordsThisTurn.has(knownKeywordData.keyword)) {
                         showNewBadge = true;
-                        renderedNewKeywordsThisTurn.current.add(knownKeywordData.keyword);
+                        renderedNewKeywordsThisTurn.add(knownKeywordData.keyword);
                     }
-                    return <KeywordTooltip key={`${part}-${index}`} keyword={content} description={knownKeywordData.description} isNew={showNewBadge} />;
+                    return <KeywordTooltip key={index} keyword={knownKeywordData.keyword} description={knownKeywordData.description} isNew={showNewBadge} />;
                 } else {
-                    return <span key={`${part}-${index}`} className="font-semibold text-cyan-400 border-b border-cyan-400/50 border-dotted">{content}</span>;
+                    // It is a genuinely new noun.
+                    return <span key={index} className="font-semibold text-cyan-400 border-b border-cyan-400/50 border-dotted">{content}</span>;
                 }
             }
     
-            const keywordData = sortedKeywords.find(k => k.keyword.toLowerCase() === part.toLowerCase());
+            // Check if it's a known keyword
+            const keywordData = sortedKeywords.find(k => k.keyword === part);
             if (keywordData) {
                 let showNewBadge = false;
-                if (keywordData.isNew && !renderedNewKeywordsThisTurn.current.has(keywordData.keyword)) {
+                if (keywordData.isNew && !renderedNewKeywordsThisTurn.has(keywordData.keyword)) {
                     showNewBadge = true;
-                    renderedNewKeywordsThisTurn.current.add(keywordData.keyword);
+                    renderedNewKeywordsThisTurn.add(keywordData.keyword);
                 }
-                return <KeywordTooltip key={`${part}-${index}`} keyword={part} description={keywordData.description} isNew={showNewBadge} />;
+                return <KeywordTooltip key={index} keyword={keywordData.keyword} description={keywordData.description} isNew={showNewBadge} />;
             }
             
+            // It's plain text
             return <React.Fragment key={index}>{part}</React.Fragment>;
         });
     };
@@ -343,9 +385,10 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
     const renderStoryPart = (part: StoryPart) => {
         if (!characterProfile) return null;
     
-        const dialogueCaptureRegex = /(\s*\[[^\]]+?\][:：]\s*(?:\(.*\))?\s*["“].*?["”]\s*)/g;
-        const dialogueExtractRegex = /^\s*\[([^\]]+?)\][:：]\s*(?:\(.*\))?\s*["“](.*?)["”]\s*$/;
+        const dialogueCaptureRegex = /(\s*\[[^\]]+\][:：]\s*(?:\(.*\))?\s*["“].*?["”]\s*)/g;
+        const dialogueExtractRegex = /^\s*\[([^\]]+)\][:：]\s*(?:\(.*\))?\s*["“](.*?)["”]\s*$/;
     
+        // Process the entire text block at once to handle mixed dialogue and narration.
         const segments = part.text.split(dialogueCaptureRegex);
     
         return (
@@ -361,12 +404,13 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
                         const speakerNameWithTags = dialogueMatch[1].trim();
                         const message = dialogueMatch[2];
   
+                        // Check for NEW/MỚI tag in speaker name
                         const newTagRegex = /\s+(?:NEW|MỚI)\s*$/i;
                         const hasNewTag = newTagRegex.test(speakerNameWithTags);
                         const speakerName = speakerNameWithTags.replace(newTagRegex, '').trim();
                         const speakerDisplayName = <>{speakerName}{hasNewTag && <NewBadge />}</>;
                         
-                        if (speakerName.toLowerCase() === characterProfile.name.toLowerCase()) {
+                        if (speakerName === characterProfile.name) {
                             return (
                                 <ChatBubble 
                                     key={`${part.id}-${segmentIndex}`} 
@@ -379,7 +423,7 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
                             );
                         }
                         
-                        const npc = npcs.find(n => n.name.toLowerCase() === speakerName.toLowerCase() || n.aliases?.toLowerCase().split(',').map(a => a.trim()).includes(speakerName.toLowerCase()));
+                        const npc = npcs.find(n => n.name === speakerName || n.aliases?.includes(speakerName));
                         if (npc) {
                             return (
                                 <ChatBubble 
@@ -393,31 +437,34 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
                             );
                         }
                         
+                        // Generic speaker (gray bubble)
                         return (
                             <ChatBubble 
                                 key={`${part.id}-${segmentIndex}`} 
                                 speakerName={speakerDisplayName}
                                 message={linkifyStory(message)} 
                                 isPlayer={false}
-                                gender={CharacterGender.MALE}
+                                gender={CharacterGender.MALE} // does not matter for generic
                                 isGeneric={true}
                             />
                         );
             
                     } else {
+                        // This segment is narration. Format it to prevent "walls of text".
                         const formattedSegment = formatLongNarration(segment);
                         const paragraphs = formattedSegment.trim().split(/\n\s*\n+/).filter(p => p.trim());
                         return (
                             <React.Fragment key={`${part.id}-${segmentIndex}`}>
                                 {paragraphs.map((paragraph, paragraphIndex) => {
+                                    // Filter out empty speaker tags like "[Tu sĩ A]:"
                                     if (/^\s*\[[^\]]+\][:：]\s*$/.test(paragraph)) {
                                         return null;
                                     }
                                     return (
                                         <p
                                             key={`${part.id}-${segmentIndex}-${paragraphIndex}`}
-                                            className="text-slate-300 my-4 animate-fade-in break-words whitespace-pre-wrap"
-                                            style={{ fontSize: 'var(--story-font-size-xl)' }}
+                                            className="text-slate-300 my-4 animate-fade-in break-words"
+                                            style={{ fontSize: 'var(--story-font-size)' }}
                                         >
                                             {linkifyStory(paragraph)}
                                         </p>
@@ -431,38 +478,24 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
         );
     };
 
-    const currentTurnHistory = useMemo(() => {
-        if (history.length === 0) {
-            return [];
-        }
-        // This logic ensures only the latest story part is displayed, hiding the preceding
-        // player action to keep the UI clean, as requested.
-        // It finds the last element of type 'story' and displays only that.
-        // If there's no story part yet (e.g., initial state), it shows nothing.
-        const lastStoryPart = history.slice().reverse().find(p => p.type === 'story');
-        return lastStoryPart ? [lastStoryPart] : [];
-    }, [history]);
-
-    return (
-        <div ref={storyContainerRef} className="absolute inset-0 overflow-y-auto custom-scrollbar p-6 md:p-8">
-            {currentTurnHistory.map((part) => (
-                <div key={part.id}>
-                    {part.type === 'story' ? (
-                        <>
-                            {renderStoryPart(part)}
-                            {part.notifications && part.notifications.length > 0 && (
-                                <NotificationBlock notifications={part.notifications} />
-                            )}
-                        </>
-                    ) : (
-                        // This block for rendering 'action' type is now effectively unused
-                        // due to the change in `currentTurnHistory`, but is kept for structural integrity.
-                        <p className="font-sans text-amber-400 italic text-right border-t border-slate-700 pt-4 mt-4 animate-fade-in break-words" style={{ fontSize: 'var(--story-font-size-large)' }}>
-                            &gt; {linkifyStory(part.text)}
-                        </p>
-                    )}
-                </div>
-            ))}
+  return (
+    <div ref={storyContainerRef} className="flex-grow min-h-0 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+      {history.map((part) => (
+        <div key={part.id}>
+          {part.type === 'story' ? (
+            <>
+              {renderStoryPart(part)}
+              {part.notifications && part.notifications.length > 0 && (
+                <NotificationBlock notifications={part.notifications} />
+              )}
+            </>
+          ) : (
+            <p className="font-sans text-amber-400 italic text-right border-t border-slate-700 pt-4 mt-4 animate-fade-in break-words" style={{ fontSize: 'var(--story-font-size-large)' }}>
+              &gt; {linkifyStory(part.text)}
+            </p>
+          )}
         </div>
-    );
+      ))}
+    </div>
+  );
 };
