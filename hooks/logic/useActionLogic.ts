@@ -127,7 +127,7 @@ export const useActionLogic = (props: UseActionLogicProps) => {
         
         const isSuccess = Math.random() * 100 < choice.successChance;
         const successText = isSuccess ? '(Thành công)' : '(Thất bại)';
-        let actionPromptText = `${successText} Người chơi đã chọn hành động: "${choice.title}". Ghi chú đặc biệt của hành động này là: "${choice.specialNote || 'Không có'}".`;
+        let actionPromptText = `${successText} Người chơi đã chọn hành động: "${choice.title}" (Thời gian thực hiện ước tính: ${choice.durationInMinutes} phút). Ghi chú đặc biệt của hành động này là: "${choice.specialNote || 'Không có'}".`;
 
         const { randomEncounterChance, sfwEventWeights, nsfwEventWeights } = GAME_CONFIG.events;
         if (!choice.isTimeSkip && choice.durationInMinutes > 0 && Math.random() < randomEncounterChance) {
