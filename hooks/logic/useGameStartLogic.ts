@@ -1,8 +1,9 @@
+
 import { useCallback } from 'react';
-import { CharacterProfile, WorldSettings, GameState, AppSettings, NPC, StoryPart, NewNPCFromAI, GameSnapshot, Choice, ToastMessage } from '../../types';
+import { CharacterProfile, WorldSettings, GameState, AppSettings, NPC, StoryPart, NewNPCFromAI, GameSnapshot, Choice, ToastMessage, Skill } from '../../types';
 import * as saveService from '../../services/saveService';
 import { log } from '../../services/logService';
-import { processLevelUps, calculateBaseStatsForLevel, getRealmDisplayName } from '../../services/progressionService';
+import { processLevelUps, calculateBaseStatsForLevel, getRealmDisplayName, calculateManaCost } from '../../services/progressionService';
 import { applyStoryResponseToState } from '../../aiPipeline/applyDiff';
 import { verifyStoryResponse } from '../../aiPipeline/validate';
 
@@ -69,6 +70,7 @@ export const useGameStartLogic = (props: UseGameStartLogicProps) => {
                 mana: stats.maxMana,
                 realm: getRealmDisplayName(newNpcData.level, npcPowerSystem, newWorldSettings),
                 memories: [],
+                skills: (newNpcData.skills || []).map(s => ({...s, manaCost: calculateManaCost(s, newWorldSettings.qualityTiers)})),
                 npcRelationships: newNpcData.npcRelationships || [],
                 isDaoLu: false,
              };

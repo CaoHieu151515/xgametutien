@@ -1,6 +1,38 @@
+
 import React from 'react';
-import { CharacterProfile, WorldSettings, Item, ItemType, EquipmentType, EquipmentStat } from '../../../types';
+import { CharacterProfile, WorldSettings, Item, ItemType, EquipmentType, EquipmentStat, Skill, SkillType } from '../../../types';
 import { FormInput, FormSelect, FormTextArea, FormLabel } from '../common';
+import { GAME_CONFIG } from '../../../config/gameConfig';
+import { calculateManaCost } from '../../../services/progressionService';
+
+const GrantedSkillEditor: React.FC<{
+    skill: Partial<Skill>;
+    worldSettings: WorldSettings;
+    onUpdate: (field: keyof Skill, value: any) => void;
+}> = ({ skill, worldSettings, onUpdate }) => {
+    const levelsPerRealm = GAME_CONFIG.progression.subRealmLevels.length;
+    const manaCost = skill.name && skill.quality ? calculateManaCost({
+        quality: skill.quality,
+        level: skill.level || 1,
+        type: skill.type || SkillType.ATTACK
+    }, worldSettings.qualityTiers) : 0;
+
+    return (
+        <div className="border-t border-amber-500/30 pt-4 space-y-4">
+            <h4 className="text-md font-semibold text-amber-200">Kỹ Năng Ban Tặng</h4>
+            <div><FormLabel>Tên Kỹ Năng</FormLabel><FormInput value={skill.name || ''} onChange={e => onUpdate('name', e.target.value)} /></div>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div><FormLabel>Loại</FormLabel><FormSelect value={skill.type || SkillType.ATTACK} onChange={e => onUpdate('type', e.target.value as SkillType)}>{Object.values(SkillType).map(t => <option key={t} value={t}>{t}</option>)}</FormSelect></div>
+                <div><FormLabel>Phẩm chất</FormLabel><FormSelect value={skill.quality || ''} onChange={e => onUpdate('quality', e.target.value)}>{worldSettings.qualityTiers.split(' - ').map(q => q.trim()).filter(Boolean).map(tier => (<option key={tier} value={tier}>{tier}</option>))}</FormSelect></div>
+                <div><FormLabel>Cấp</FormLabel><FormSelect value={skill.level || 1} onChange={e => onUpdate('level', parseInt(e.target.value, 10))}>{Array.from({ length: levelsPerRealm }, (_, i) => i + 1).map(level => <option key={level} value={level}>{level}</option>)}</FormSelect></div>
+                 <div><FormLabel>Tiêu hao Linh Lực</FormLabel><FormInput value={manaCost} disabled /></div>
+            </div>
+            <div><FormLabel>Mô tả Kỹ Năng</FormLabel><FormTextArea value={skill.description || ''} onChange={e => onUpdate('description', e.target.value)} /></div>
+            <div><FormLabel>Hiệu ứng</FormLabel><FormTextArea value={skill.effect || ''} onChange={e => onUpdate('effect', e.target.value)} placeholder="Mô tả hiệu ứng kỹ năng, vd: Gây 50 sát thương Lôi..." /></div>
+        </div>
+    );
+};
+
 
 interface InitialItemsSectionProps {
     profile: CharacterProfile;
@@ -45,11 +77,18 @@ export const InitialItemsSection: React.FC<InitialItemsSectionProps> = ({ profil
             initialItems: (prev.initialItems || []).map(item => {
                 if (item.id === id) {
                     const updatedItem = { ...item, [field]: value };
+                    // Handle special logic for item type changes
                     if (field === 'type') {
                         if ((value === ItemType.TRANG_BI || value === ItemType.DAC_THU) && !updatedItem.equipmentDetails) {
                             updatedItem.equipmentDetails = { type: EquipmentType.VU_KHI, stats: [], effect: '' };
                         } else if (value !== ItemType.TRANG_BI && value !== ItemType.DAC_THU) {
                             delete updatedItem.equipmentDetails;
+                        }
+
+                        if (value === ItemType.BI_KIP && !updatedItem.grantsSkill) {
+                            updatedItem.grantsSkill = { name: '', type: SkillType.ATTACK, quality: worldSettings.qualityTiers.split(' - ')[0]?.trim() || 'Phàm Phẩm', level: 1, description: '', effect: '', manaCost: 0 };
+                        } else if (value !== ItemType.BI_KIP) {
+                            delete updatedItem.grantsSkill;
                         }
                     }
                     return updatedItem;
@@ -65,6 +104,18 @@ export const InitialItemsSection: React.FC<InitialItemsSectionProps> = ({ profil
             initialItems: (prev.initialItems || []).map(item => {
                 if (item.id === itemId && item.equipmentDetails) {
                     return { ...item, equipmentDetails: { ...item.equipmentDetails, [field]: value } };
+                }
+                return item;
+            })
+        }));
+    };
+
+    const handleUpdateGrantedSkill = (itemId: string, field: keyof Skill, value: any) => {
+        setProfile(prev => ({
+            ...prev,
+            initialItems: (prev.initialItems || []).map(item => {
+                if (item.id === itemId && item.grantsSkill) {
+                    return { ...item, grantsSkill: { ...item.grantsSkill, [field]: value } };
                 }
                 return item;
             })
@@ -132,7 +183,7 @@ export const InitialItemsSection: React.FC<InitialItemsSectionProps> = ({ profil
                     <div><FormLabel>Mô tả</FormLabel><FormTextArea value={item.description} onChange={e => handleUpdateInitialItem(item.id, 'description', e.target.value)} /></div>
                     <div><FormLabel>Giá trị tham khảo</FormLabel><FormInput type="number" value={item.value || 0} onChange={e => handleUpdateInitialItem(item.id, 'value', parseInt(e.target.value, 10) || 0)} /></div>
                     
-                    {(item.type === ItemType.TRANG_BI || item.type === ItemType.DAC_THU) && (
+                    {(item.type === ItemType.TRANG_BI || item.type === ItemType.DAC_THU) && item.equipmentDetails && (
                         <div className="border-t border-amber-500/30 pt-4 space-y-4">
                             <h4 className="text-md font-semibold text-amber-200">Thuộc tính Trang Bị</h4>
                             <div><FormLabel>Loại trang bị</FormLabel><FormSelect value={item.equipmentDetails?.type || ''} onChange={e => handleUpdateEquipmentDetail(item.id, 'type', e.target.value)}>{Object.values(EquipmentType).map(t => <option key={t} value={t}>{t}</option>)}</FormSelect></div>
@@ -165,6 +216,14 @@ export const InitialItemsSection: React.FC<InitialItemsSectionProps> = ({ profil
                             </div>
                             <div><FormLabel>Hiệu ứng khi trang bị</FormLabel><FormTextArea value={item.equipmentDetails?.effect || ''} onChange={e => handleUpdateEquipmentDetail(item.id, 'effect', e.target.value)} /></div>
                         </div>
+                    )}
+                    
+                    {item.type === ItemType.BI_KIP && item.grantsSkill && (
+                        <GrantedSkillEditor 
+                            skill={item.grantsSkill}
+                            worldSettings={worldSettings}
+                            onUpdate={(field, value) => handleUpdateGrantedSkill(item.id, field, value)}
+                        />
                     )}
                 </div>
             ))}

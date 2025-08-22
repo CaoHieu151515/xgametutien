@@ -1,24 +1,32 @@
 
 import {
-    StoryResponse, NarrativePerspective, CharacterGender, CharacterProfile, WorldSettings, Skill, StoryApiResponse, NPC
+    StoryResponse, NarrativePerspective, CharacterGender, CharacterProfile, WorldSettings, Skill, StoryApiResponse, NPC, NewNPCFromAI
 } from '../types';
 import { getSystemInstruction } from '../config/instructions';
 import { log } from './logService';
 import {
-    buildUnifiedPrompt, buildInitialStoryPrompt, buildWorldGenPrompt, buildNewSkillDescriptionPrompt
+    buildUnifiedPrompt, buildInitialStoryPrompt, buildWorldGenPrompt, buildNewSkillDescriptionPrompt, buildNpcSkillsGenPrompt
 } from '../aiPipeline/prompts';
 import {
-    responseSchema, worldCreationSchema, newSkillDescriptionSchema
+    responseSchema, worldCreationSchema, newSkillDescriptionSchema, newSkillsArraySchema
 } from '../aiPipeline/schema';
 import { callGeminiApi } from '../aiPipeline/callGemini';
 import { parseAndValidateJson, validateWorldGenResponse } from '../aiPipeline/validate';
+import { GAME_CONFIG } from '../config/gameConfig';
 
 
 export const generateWorldFromIdea = async (storyIdea: string, openingScene: string, apiKey: string): Promise<{ characterProfile: CharacterProfile, worldSettings: WorldSettings }> => {
     log('geminiService.ts', `Generating world from idea...`, 'API');
     try {
         const prompt = buildWorldGenPrompt(storyIdea, openingScene);
-        const response = await callGeminiApi({ prompt, apiKey, schema: worldCreationSchema, systemInstruction: "Bạn là một người sáng tạo thế giới và viết truyện chuyên nghiệp cho một trò chơi nhập vai tương tác. Nhiệm vụ của bạn là tạo ra một thế giới phong phú và một nhân vật chính hấp dẫn dựa trên ý tưởng của người dùng." });
+        const response = await callGeminiApi({ 
+            prompt, 
+            apiKey, 
+            schema: worldCreationSchema, 
+            systemInstruction: "Bạn là một người sáng tạo thế giới và viết truyện chuyên nghiệp cho một trò chơi nhập vai tương tác. Nhiệm vụ của bạn là tạo ra một thế giới phong phú và một nhân vật chính hấp dẫn dựa trên ý tưởng của người dùng.",
+            maxOutputTokens: GAME_CONFIG.worldGen.ai.maxOutputTokens,
+            thinkingBudget: GAME_CONFIG.worldGen.ai.thinkingBudget,
+        });
         const result = parseAndValidateJson<any>((response?.text ?? '').trim());
         validateWorldGenResponse(result);
 
@@ -109,6 +117,29 @@ export const generateNewSkillDescription = async (
         return result;
     } catch (err) {
         log('geminiService.ts', `Skill description generation failed: ${(err as Error).message}`, 'ERROR');
+        throw err;
+    }
+};
+
+export const generateNpcSkills = async (
+    npc: NewNPCFromAI,
+    worldSettings: WorldSettings,
+    apiKey: string
+): Promise<Omit<Skill, 'id' | 'experience' | 'level' | 'isNew'>[]> => {
+    log('geminiService.ts', `Generating skills for NPC: ${npc.name}`, 'API');
+    try {
+        const prompt = buildNpcSkillsGenPrompt(npc, worldSettings);
+        const response = await callGeminiApi({
+            prompt,
+            apiKey,
+            schema: newSkillsArraySchema,
+            systemInstruction: "You are a creative game designer for a fantasy RPG. Your task is to design a set of starting skills for an NPC based on their profile. Respond with a single, valid JSON array of skill objects in Vietnamese."
+        });
+        const result = parseAndValidateJson<Omit<Skill, 'id' | 'experience' | 'level' | 'isNew'>[]>((response?.text ?? '').trim());
+        log('geminiService.ts', 'NPC skills generation successful.', 'API');
+        return result;
+    } catch (err) {
+        log('geminiService.ts', `NPC skills generation failed: ${(err as Error).message}`, 'ERROR');
         throw err;
     }
 };

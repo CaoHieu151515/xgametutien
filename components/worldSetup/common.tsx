@@ -1,5 +1,6 @@
 
 
+
 import React from 'react';
 import { RemoveIcon, WandIcon } from '../ui/Icons';
 
@@ -15,8 +16,8 @@ export const FormTextArea = (props: React.TextareaHTMLAttributes<HTMLTextAreaEle
     <textarea {...props} rows={props.rows || 3} className="w-full p-2 bg-slate-800 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all text-slate-200 resize-y" />
 );
 
-export const FormLabel = ({ children, htmlFor }: { children: React.ReactNode, htmlFor?: string }) => (
-    <label htmlFor={htmlFor} className="block text-sm font-medium text-slate-300 mb-1">{children}</label>
+export const FormLabel = ({ children, htmlFor, className }: { children: React.ReactNode, htmlFor?: string, className?: string }) => (
+    <label htmlFor={htmlFor} className={`block text-sm font-medium text-slate-300 mb-1 ${className || ''}`}>{children}</label>
 );
 
 export { RemoveIcon, WandIcon };

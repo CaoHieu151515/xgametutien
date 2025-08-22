@@ -1,5 +1,5 @@
-import { StoryResponse, NPC, WorldSettings, NewNPCFromAI } from '../../types';
-import { processNpcLevelUps, getLevelFromRealmName, calculateBaseStatsForLevel, getRealmDisplayName } from '../../services/progressionService';
+import { StoryResponse, NPC, WorldSettings, NewNPCFromAI, Skill, SkillUpdate } from '../../types';
+import { processNpcLevelUps, getLevelFromRealmName, calculateBaseStatsForLevel, getRealmDisplayName, processSkillLevelUps } from '../../services/progressionService';
 import { findBestAvatar } from '../../services/avatarService';
 
 interface ApplyNpcMutationsParams {
@@ -45,6 +45,7 @@ export const applyNpcMutations = async ({
                     mana: stats.maxMana,
                     realm: getRealmDisplayName(newNpcData.level, npcPowerSystem, worldSettings),
                     memories: [],
+                    skills: newNpcData.skills || [],
                     npcRelationships: newNpcData.npcRelationships || [],
                     statusEffects: (Array.isArray(newNpcData.statusEffects) ? newNpcData.statusEffects : []),
                     isDaoLu: newNpcData.isDaoLu || false,
@@ -56,7 +57,7 @@ export const applyNpcMutations = async ({
 
     // --- Updated NPCs ---
     if (response.updatedNPCs?.length) {
-        response.updatedNPCs.forEach(update => {
+        for (const update of response.updatedNPCs) {
             const npcIndex = nextNpcs.findIndex(n => n.id === update.id);
             if (npcIndex !== -1) {
                 let modifiedNpc = { ...nextNpcs[npcIndex] };
@@ -161,6 +162,42 @@ export const applyNpcMutations = async ({
                     }
                     modifiedNpc.statusEffects = currentStatusEffects;
 
+                    // NPC Skill Progression
+                    if(update.updatedSkills) {
+                        const currentSkills = [...modifiedNpc.skills];
+                        for(const skillUpdate of update.updatedSkills) {
+                            const skillIndex = currentSkills.findIndex(s => s.name === skillUpdate.skillName);
+                            if (skillIndex > -1) {
+                                const originalSkill = currentSkills[skillIndex];
+                                const { updatedSkill, breakthroughInfo } = processSkillLevelUps(originalSkill, skillUpdate.gainedExperience, worldSettings.qualityTiers);
+                                currentSkills[skillIndex] = updatedSkill;
+                                if(updatedSkill.level > originalSkill.level) {
+                                    notifications.push(`💪 Kỹ năng "<b>${originalSkill.name}</b>" của <b>${modifiedNpc.name}</b> đã tăng lên cấp ${updatedSkill.level}.`);
+                                }
+                                if (breakthroughInfo) {
+                                     notifications.push(`🔥 **ĐỘT PHÁ!** Kỹ năng "<b>${originalSkill.name}</b>" của <b>${modifiedNpc.name}</b> đã đột phá từ <b>${breakthroughInfo.oldQuality}</b> lên <b>${breakthroughInfo.newQuality}</b>!`);
+                                }
+                            }
+                        }
+                        modifiedNpc.skills = currentSkills;
+                    }
+
+                    if(update.newlyLearnedSkills) {
+                        let currentSkills = [...modifiedNpc.skills];
+                        for(const newSkill of update.newlyLearnedSkills) {
+                            const existingSkillIndex = currentSkills.findIndex(s => s.type === newSkill.type);
+                            const finalNewSkill = { ...newSkill, id: `npcskill_${modifiedNpc.id}_${Date.now()}`, isNew: true };
+                            if (existingSkillIndex > -1) {
+                                notifications.push(`📖 <b>${modifiedNpc.name}</b> đã thay thế kỹ năng "<b>${currentSkills[existingSkillIndex].name}</b>" bằng kỹ năng mới: <b>${finalNewSkill.name}</b>!`);
+                                currentSkills[existingSkillIndex] = finalNewSkill;
+                            } else {
+                                notifications.push(`📖 <b>${modifiedNpc.name}</b> đã học được kỹ năng mới: <b>${finalNewSkill.name}</b>!`);
+                                currentSkills.push(finalNewSkill);
+                            }
+                        }
+                        modifiedNpc.skills = currentSkills;
+                    }
+
                     // Apply other direct updates
                     Object.assign(modifiedNpc, {
                         locationId: update.locationId ?? modifiedNpc.locationId,
@@ -176,7 +213,7 @@ export const applyNpcMutations = async ({
                 }
                 nextNpcs[npcIndex] = modifiedNpc;
             }
-        });
+        }
     }
 
     return nextNpcs;

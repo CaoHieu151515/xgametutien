@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { CharacterProfile, WorldSettings, Skill, SkillType } from '../../../types';
-import { getSkillExperienceForNextLevel } from '../../../services/progressionService';
+import { getSkillExperienceForNextLevel, calculateManaCost } from '../../../services/progressionService';
 import { FormInput, FormSelect, FormTextArea, FormLabel } from '../common';
 import { GAME_CONFIG } from '../../../config/gameConfig';
 
@@ -21,7 +22,8 @@ export const InitialSkillsSection: React.FC<InitialSkillsSectionProps> = ({ prof
             level: 1,
             experience: 0,
             description: '',
-            effect: ''
+            effect: '',
+            manaCost: 0, // Will be calculated
         };
         setProfile(prev => ({ ...prev, skills: [...prev.skills, newSkill] }));
     };
@@ -52,7 +54,7 @@ export const InitialSkillsSection: React.FC<InitialSkillsSectionProps> = ({ prof
 
                     <div><FormLabel htmlFor={`skill-name-${skill.id}`}>Tên Kỹ Năng</FormLabel><FormInput id={`skill-name-${skill.id}`} value={skill.name} onChange={(e) => handleSkillChange(skill.id, 'name', e.target.value)} /></div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                          <div>
                             <FormLabel htmlFor={`skill-type-${skill.id}`}>Loại Kỹ Năng</FormLabel>
                             <FormSelect id={`skill-type-${skill.id}`} value={skill.type} onChange={(e) => handleSkillChange(skill.id, 'type', e.target.value as SkillType)}>{Object.values(SkillType).map(type => <option key={type} value={type}>{type}</option>)}</FormSelect>
@@ -64,6 +66,10 @@ export const InitialSkillsSection: React.FC<InitialSkillsSectionProps> = ({ prof
                          <div>
                             <FormLabel htmlFor={`skill-level-${skill.id}`}>Cấp (1-{levelsPerRealm}, {levelsPerRealm} là Viên Mãn)</FormLabel>
                             <FormSelect id={`skill-level-${skill.id}`} value={skill.level} onChange={(e) => handleSkillChange(skill.id, 'level', parseInt(e.target.value, 10))}>{Array.from({ length: levelsPerRealm }, (_, i) => i + 1).map(level => <option key={level} value={level}>{level}</option>)}</FormSelect>
+                        </div>
+                        <div>
+                            <FormLabel>Tiêu hao Linh Lực (tự động tính)</FormLabel>
+                            <FormInput value={calculateManaCost(skill, worldSettings.qualityTiers)} disabled />
                         </div>
                     </div>
 

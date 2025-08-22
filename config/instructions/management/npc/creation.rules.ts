@@ -1,3 +1,4 @@
+
 export const getNpcCreationRules = (powerSystemsList: string, aptitudeTiersList: string): string => `
 ---
 **PHẦN 1.8: QUY TẮC PHÂN BỐ CẢNH GIỚI NPC (MỆNH LỆNH LOGIC TUYỆT ĐỐI)**
@@ -69,4 +70,44 @@ Bạn PHẢI tuân thủ các quy tắc sau đây khi tạo hoặc cập nhật 
             ${powerSystemsList}
         -   **Các Tư chất Hợp lệ:**
             ${aptitudeTiersList}
+
+---
+**PHẦN 3.3: MỆNH LỆNH GÁN KỸ NĂNG NPC (LOGIC PHẢN ÁNH BẢN CHẤT)**
+---
+Mỗi NPC **BẮT BUỘC** phải có một bộ kỹ năng (\`skills\`) phản ánh chính xác bản chất của họ. Bạn phải tuân thủ 4 trụ cột logic sau đây khi gán kỹ năng cho bất kỳ NPC nào được tạo ra.
+
+**Trụ Cột I: Sức Mạnh Theo Cảnh Giới (Cảnh Giới là Nền Tảng)**
+Đây là quy tắc bất biến. Phẩm chất (quality) của kỹ năng bị giới hạn bởi Cảnh giới (realm) và cấp độ (level) của NPC.
+
+*   **Phàm Nhân (Cấp 1-10):** Chỉ được sở hữu kỹ năng **Phàm Phẩm**.
+*   **Tu sĩ cấp thấp (Luyện Khí, Trúc Cơ / Cấp 11-30):** Phẩm chất kỹ năng tối đa là **Linh Phẩm**.
+*   **Tu sĩ trung cấp (Kim Đan, Nguyên Anh / Cấp 31-70):** Phẩm chất kỹ năng tối đa là **Tiên Phẩm**. Việc sở hữu Thánh Phẩm là cực kỳ hiếm và phải có một lý do đặc biệt trong mô tả (ví dụ: kỳ ngộ lớn, là đệ tử chân truyền của một đại năng).
+*   **Tu sĩ cao cấp (Hóa Thần, Luyện Hư, Hợp Thể / Cấp 71-90):** Có thể sở hữu kỹ năng **Thánh Phẩm**.
+*   **Đỉnh cao (Đại Thừa, Độ Kiếp / Cấp 91+):** Mới có thể sở hữu hoặc lĩnh ngộ các kỹ năng **Thần Phẩm** hoặc **Hỗn Độn Phẩm**.
+
+**Trụ Cột II: Bản Sắc và Nguồn Gốc (Kỹ Năng theo Vai Trò)**
+Kỹ năng của một NPC phải phù hợp với vai trò, nghề nghiệp, phe phái và tính cách của họ.
+
+*   **BẮT BUỘC:** Mọi NPC là tu tiên giả PHẢI có ít nhất MỘT kỹ năng loại **'Tu Luyện'**. Kỹ năng này quyết định tốc độ và phương pháp tu luyện của họ.
+*   **Logic theo Vai trò:**
+    *   **Luyện Đan Sư:** Phải có các kỹ năng về nhận biết dược liệu, luyện đan, khống hỏa.
+    *   **Đệ tử Ma Môn:** Kỹ năng phải mang đậm tính tà đạo, độc ác (ví dụ: "Huyết Ma Công", "Luyện Hồn Thuật").
+    *   **Đệ tử Tiên Môn:** Kỹ năng phải quang minh chính đại (ví dụ: "Ngự Kiếm Thuật", "Kim Quang Chú").
+    *   **Tán tu (Tu sĩ tự do):** Bộ kỹ năng thường tạp nham, phẩm chất không quá cao.
+*   **Tiêu hao Linh Lực (\`manaCost\` - BẮT BUỘC):** Đối với mỗi kỹ năng được tạo ra, bạn PHẢI cung cấp một giá trị \`manaCost\`. Phẩm chất càng cao, cấp độ càng cao thì \`manaCost\` càng lớn. Kỹ năng 'Công Kích' và 'Đặc Biệt' thường tốn nhiều linh lực nhất.
+
+**Trụ Cột III: Tiềm Năng Bẩm Sinh (Tư Chất và Thiên Phú)**
+Tư chất (\`aptitude\`) và Thiên Phú (\`innateTalent\`) ảnh hưởng đến tiềm năng kỹ năng.
+
+*   **Tư chất cao:** Một NPC có tư chất cao (ví dụ: "Thánh Nhân") có thể sở hữu MỘT kỹ năng có phẩm chất cao hơn MỘT bậc so với giới hạn ở Trụ Cột I. Đây là một ngoại lệ hiếm có và phải được ghi chú trong mô tả của NPC.
+*   **Thiên phú đặc biệt:** Một NPC có thiên phú như "Kiếm Tâm Thông Minh" PHẢI có các kỹ năng kiếm pháp mạnh mẽ và đa dạng hơn các NPC khác cùng cấp.
+
+**Trụ Cột IV: Ảnh Hưởng Môi Trường (Kỹ Năng theo Vùng Miền)**
+Nơi một NPC sinh sống và tu luyện cũng ảnh hưởng đến bộ kỹ năng của họ.
+
+*   **NPC sống ở Bắc Nguyên Băng Giá:** Có khả năng cao sẽ sở hữu các kỹ năng hệ Băng.
+*   **NPC sống trong Vạn Độc Cốc:** Rất có thể sẽ thành thạo các kỹ năng dùng độc.
+
+**Số lượng Kỹ năng:**
+*   Gán một số lượng kỹ năng hợp lý. Một NPC cấp thấp chỉ nên có 1-2 kỹ năng. Một trưởng lão cấp cao có thể có 4-5 kỹ năng.
 `;

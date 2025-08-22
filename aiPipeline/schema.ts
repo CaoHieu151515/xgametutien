@@ -1,3 +1,4 @@
+
 import { Type } from '@google/genai';
 import { GAME_CONFIG } from '../config/gameConfig';
 
@@ -61,9 +62,15 @@ export const newSkillSchema = {
         type: { type: Type.STRING },
         quality: { type: Type.STRING },
         description: { type: Type.STRING },
-        effect: { type: Type.STRING }
+        effect: { type: Type.STRING },
+        manaCost: { type: Type.NUMBER },
     },
-    required: ["name", "type", "quality", "description", "effect"]
+    required: ["name", "type", "quality", "description", "effect", "manaCost"]
+};
+
+export const newSkillsArraySchema = {
+    type: Type.ARRAY,
+    items: newSkillSchema,
 };
 
 export const equipmentStatSchema = {
@@ -94,6 +101,7 @@ export const itemSchema = {
         quality: { type: Type.STRING },
         quantity: { type: Type.NUMBER },
         equipmentDetails: equipmentDetailsSchema,
+        grantsSkill: newSkillSchema,
     },
     required: ["id", "name", "description", "type", "quality", "quantity"]
 };
@@ -205,8 +213,9 @@ export const skillSchema = {
         experience: { type: Type.NUMBER },
         description: { type: Type.STRING },
         effect: { type: Type.STRING },
+        manaCost: { type: Type.NUMBER },
     },
-    required: ["id", "name", "type", "quality", "level", "experience", "description", "effect"],
+    required: ["id", "name", "type", "quality", "level", "experience", "description", "effect", "manaCost"],
 };
 
 export const characterProfileSchema = {
@@ -300,7 +309,19 @@ export const updatedNpcSchema = {
         isDead: { type: Type.BOOLEAN },
         usedFullRestoreSkill: { type: Type.BOOLEAN },
         newStatusEffects: { type: Type.ARRAY, items: statusEffectSchema },
-        removedStatusEffects: { type: Type.ARRAY, items: { type: Type.STRING } }
+        removedStatusEffects: { type: Type.ARRAY, items: { type: Type.STRING } },
+        updatedSkills: {
+            type: Type.ARRAY,
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    skillName: { type: Type.STRING },
+                    gainedExperience: { type: Type.NUMBER }
+                },
+                required: ["skillName", "gainedExperience"]
+            },
+        },
+        newlyLearnedSkills: { type: Type.ARRAY, items: skillSchema },
     },
     required: ["id"]
 };

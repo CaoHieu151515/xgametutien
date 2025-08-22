@@ -1,4 +1,4 @@
-import { CharacterProfile, WorldSettings, NPC, Location, Item, Achievement, Monster, LocationType, Milestone, GameEvent } from '../types';
+import { CharacterProfile, WorldSettings, NPC, Location, Item, Achievement, Monster, LocationType, Milestone, GameEvent, ItemType, Skill } from '../../types';
 
 interface ContextualPromptData {
     contextualNpcs: Partial<NPC>[];
@@ -57,13 +57,14 @@ export const buildContextForPrompt = (
         const isPresent = npc.locationId === characterProfile.currentLocationId;
         const isMentioned = historyText.includes(npc.name) || (npc.aliases && npc.aliases.split(',').some(alias => historyText.includes(alias.trim())));
         return !npc.isDead && (isPresent || isMentioned);
-    }).map(({ id, name, aliases, gender, race, personality, description, level, realm, relationship, isDaoLu, specialConstitution, innateTalent, memories }) => ({
+    }).map(({ id, name, aliases, gender, race, personality, description, level, realm, relationship, isDaoLu, specialConstitution, innateTalent, memories, skills }) => ({
         id, name, aliases, gender, race, personality, 
         description: description.substring(0, 150) + (description.length > 150 ? '...' : ''),
         level, realm, relationship, isDaoLu,
         specialConstitution,
         innateTalent,
-        memories
+        memories,
+        skills: skills.map(({ id, name, type, quality, level, experience, description, effect, manaCost }) => ({ id, name, type, quality, level, experience, description, effect, manaCost })),
     }));
 
     // 2. Lọc Địa điểm theo ngữ cảnh: địa phương và toàn cục.
@@ -101,12 +102,16 @@ export const buildContextForPrompt = (
         if (item.isEquipped) {
             equippedItems.push(item);
         } else {
-            summarizedBagItems.push({
+            const summarizedItem: Partial<Item> = {
                 id: item.id,
                 name: item.name,
                 quantity: item.quantity,
                 type: item.type
-            });
+            };
+            if (item.type === ItemType.BI_KIP && item.grantsSkill) {
+                summarizedItem.grantsSkill = item.grantsSkill;
+            }
+            summarizedBagItems.push(summarizedItem);
         }
     });
 
@@ -129,11 +134,11 @@ export const buildContextForPrompt = (
     } = characterProfile;
     
     const minimalCharacterProfile: any = { ...rest };
-    minimalCharacterProfile.skills = skills.map(({ name, type, quality, level }) => ({ name, type, quality, level }));
+    minimalCharacterProfile.skills = skills.map(({ name, type, quality, level, manaCost }) => ({ name, type, quality, level, manaCost }));
 
 
     return {
-        contextualNpcs,
+        contextualNpcs: contextualNpcs as Partial<NPC>[],
         localLocations,
         globalLocations,
         locationRules,

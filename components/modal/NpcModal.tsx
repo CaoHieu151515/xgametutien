@@ -1,11 +1,12 @@
 
 
+
 import React, { useState, useMemo, useEffect } from 'react';
-import { NPC, CharacterGender, StatusEffect, WorldSettings, CharacterProfile } from '../../types';
+import { NPC, CharacterGender, StatusEffect, WorldSettings, CharacterProfile, SkillType, Skill } from '../../types';
 import { calculateBaseStatsForLevel } from '../../services/progressionService';
 import { ImageLibraryModal } from './ImageLibraryModal';
 import { getRelationshipDisplay, getDefaultAvatar } from '../../utils/uiHelpers';
-import { HealthBar, ManaBar } from './tabs/shared/Common';
+import { HealthBar, ManaBar, SkillExperienceBar } from './tabs/shared/Common';
 
 interface NpcModalProps {
     isOpen: boolean;
@@ -113,16 +114,22 @@ const statusStyles: Record<StatusEffectType, { border: string; bg: string; text:
     }
 };
 
+type NpcModalTab = 'info' | 'skills';
+
 export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpdateNpc, worldSettings, characterProfile }) => {
     const [selectedNpcId, setSelectedNpcId] = useState<string | null>(null);
     const [raceFilter, setRaceFilter] = useState('all');
     const [genderFilter, setGenderFilter] = useState('all');
     const [isImageLibraryOpen, setIsImageLibraryOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState<NpcModalTab>('info');
 
     useEffect(() => {
         const filtered = filterNpcs(npcs, raceFilter, genderFilter);
-        if (isOpen && filtered.length > 0 && (!selectedNpcId || !filtered.some(n => n.id === selectedNpcId))) {
-            setSelectedNpcId(filtered[0].id);
+        if (isOpen) {
+            setActiveTab('info');
+            if(filtered.length > 0 && (!selectedNpcId || !filtered.some(n => n.id === selectedNpcId))) {
+                setSelectedNpcId(filtered[0].id);
+            }
         }
         if (!isOpen) {
             setSelectedNpcId(null);
@@ -254,7 +261,14 @@ export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpd
                     {/* Right Content */}
                     <div className="flex-grow flex flex-col overflow-hidden">
                         <div className="p-4 flex-shrink-0 border-b border-slate-700/50 flex justify-between items-center">
-                             <h2 className="text-xl font-bold text-slate-100">Thông tin Nhân vật</h2>
+                             <div className="flex items-center gap-2">
+                                {selectedNpc && (
+                                    <>
+                                        <button onClick={() => setActiveTab('info')} className={`px-4 py-2 rounded-md text-sm font-semibold transition-colors ${activeTab === 'info' ? 'bg-amber-600/20 text-amber-300' : 'text-slate-400 hover:bg-slate-700/50'}`}>Thông Tin</button>
+                                        <button onClick={() => setActiveTab('skills')} className={`px-4 py-2 rounded-md text-sm font-semibold transition-colors ${activeTab === 'skills' ? 'bg-amber-600/20 text-amber-300' : 'text-slate-400 hover:bg-slate-700/50'}`}>Kỹ Năng</button>
+                                    </>
+                                )}
+                             </div>
                              <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors" aria-label="Đóng">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -264,140 +278,182 @@ export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpd
 
                         <div className="flex-grow p-6 overflow-y-auto custom-scrollbar">
                             {selectedNpc && npcStats && powerTier ? (
-                                <div className="relative animate-fade-in space-y-6">
-                                    {selectedNpc.isDead && (
-                                        <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
-                                            <span className="text-4xl font-bold text-red-500 transform -rotate-12 border-4 border-red-500 p-4">ĐÃ TỬ VONG</span>
-                                        </div>
-                                    )}
-                                    {/* Hero Section */}
-                                    <div className="flex flex-col md:flex-row gap-6 items-start">
-                                         <div className="flex-shrink-0 flex flex-col items-center gap-2 w-40 mx-auto md:mx-0">
-                                            <img 
-                                                src={selectedNpc.avatarUrl || getDefaultAvatar(selectedNpc.gender)} 
-                                                alt={`Ảnh đại diện của ${selectedNpc.name}`}
-                                                className="w-40 h-40 rounded-full object-cover border-4 border-slate-700 shadow-lg"
-                                                onError={(e) => { e.currentTarget.src = getDefaultAvatar(selectedNpc.gender); }}
-                                            />
-                                            <button onClick={() => setIsImageLibraryOpen(true)} className="w-full mt-2 py-2 px-3 bg-teal-600 hover:bg-teal-500 text-white font-semibold rounded-md text-sm transition-colors" disabled={selectedNpc.isDead}>
-                                                Chọn Từ Thư Viện
-                                            </button>
-                                        </div>
-                                        <div className="flex-grow space-y-4 text-center md:text-left">
-                                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center md:justify-start gap-x-4 gap-y-2">
-                                                <h2 className="text-3xl font-bold text-amber-300 flex items-center justify-center md:justify-start">
-                                                    {selectedNpc.name}
-                                                    {selectedNpc.isNew && <NewBadge />}
-                                                </h2>
-                                                {powerTier.name !== 'Bình Thường' && (
-                                                     <div className={`flex items-center gap-2 px-3 py-1 border rounded-full text-sm font-semibold ${powerTier.color} ${powerTier.name === 'Ẩn Thế Cao Nhân' ? 'shadow-[0_0_15px_rgba(192,132,252,0.5)]' : ''}`}>
-                                                        {powerTier.icon}
-                                                        <span>{powerTier.name}</span>
-                                                    </div>
-                                                )}
+                                activeTab === 'info' ? (
+                                    <div className="relative animate-fade-in space-y-6">
+                                        {selectedNpc.isDead && (
+                                            <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
+                                                <span className="text-4xl font-bold text-red-500 transform -rotate-12 border-4 border-red-500 p-4">ĐÃ TỬ VONG</span>
                                             </div>
-                                             <p className="text-sm text-slate-400">Biệt danh: {(selectedNpc.aliases && selectedNpc.aliases.toLowerCase() !== 'null') ? selectedNpc.aliases : 'Chưa rõ'}</p>
-                                           
-                                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                                                <DetailCard label="Giới tính" value={selectedNpc.gender === CharacterGender.MALE ? 'Nam' : 'Nữ'} />
-                                                <DetailCard label="Chủng Tộc" value={selectedNpc.race} />
-                                                <DetailCard label="Cảnh giới" value={selectedNpc.realm} />
-                                                <DetailCard label="Tư chất" value={selectedNpc.aptitude} />
+                                        )}
+                                        {/* Hero Section */}
+                                        <div className="flex flex-col md:flex-row gap-6 items-start">
+                                            <div className="flex-shrink-0 flex flex-col items-center gap-2 w-40 mx-auto md:mx-0">
+                                                <img 
+                                                    src={selectedNpc.avatarUrl || getDefaultAvatar(selectedNpc.gender)} 
+                                                    alt={`Ảnh đại diện của ${selectedNpc.name}`}
+                                                    className="w-40 h-40 rounded-full object-cover border-4 border-slate-700 shadow-lg"
+                                                    onError={(e) => { e.currentTarget.src = getDefaultAvatar(selectedNpc.gender); }}
+                                                />
+                                                <button onClick={() => setIsImageLibraryOpen(true)} className="w-full mt-2 py-2 px-3 bg-teal-600 hover:bg-teal-500 text-white font-semibold rounded-md text-sm transition-colors" disabled={selectedNpc.isDead}>
+                                                    Chọn Từ Thư Viện
+                                                </button>
                                             </div>
-                                             <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700/50 space-y-3">
-                                                <HealthBar value={selectedNpc.health} maxValue={npcStats.maxHealth} />
-                                                <ManaBar value={selectedNpc.mana} maxValue={npcStats.maxMana} />
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <DetailCard label="Sức Tấn Công" value={npcStats.attack.toLocaleString()} />
-                                                <DetailCard label="Tổng Mị Lực" value={totalMienLuc} />
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    {/* MERGED CONTENT */}
-                                    <div className="border-t border-slate-700/50 pt-6 space-y-8">
-                                        <Section title="Đánh giá sức mạnh">
-                                            <p>{powerTier.description}</p>
-                                        </Section>
-
-                                        <Section title="Tổng Quan & Đặc Điểm">
-                                            <p className="font-bold text-amber-200">Mô tả</p>
-                                            <p>{selectedNpc.description || 'Chưa có mô tả.'}</p>
-                                            
-                                            <p className="font-bold text-amber-200 mt-4">Ngoại hình</p>
-                                            <p>{(selectedNpc.ngoaiHinh && selectedNpc.ngoaiHinh.toLowerCase() !== 'null') ? selectedNpc.ngoaiHinh : 'Chưa rõ'}</p>
-
-                                            <p className="font-bold text-amber-200 mt-4">Tính cách</p>
-                                            <p>{selectedNpc.personality || 'Chưa có mô tả.'}</p>
-                                            
-                                            <p className="mt-4"><span className="font-bold text-amber-200">Thiên phú:</span> {(selectedNpc.innateTalent?.name && selectedNpc.innateTalent.name.toLowerCase() !== 'null') ? `${selectedNpc.innateTalent.name} - ${selectedNpc.innateTalent.description}` : 'Chưa rõ'}</p>
-                                            <p className="mt-2"><span className="font-bold text-amber-200">Thể chất:</span> {(selectedNpc.specialConstitution?.name && selectedNpc.specialConstitution.name.toLowerCase() !== 'null') ? `${selectedNpc.specialConstitution.name} - ${selectedNpc.specialConstitution.description}` : 'Chưa rõ'}</p>
-                                        </Section>
-
-                                        <Section title="Trạng Thái Hiện Tại">
-                                            {selectedNpc.statusEffects.length > 0 ? (
-                                                <div className="space-y-2">
-                                                    {selectedNpc.statusEffects.map((effect, index) => {
-                                                        const style = statusStyles[getStatusEffectType(effect)];
-                                                        return (
-                                                            <div key={index} className={`p-3 ${style.bg} border ${style.border} rounded-lg`}>
-                                                                <div className={`flex justify-between items-center font-bold ${style.text}`}>
-                                                                    <span>{effect.name}</span>
-                                                                    <span className="text-xs font-normal text-slate-400">{effect.duration}</span>
-                                                                </div>
-                                                                <p className="text-xs text-slate-300 mt-1">{effect.description}</p>
-                                                            </div>
-                                                        );
-                                                    })}
+                                            <div className="flex-grow space-y-4 text-center md:text-left">
+                                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center md:justify-start gap-x-4 gap-y-2">
+                                                    <h2 className="text-3xl font-bold text-amber-300 flex items-center justify-center md:justify-start">
+                                                        {selectedNpc.name}
+                                                        {selectedNpc.isNew && <NewBadge />}
+                                                    </h2>
+                                                    {powerTier.name !== 'Bình Thường' && (
+                                                        <div className={`flex items-center gap-2 px-3 py-1 border rounded-full text-sm font-semibold ${powerTier.color} ${powerTier.name === 'Ẩn Thế Cao Nhân' ? 'shadow-[0_0_15px_rgba(192,132,252,0.5)]' : ''}`}>
+                                                            {powerTier.icon}
+                                                            <span>{powerTier.name}</span>
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            ) : <p className="text-slate-500 text-center py-4">Không có trạng thái nào.</p>}
-                                        </Section>
+                                                <p className="text-sm text-slate-400">Biệt danh: {(selectedNpc.aliases && selectedNpc.aliases.toLowerCase() !== 'null') ? selectedNpc.aliases : 'Chưa rõ'}</p>
+                                            
+                                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                                                    <DetailCard label="Giới tính" value={selectedNpc.gender === CharacterGender.MALE ? 'Nam' : 'Nữ'} />
+                                                    <DetailCard label="Chủng Tộc" value={selectedNpc.race} />
+                                                    <DetailCard label="Cảnh giới" value={selectedNpc.realm} />
+                                                    <DetailCard label="Tư chất" value={selectedNpc.aptitude} />
+                                                </div>
+                                                <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700/50 space-y-3">
+                                                    <HealthBar value={selectedNpc.health} maxValue={npcStats.maxHealth} />
+                                                    <ManaBar value={selectedNpc.mana} maxValue={npcStats.maxMana} />
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <DetailCard label="Sức Tấn Công" value={npcStats.attack.toLocaleString()} />
+                                                    <DetailCard label="Tổng Mị Lực" value={totalMienLuc} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        {/* MERGED CONTENT */}
+                                        <div className="border-t border-slate-700/50 pt-6 space-y-8">
+                                            <Section title="Đánh giá sức mạnh">
+                                                <p>{powerTier.description}</p>
+                                            </Section>
 
-                                        <Section title="Tất Cả Mối Quan Hệ">
-                                            {allRelationships.length > 0 ? (
-                                                <div className="space-y-2">
-                                                    {allRelationships.map((rel, index) => {
-                                                        const score = rel.isPlayer && selectedNpc.isDaoLu ? 1000 : rel.value;
-                                                        const relationship = getRelationshipDisplay(score);
-                                                        const valueText = rel.isPlayer && selectedNpc.isDaoLu ? '1000' : (rel.value !== undefined ? rel.value : '???');
-                                                        const defaultAvatarForRel = getDefaultAvatar(rel.gender);
-                                                        const isDaoLuRel = rel.relationshipType === 'Đạo lữ';
+                                            <Section title="Tổng Quan & Đặc Điểm">
+                                                <p className="font-bold text-amber-200">Mô tả</p>
+                                                <p>{selectedNpc.description || 'Chưa có mô tả.'}</p>
+                                                
+                                                <p className="font-bold text-amber-200 mt-4">Ngoại hình</p>
+                                                <p>{(selectedNpc.ngoaiHinh && selectedNpc.ngoaiHinh.toLowerCase() !== 'null') ? selectedNpc.ngoaiHinh : 'Chưa rõ'}</p>
 
-                                                        return (
-                                                            <div key={rel.targetId + index} className="flex justify-between items-center p-2.5 bg-slate-800/50 rounded-lg text-sm">
-                                                                <div className="flex items-center gap-3">
-                                                                    <img src={rel.avatarUrl || defaultAvatarForRel} className="w-8 h-8 rounded-full object-cover" onError={(e) => { e.currentTarget.src = defaultAvatarForRel; }}/>
-                                                                    <div className="flex items-center gap-2">
-                                                                        <span className={`font-semibold ${rel.isPlayer ? 'text-amber-300' : 'text-white'}`}>{rel.targetName}</span>
-                                                                        {isDaoLuRel && (
-                                                                            <span className="text-xs text-pink-300 bg-pink-900/50 px-2 py-0.5 rounded-full">❤️ Đạo lữ</span>
-                                                                        )}
-                                                                        {rel.relationshipType && !isDaoLuRel && (
-                                                                            <span className="text-xs text-cyan-300 bg-cyan-900/50 px-2 py-0.5 rounded-full">{rel.relationshipType}</span>
-                                                                        )}
+                                                <p className="font-bold text-amber-200 mt-4">Tính cách</p>
+                                                <p>{selectedNpc.personality || 'Chưa có mô tả.'}</p>
+                                                
+                                                <p className="mt-4"><span className="font-bold text-amber-200">Thiên phú:</span> {(selectedNpc.innateTalent?.name && selectedNpc.innateTalent.name.toLowerCase() !== 'null') ? `${selectedNpc.innateTalent.name} - ${selectedNpc.innateTalent.description}` : 'Chưa rõ'}</p>
+                                                <p className="mt-2"><span className="font-bold text-amber-200">Thể chất:</span> {(selectedNpc.specialConstitution?.name && selectedNpc.specialConstitution.name.toLowerCase() !== 'null') ? `${selectedNpc.specialConstitution.name} - ${selectedNpc.specialConstitution.description}` : 'Chưa rõ'}</p>
+                                            </Section>
+
+                                            <Section title="Trạng Thái Hiện Tại">
+                                                {selectedNpc.statusEffects.length > 0 ? (
+                                                    <div className="space-y-2">
+                                                        {selectedNpc.statusEffects.map((effect, index) => {
+                                                            const style = statusStyles[getStatusEffectType(effect)];
+                                                            return (
+                                                                <div key={index} className={`p-3 ${style.bg} border ${style.border} rounded-lg`}>
+                                                                    <div className={`flex justify-between items-center font-bold ${style.text}`}>
+                                                                        <span>{effect.name}</span>
+                                                                        <span className="text-xs font-normal text-slate-400">{effect.duration}</span>
+                                                                    </div>
+                                                                    <p className="text-xs text-slate-300 mt-1">{effect.description}</p>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                ) : <p className="text-slate-500 text-center py-4">Không có trạng thái nào.</p>}
+                                            </Section>
+
+                                            <Section title="Tất Cả Mối Quan Hệ">
+                                                {allRelationships.length > 0 ? (
+                                                    <div className="space-y-2">
+                                                        {allRelationships.map((rel, index) => {
+                                                            const score = rel.isPlayer && selectedNpc.isDaoLu ? 1000 : rel.value;
+                                                            const relationship = getRelationshipDisplay(score);
+                                                            const valueText = rel.isPlayer && selectedNpc.isDaoLu ? '1000' : (rel.value !== undefined ? rel.value : '???');
+                                                            const defaultAvatarForRel = getDefaultAvatar(rel.gender);
+                                                            const isDaoLuRel = rel.relationshipType === 'Đạo lữ';
+
+                                                            return (
+                                                                <div key={rel.targetId + index} className="flex justify-between items-center p-2.5 bg-slate-800/50 rounded-lg text-sm">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <img src={rel.avatarUrl || defaultAvatarForRel} className="w-8 h-8 rounded-full object-cover" onError={(e) => { e.currentTarget.src = defaultAvatarForRel; }}/>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className={`font-semibold ${rel.isPlayer ? 'text-amber-300' : 'text-white'}`}>{rel.targetName}</span>
+                                                                            {isDaoLuRel && (
+                                                                                <span className="text-xs text-pink-300 bg-pink-900/50 px-2 py-0.5 rounded-full">❤️ Đạo lữ</span>
+                                                                            )}
+                                                                            {rel.relationshipType && !isDaoLuRel && (
+                                                                                <span className="text-xs text-cyan-300 bg-cyan-900/50 px-2 py-0.5 rounded-full">{rel.relationshipType}</span>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="text-right">
+                                                                        <span className={`font-bold ${relationship.color}`}>{relationship.text}</span>
+                                                                        <p className="text-xs text-slate-500">{valueText}</p>
                                                                     </div>
                                                                 </div>
-                                                                <div className="text-right">
-                                                                    <span className={`font-bold ${relationship.color}`}>{relationship.text}</span>
-                                                                    <p className="text-xs text-slate-500">{valueText}</p>
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            ) : <p className="text-slate-500 text-center py-4">Không có mối quan hệ nào được ghi nhận.</p>}
-                                        </Section>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                ) : <p className="text-slate-500 text-center py-4">Không có mối quan hệ nào được ghi nhận.</p>}
+                                            </Section>
 
-                                        <Section title="Ký Ức">
-                                            {selectedNpc.memories.length > 0 ? (
-                                                <ul className="list-disc list-inside space-y-2 text-slate-300 max-h-40 overflow-y-auto custom-scrollbar pr-2">
-                                                    {selectedNpc.memories.map((mem, i) => <li key={i}>{mem}</li>)}
-                                                </ul>
-                                            ) : <p className="text-slate-500 text-center py-4">Chưa có ký ức đáng nhớ nào.</p>}
-                                        </Section>
+                                            <Section title="Ký Ức">
+                                                {selectedNpc.memories.length > 0 ? (
+                                                    <ul className="list-disc list-inside space-y-2 text-slate-300 max-h-40 overflow-y-auto custom-scrollbar pr-2">
+                                                        {selectedNpc.memories.map((mem, i) => <li key={i}>{mem}</li>)}
+                                                    </ul>
+                                                ) : <p className="text-slate-500 text-center py-4">Chưa có ký ức đáng nhớ nào.</p>}
+                                            </Section>
+                                        </div>
                                     </div>
-                                </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
+                                        {[
+                                            SkillType.ATTACK, SkillType.DEFENSE,
+                                            SkillType.MOVEMENT, SkillType.CULTIVATION,
+                                            SkillType.SUPPORT, SkillType.SPECIAL,
+                                        ].map(skillType => {
+                                            const skill = selectedNpc.skills?.find(s => s.type === skillType);
+                                            return (
+                                                <div key={skillType} className="bg-slate-900/50 p-4 rounded-lg border border-slate-700/50 min-h-[180px] flex flex-col">
+                                                    <h5 className="font-bold text-cyan-300 mb-2">{skillType}</h5>
+                                                    {skill ? (
+                                                        <div className="space-y-3 flex-grow flex flex-col">
+                                                            <div className="flex-grow space-y-2">
+                                                                <h3 className="text-lg font-bold text-amber-300">{skill.name}</h3>
+                                                                <div className="flex items-baseline space-x-4 text-xs text-slate-400 border-b border-slate-700/50 pb-2">
+                                                                    <span>Phẩm chất: <span className="font-semibold text-slate-200">{skill.quality}</span></span>
+                                                                    <span>Cấp: <span className="font-semibold text-slate-200">{skill.level}</span></span>
+                                                                    <span>Tiêu hao: <span className="font-semibold text-blue-300">{skill.manaCost} MP</span></span>
+                                                                </div>
+                                                                <p className="text-sm text-slate-400 whitespace-pre-wrap">{skill.description}</p>
+                                                            </div>
+                                                            <div className="flex-shrink-0">
+                                                                <SkillExperienceBar 
+                                                                    value={skill.experience} 
+                                                                    level={skill.level}
+                                                                    quality={skill.quality}
+                                                                    qualityTiersString={worldSettings.qualityTiers}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex items-center justify-center h-full">
+                                                            <p className="text-slate-500 italic">Chưa tu luyện</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )
                             ) : (
                                 <div className="h-full flex items-center justify-center text-slate-500">
                                     <p>Chọn một nhân vật từ danh sách để xem chi tiết.</p>

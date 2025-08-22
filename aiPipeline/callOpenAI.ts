@@ -56,9 +56,10 @@ interface CallParams {
     isWorldGen?: boolean;
     isStateUpdate?: boolean;
     isNarrativeUpdate?: boolean;
+    maxTokens?: number;
 }
 
-export const callOpenAiApi = async ({ systemInstruction, prompt, apiKey, isWorldGen = false, isStateUpdate = false, isNarrativeUpdate = false }: CallParams): Promise<any> => {
+export const callOpenAiApi = async ({ systemInstruction, prompt, apiKey, isWorldGen = false, isStateUpdate = false, isNarrativeUpdate = false, maxTokens }: CallParams): Promise<any> => {
     log('callOpenAI.ts', `Calling OpenAI API (${isWorldGen ? 'WorldGen' : isStateUpdate ? 'StateUpdate' : isNarrativeUpdate ? 'Narrative' : 'Content'})...`, 'API');
     if (!apiKey) {
         log('callOpenAI.ts', 'OpenAI API Key is missing.', 'ERROR');
@@ -81,7 +82,7 @@ export const callOpenAiApi = async ({ systemInstruction, prompt, apiKey, isWorld
                     { role: "user", content: prompt }
                 ],
                 response_format: { type: "json_object" },
-                max_tokens: GAME_CONFIG.ai.maxOutputTokens
+                max_tokens: maxTokens ?? GAME_CONFIG.ai.maxOutputTokens
             })
         });
 

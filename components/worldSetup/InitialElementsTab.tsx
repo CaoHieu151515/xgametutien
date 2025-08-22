@@ -1,9 +1,10 @@
 
 
+
+
 import React, { useState } from 'react';
 import { CharacterProfile, WorldSettings, NewNPCFromAI, Location, Item, Skill } from '../../types';
 import { CollapsibleSection } from '../CollapsibleSection';
-import { TiersSection } from './sections/TiersSection';
 import { InitialItemsSection } from './sections/InitialItemsSection';
 import { InitialLocationsSection } from './sections/InitialLocationsSection';
 import { InitialNpcsSection } from './sections/InitialNpcsSection';
@@ -16,11 +17,12 @@ interface InitialElementsTabProps {
     worldSettings: WorldSettings;
     setProfile: React.Dispatch<React.SetStateAction<CharacterProfile>>;
     setWorldSettings: React.Dispatch<React.SetStateAction<WorldSettings>>;
+    onAiFillSkills: (npcId: string) => void;
+    isAiLoading: boolean;
 }
 
-export const InitialElementsTab: React.FC<InitialElementsTabProps> = ({ profile, worldSettings, setProfile, setWorldSettings }) => {
+export const InitialElementsTab: React.FC<InitialElementsTabProps> = ({ profile, worldSettings, setProfile, setWorldSettings, onAiFillSkills, isAiLoading }) => {
     const [openSections, setOpenSections] = useState({
-        tiers: true,
         items: false,
         locations: false,
         npcs: false,
@@ -33,21 +35,8 @@ export const InitialElementsTab: React.FC<InitialElementsTabProps> = ({ profile,
         setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
     };
 
-    const handleWorldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setWorldSettings(prev => ({ ...prev, [name]: value }));
-    };
-    
     return (
         <div className="space-y-4">
-            <CollapsibleSection
-                title="Phẩm Chất & Tư Chất"
-                isOpen={openSections.tiers}
-                onToggle={() => toggleSection('tiers')}
-            >
-                <TiersSection worldSettings={worldSettings} handleWorldChange={handleWorldChange} />
-            </CollapsibleSection>
-
             <CollapsibleSection
                 title="Vật Phẩm Khởi Đầu"
                 count={(profile.initialItems || []).length}
@@ -72,7 +61,13 @@ export const InitialElementsTab: React.FC<InitialElementsTabProps> = ({ profile,
                 isOpen={openSections.npcs}
                 onToggle={() => toggleSection('npcs')}
             >
-                <InitialNpcsSection profile={profile} worldSettings={worldSettings} setProfile={setProfile} />
+                <InitialNpcsSection 
+                    profile={profile} 
+                    worldSettings={worldSettings} 
+                    setProfile={setProfile}
+                    onAiFillSkills={onAiFillSkills}
+                    isAiLoading={isAiLoading}
+                />
             </CollapsibleSection>
             
              <CollapsibleSection

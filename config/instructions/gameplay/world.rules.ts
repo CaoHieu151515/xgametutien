@@ -1,10 +1,29 @@
-
 import { WorldSettings } from '../../../types';
 
 const worldDetailsInstruction = (worldSettings: WorldSettings | null): string => {
     let instruction = `- **Quy Tắc Tối Thượng về Luật Lệ Thế Giới (Thiên Đạo):** Các quy tắc được định nghĩa trong tệp này là nền tảng của thực tại. Tuy nhiên, các quy tắc do người chơi định nghĩa (được cung cấp trong prompt dưới mục 'Thiên Đạo') có quyền ưu tiên cao nhất. Bạn PHẢI tuân thủ chúng một cách tuyệt đối. Chúng có thể bổ sung hoặc ghi đè lên các quy tắc nền. Bạn phải tích hợp những luật lệ mới này vào câu chuyện một cách logic.
     - **Ví dụ:** Nếu quy tắc nền là 'cá biết bơi', và người chơi thêm quy tắc 'cá biết bay', thì thực tại mới là 'cá vừa biết bơi vừa biết bay', và bạn phải mô tả điều này một cách hợp lý trong câu chuyện.
 - **Thế giới:** Thế giới này cổ xưa, đầy rẫy các môn phái đối địch, kho báu ẩn giấu, những con thú hùng mạnh và hành trình tìm kiếm sự giác ngộ tâm linh và sức mạnh.
+
+**Tổng Quan Vũ Trụ & Bối Cảnh Thế Giới (CỰC KỲ CHI TIẾT - NỀN TẢNG CỐT LÕI)**
+
+Thế giới này là một vũ trụ đa tầng, rộng lớn và cổ xưa, được gọi chung là **Cửu Thiên Thập Địa**. Nó không chỉ là một hành tinh duy nhất mà là một tập hợp các thế giới, các cõi giới khác nhau được kết nối bởi những rào cản không gian mỏng manh hoặc các tinh lộ cổ xưa.
+
+*   **Cấu Trúc Cõi Giới:**
+    *   **Phàm Nhân Giới:** Là cõi giới nền tảng, nơi hàng tỷ sinh linh phàm tục sinh sống. Linh khí ở đây loãng nhất, tài nguyên tu luyện khan hiếm. Các đế quốc và vương triều của người thường thống trị mặt đất, với luật pháp và trật tự riêng. Tuy nhiên, họ sống dưới cái bóng của các thế lực tu tiên, vừa kính sợ vừa khao khát.
+    *   **Tu Chân Giới:** Tồn tại song song hoặc ở một tầng không gian cao hơn Phàm Nhân Giới. Đây là sân khấu chính của các tu sĩ. Linh khí ở đây nồng đậm, các dãy núi chứa đầy linh mạch, các bí cảnh cổ xưa ẩn chứa vô số cơ duyên. Các tông môn, gia tộc tu tiên phân chia lãnh thổ và tài nguyên, tạo nên một cục diện chính trị phức tạp và đầy xung đột.
+    *   **Linh Giới, Tiên Giới, Ma Giới, Yêu Giới:** Là các cõi giới cấp cao hơn, cần phải có tu vi cực kỳ thâm hậu và cơ duyên đặc biệt mới có thể phi thăng hoặc tìm được lối vào. Đây là quê hương của các chủng tộc và các hệ thống sức mạnh tương ứng.
+    *   **Thiên Đạo:** Là một ý chí vũ trụ vô hình, duy trì sự cân bằng của vạn vật. Mọi hành vi nghịch thiên đều có thể dẫn đến thiên kiếp. Tuy nhiên, Thiên Đạo không phải là không thể thay đổi; những đại năng đỉnh cao có thể ảnh hưởng đến nó, và các quy tắc do người chơi định nghĩa chính là một hình thức can thiệp vào Thiên Đạo.
+
+*   **Địa Lý & Môi Trường:**
+    *   Thế giới vô cùng đa dạng, từ những sa mạc chết chóc nơi ma khí ngưng tụ, những khu rừng rậm nguyên sinh ẩn chứa yêu thú thượng cổ, đến những quần đảo tiên khí lượn lờ giữa biển mây.
+    *   Các địa điểm nổi tiếng thường gắn liền với các sự kiện lịch sử hoặc các đại năng trong quá khứ, ví dụ: **Vạn Kiếm Mộ** nơi chôn cất hàng vạn tiên kiếm sau trận chiến Thần-Ma, hay **Luân Hồi Hải** là một vùng biển không gian hỗn loạn nơi quy luật thời gian bị bóp méo. Bạn được khuyến khích sáng tạo và đưa các địa danh hùng vĩ này vào câu chuyện.
+
+*   **Xã Hội & Văn Hóa Tu Tiên:**
+    *   **Tôn Sư Trọng Đạo:** Mối quan hệ sư đồ là cực kỳ thiêng liêng. Phản bội sư môn là một tội danh không thể dung thứ.
+    *   **Cá Lớn Nuốt Cá Bé:** Quy luật rừng rậm là chân lý tối cao. "Chân lý nằm trong tầm tay của kẻ mạnh". Việc đoạt bảo, giết người vì tài nguyên tu luyện là chuyện thường ngày. Tuy nhiên, hành động công khai chống lại các thế lực lớn hoặc vi phạm các quy tắc ngầm của một khu vực sẽ dẫn đến sự truy sát bất tận.
+    *   **Tán Tu và Tông Môn:** Tán tu là những tu sĩ đơn độc, tự do nhưng thiếu thốn tài nguyên và sự bảo hộ. Đệ tử tông môn có được sự hỗ trợ to lớn nhưng phải tuân thủ các quy tắc nghiêm ngặt và đối mặt với sự cạnh tranh khốc liệt từ các đồng môn.
+    *   **Đan, Khí, Trận, Phù:** Ngoài việc chiến đấu, các ngành nghề phụ như Luyện Đan Sư, Luyện Khí Sư, Trận Pháp Sư và Phù Sư có địa vị cực kỳ cao trong xã hội tu tiên và được mọi thế lực săn đón.
 - **Tình Cảm Gia Đình & Hiếu Đạo (QUAN TRỌNG):** Trong thế giới này, tình cảm gia đình được coi là thiêng liêng và vượt trên nhiều giá trị khác. Hiếu đạo (kính trọng và phụng dưỡng cha mẹ) là một chuẩn mực đạo đức tối cao. Bạn phải thể hiện điều này trong câu chuyện. Các nhân vật sẽ phản ứng rất tiêu cực với hành vi bất hiếu, và nó có thể dẫn đến những hậu quả nghiêm trọng như bị khai trừ khỏi gia tộc hoặc mất đi sự tôn trọng.
 - **Quy tắc Kinh tế & Giá cả (CỰC KỲ QUAN TRỌNG):** Để đảm bảo tính nhất quán và thực tế, thế giới này tuân thủ các quy tắc kinh tế sau:
     - **Một loại tiền tệ chính:** Chỉ có MỘT loại tiền tệ chính thức, được định nghĩa trong \`characterProfile.currencyName\` (ví dụ: 'Linh Thạch'). Đây là đơn vị tiền tệ dùng trong giới tu luyện.
@@ -94,7 +113,7 @@ const initialKnowledgeInstruction = (worldSettings: WorldSettings | null): strin
         : '    - Không có tri thức khởi đầu nào được định nghĩa.';
     
     return `
-- **Tri Thức Thế Giới Khởi Đầu (Lore):** Dưới đây là những sự thật và khái niệm cốt lõi của thế giới. Bạn PHẢI tuân thủ những điều này và sử dụng chúng để làm phong phú thêm câu chuyện. Những tri thức này là nền tảng, không thể thay đổi.
+- **Tri Thức Thế Giới Khởi Đầu (Tri Thức):** Dưới đây là những sự thật và khái niệm cốt lõi của thế giới. Bạn PHẢI tuân thủ những điều này và sử dụng chúng để làm phong phú thêm câu chuyện. Những tri thức này là nền tảng, không thể thay đổi.
     - **Hệ thống Đẳng cấp Đan Sư (Bất biến):** Đây là hệ thống xếp hạng chính thức cho các luyện đan sư trong thế giới, được dùng để trao danh hiệu và thành tích. Hệ thống bao gồm 7 đại cảnh giới: Sơ Cấp Đan Sư → Trung Cấp Đan Sư → Cao Cấp Đan Sư → Địa Cấp Đan Sư → Thiên Cấp Đan Sư → Thánh Cấp Đan Sư → Thần Cấp Đan Sư. Mỗi đại cảnh giới lại được chia thành 3 tiểu cảnh giới: Tiểu Thành, Đại Thành, và Viên Mãn.
     - **Hệ thống Đẳng cấp Tạo Vật Sư (Bất biến):** Đây là hệ thống xếp hạng chính thức cho các nghệ nhân chế tạo pháp khí, pháp bảo, chiến giáp. Hệ thống bao gồm 10 đại cảnh giới: Tập Sự → Sơ Cấp → Trung Cấp → Cao Cấp → Địa Cấp → Thiên Cấp → Huyền Cấp → Thánh Cấp → Thần Cấp → Chí Tôn Tạo Vật Sư. Mỗi đại cảnh giới lại được chia thành 3 tiểu cảnh giới: Tiểu Thành, Đại Thành, và Viên Mãn.
 ${initialKnowledgeList}

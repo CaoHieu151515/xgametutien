@@ -93,6 +93,11 @@ export const generateNotifications = (
             if (update.innateTalent && (!originalNpc.innateTalent || originalNpc.innateTalent.name !== update.innateTalent.name)) {
                 notifications.push(`🌟 <b>${originalNpc.name}</b> đã thức tỉnh thiên phú bẩm sinh: <b>${update.innateTalent.name}</b>!`);
             }
+             if (update.newlyLearnedSkills?.length) {
+                update.newlyLearnedSkills.forEach(skill => {
+                    notifications.push(`📖 <b>${originalNpc.name}</b> đã học được kỹ năng mới: <b>${skill.name}</b>!`);
+                });
+            }
         });
     }
 

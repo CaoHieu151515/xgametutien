@@ -28,6 +28,7 @@ export const SkillsTab: React.FC<SkillsTabProps> = ({ profile, worldSettings }) 
                         <div className="flex items-baseline space-x-4 text-sm text-slate-400 border-b border-slate-700/50 pb-3">
                             <span>Phẩm chất: <span className="font-semibold text-slate-200">{skill.quality}</span></span>
                             <span>Cấp: <span className="font-semibold text-slate-200">{skill.level} {skill.level === 10 ? '(Viên Mãn)' : ''}</span></span>
+                             <span>Tiêu hao: <span className="font-semibold text-blue-300">{skill.manaCost} Linh Lực</span></span>
                         </div>
 
                         <SkillExperienceBar 

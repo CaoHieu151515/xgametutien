@@ -1,5 +1,7 @@
 
 
+
+
 export interface GameEventLogEntry {
   turnNumber: number;
   entry: string;
@@ -69,6 +71,7 @@ export interface Skill {
   experience: number;
   description: string;
   effect: string;
+  manaCost: number;
   isNew?: boolean;
 }
 
@@ -78,7 +81,7 @@ export interface SkillUpdate {
 }
 
 export enum LocationType {
-  WORLD = 'THẾ GIỚỚI',
+  WORLD = 'THẾ GIỚI',
   CITY = 'THÀNH TRẤN',
   THE_LUC = 'THẾ LỰC',
   TOWN = 'THÔN LÀNG',
@@ -142,6 +145,7 @@ export interface NewNPCFromAI {
   statusEffects: StatusEffect[];
   npcRelationships?: NpcRelationship[];
   isDaoLu?: boolean; // Trạng thái bạn đời
+  skills?: Skill[];
 }
 
 export interface NPC extends NewNPCFromAI {
@@ -152,6 +156,7 @@ export interface NPC extends NewNPCFromAI {
   // Progression
   experience: number;
   realm: string; // Cảnh giới (được tính toán)
+  skills: Skill[];
 
   // Relationships & Memory
   relationship?: number; // Quan hệ với người chơi, -1000 to 1000. Not set until first interaction.
@@ -186,6 +191,8 @@ export interface NPCUpdate {
     updatedNpcRelationships?: NpcRelationship[];
     isDaoLu?: boolean; // Cập nhật trạng thái bạn đời
     isDead?: boolean; // Cập nhật trạng thái đã chết
+    updatedSkills?: SkillUpdate[];
+    newlyLearnedSkills?: Skill[];
 }
 
 export interface Monster {
@@ -214,7 +221,7 @@ export interface StoryResponse {
   updatedGameTime?: string; // ISO 8601 string for major time skips
   updatedGender?: CharacterGender;
   updatedSkills?: SkillUpdate[];
-  newSkills?: Skill[]; // AI sẽ cung cấp dữ liệu một phần, ứng dụng sẽ hoàn thiện nó.
+  newSkills?: Omit<Skill, 'id' | 'experience' | 'isNew' | 'level'>[];
   newLocations?: Location[];
   updatedLocations?: Location[]; // Các địa điểm đã tồn tại nhưng có sự thay đổi (vd: chủ sở hữu, luật lệ, bị phá hủy)
   updatedPlayerLocationId?: string | null;
@@ -331,6 +338,7 @@ export interface Item {
     isEquipped?: boolean;
     equipmentDetails?: EquipmentDetails;
     effectsDescription?: string;
+    grantsSkill?: Omit<Skill, 'id' | 'experience' | 'isNew'>;
     isNew?: boolean;
 }
 

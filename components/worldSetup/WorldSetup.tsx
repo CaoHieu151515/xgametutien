@@ -1,9 +1,19 @@
 
 
+
+
+
+
+
+
+
+
+
+
 import React, { useState, useRef } from 'react';
 import { CharacterProfile, CharacterGender, WorldSettings, PowerSystemDefinition, Skill, NewNPCFromAI, Location, Item, ApiProvider, SkillType, LocationType, ItemType } from '../../types';
 import { Loader } from '../Loader';
-import { getLevelFromRealmName, getRealmDisplayName } from '../../services/progressionService';
+import { getLevelFromRealmName, getRealmDisplayName, calculateManaCost } from '../../services/progressionService';
 import * as geminiService from '../../services/geminiService';
 import * as openaiService from '../../services/openaiService';
 import { TabButton, WandIcon } from './common';
@@ -35,8 +45,8 @@ const initialWorldSettings: WorldSettings = {
     genre: 'Tu Tiên (Mặc định)',
     context: '',
     powerSystems: defaultPowerSystems,
-    qualityTiers: 'Phàm Phẩm - Linh Phẩm - Tiên Phẩm - Thánh Phẩm - Thần Phẩm - Hỗn Độn Phẩm',
-    aptitudeTiers: 'Phàm Nhân - Hoàng Giả - Vương Giả - Đế Giả - Thánh Nhân - Tiên Nhân',
+    qualityTiers: 'Phổ Thông - Hiếm - Sử Thi - Truyền Thuyết - Thần Thoại - Thần Khí',
+    aptitudeTiers: 'Phàm Cốt - Linh Cốt - Tiên Cốt - Thần Cốt - Thánh Cốt - Tổ Cốt',
     playerDefinedRules: [],
     initialKnowledge: [],
 };
@@ -182,6 +192,26 @@ export const WorldSetup: React.FC<WorldSetupProps> = ({ onStartGame, onBackToMen
         }
 
         finalProfile.realm = '';
+
+        // Calculate mana cost for all initial skills
+        const calculateSkillManaCost = (skill: Skill | Partial<Skill> | undefined) => {
+            if (skill) {
+                // @ts-ignore
+                skill.manaCost = calculateManaCost(skill, worldSettings.qualityTiers);
+            }
+            return skill;
+        };
+        // @ts-ignore
+        finalProfile.skills = finalProfile.skills.map(calculateSkillManaCost);
+        finalProfile.initialNpcs = (finalProfile.initialNpcs || []).map(npc => ({
+            ...npc,
+            skills: (npc.skills || []).map(calculateSkillManaCost as (skill: Skill) => Skill)
+        }));
+        finalProfile.initialItems = (finalProfile.initialItems || []).map(item => ({
+            ...item,
+            grantsSkill: calculateSkillManaCost(item.grantsSkill) as Omit<Skill, 'id' | 'experience' | 'isNew'> | undefined
+        }));
+
         onStartGame(finalProfile, worldSettings);
     };
 
@@ -302,12 +332,52 @@ export const WorldSetup: React.FC<WorldSetupProps> = ({ onStartGame, onBackToMen
             setWorldSettings(mergedWorldSettings);
             setStartingLevelOrRealm(getRealmDisplayName(mergedProfile.level, mergedProfile.powerSystem, mergedWorldSettings));
 
-            alert('AI đã điền xong thông tin! Vui lòng kiểm tra các tab Nhân vật, Thế giới và Yếu tố ban đầu.');
-            setActiveTab('character');
+            alert('AI đã điền xong thông tin! Vui lòng kiểm tra các tab Thế giới, Nhân vật và Yếu tố ban đầu.');
+            setActiveTab('world');
         } catch (err) {
             const error = err as Error;
             console.error("Lỗi chi tiết khi tạo thế giới:", error);
             setError(`Lỗi khi tạo thế giới bằng AI: ${error.message}. Vui lòng kiểm tra console (F12) để xem chi tiết.`);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleAiFillNpcSkills = async (npcId: string) => {
+        const targetNpc = profile.initialNpcs?.find(n => n.id === npcId);
+        if (!targetNpc) {
+            setError('Không tìm thấy NPC để điền kỹ năng.');
+            return;
+        }
+        
+        setError('');
+        setIsLoading(true);
+        try {
+            const generateSkills = apiProvider === ApiProvider.OPENAI ? openaiService.generateNpcSkills : geminiService.generateNpcSkills;
+            const newSkillsData = await generateSkills(targetNpc, worldSettings, apiKey);
+            
+            const newSkills: Skill[] = newSkillsData.map(s => ({
+                ...s,
+                id: `npcskill_${npcId}_${Date.now()}_${s.name.replace(/\s+/g, '')}`,
+                level: 1,
+                experience: 0,
+                isNew: true,
+                manaCost: 0, // Will be calculated later
+            }));
+            
+            setProfile(prev => ({
+                ...prev,
+                initialNpcs: (prev.initialNpcs || []).map(npc => 
+                    npc.id === npcId ? { ...npc, skills: newSkills } : npc
+                )
+            }));
+            
+            alert(`AI đã tạo ${newSkills.length} kỹ năng cho ${targetNpc.name}.`);
+
+        } catch (err) {
+            const error = err as Error;
+            console.error("Lỗi khi AI tạo kỹ năng cho NPC:", error);
+            setError(`Lỗi khi AI tạo kỹ năng: ${error.message}.`);
         } finally {
             setIsLoading(false);
         }
@@ -323,8 +393,8 @@ export const WorldSetup: React.FC<WorldSetupProps> = ({ onStartGame, onBackToMen
             <div className="flex-shrink-0 px-6 border-b border-slate-700">
                 <nav className="flex space-x-4">
                     <TabButton isActive={activeTab === 'idea'} onClick={() => setActiveTab('idea')}>Ý Tưởng & AI</TabButton>
-                    <TabButton isActive={activeTab === 'character'} onClick={() => setActiveTab('character')}>Nhân Vật</TabButton>
                     <TabButton isActive={activeTab === 'world'} onClick={() => setActiveTab('world')}>Thế Giới</TabButton>
+                    <TabButton isActive={activeTab === 'character'} onClick={() => setActiveTab('character')}>Nhân Vật</TabButton>
                     <TabButton isActive={activeTab === 'elements'} onClick={() => setActiveTab('elements')}>Yếu Tố Ban Đầu</TabButton>
                 </nav>
             </div>
@@ -333,7 +403,7 @@ export const WorldSetup: React.FC<WorldSetupProps> = ({ onStartGame, onBackToMen
                     {activeTab === 'idea' && <IdeaTab worldSettings={worldSettings} handleWorldChange={handleWorldChange} handleGenerateWorld={handleGenerateWorld} isLoading={isLoading} error={error} />}
                     {activeTab === 'character' && <CharacterTab profile={profile} worldSettings={worldSettings} handleProfileChange={handleProfileChange} startingLevelOrRealm={startingLevelOrRealm} setStartingLevelOrRealm={setStartingLevelOrRealm} error={error} />}
                     {activeTab === 'world' && <WorldTab worldSettings={worldSettings} handleWorldChange={handleWorldChange} handlePowerSystemChange={handlePowerSystemChange} handleAddPowerSystem={handleAddPowerSystem} handleRemovePowerSystem={handleRemovePowerSystem} />}
-                    {activeTab === 'elements' && <InitialElementsTab profile={profile} worldSettings={worldSettings} setProfile={setProfile} setWorldSettings={setWorldSettings} />}
+                    {activeTab === 'elements' && <InitialElementsTab profile={profile} worldSettings={worldSettings} setProfile={setProfile} setWorldSettings={setWorldSettings} onAiFillSkills={handleAiFillNpcSkills} isAiLoading={isLoading} />}
                 </form>
             </div>
             <div className="flex-shrink-0 p-4 border-t border-slate-700 bg-slate-900/50 flex justify-between items-center">

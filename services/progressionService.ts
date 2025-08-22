@@ -1,3 +1,4 @@
+
 import { CharacterProfile, WorldSettings, Skill, NPC, Item, StatusEffect } from '../types';
 import { log } from './logService';
 import { GAME_CONFIG } from '../config/gameConfig';
@@ -16,6 +17,22 @@ export const getSkillExperienceForNextLevel = (level: number, quality: string, q
     const baseExp = base * Math.pow(level, exponent);
     
     return Math.round(baseExp * finalQualityMultiplier);
+};
+
+export const calculateManaCost = (
+    skill: Pick<Skill, 'quality' | 'level' | 'type'>, 
+    qualityTiersString: string
+): number => {
+    const { base, perLevel, qualityMultiplier, typeMultiplier } = GAME_CONFIG.progression.manaCost;
+    const qualityTiers = qualityTiersString.split(' - ').map(q => q.trim()).filter(Boolean);
+    const qualityIndex = qualityTiers.indexOf(skill.quality);
+    
+    const finalQualityMultiplier = qualityIndex >= 0 ? Math.pow(qualityMultiplier, qualityIndex) : 1;
+    const finalTypeMultiplier = typeMultiplier[skill.type] || 1.0;
+    
+    const cost = (base + (skill.level - 1) * perLevel) * finalQualityMultiplier * finalTypeMultiplier;
+    
+    return Math.max(1, Math.round(cost));
 };
 
 export const getRealmDisplayName = (level: number, powerSystemName: string, worldSettings: WorldSettings | null): string => {
@@ -247,6 +264,8 @@ export const processSkillLevelUps = (
             updatedSkill.experience = xpForNextLevel;
         }
     }
+
+    updatedSkill.manaCost = calculateManaCost(updatedSkill, qualityTiersString);
 
     return { updatedSkill, breakthroughInfo };
 };

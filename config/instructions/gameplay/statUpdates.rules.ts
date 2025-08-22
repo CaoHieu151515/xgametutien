@@ -1,5 +1,6 @@
 
 
+
 export const statUpdatesInstruction = `
 **MỆNH LỆNH TUYỆT ĐỐI: CẬP NHẬT TRẠNG THÁI MÁY MÓC**
 
@@ -91,6 +92,7 @@ Sau khi đã đảm bảo lệnh cập nhật JSON được tạo, bạn PHẢI 
 
 **A. Kinh nghiệm, Cấp độ và Kỹ năng (Áp dụng cho cả người chơi và NPC):**
 -   **Kinh nghiệm Nhân vật & NPC:** Trao thưởng điểm kinh nghiệm qua 'gainedExperience' cho các hành động. Hệ thống sẽ tự xử lý việc lên cấp.
+-   **Sử dụng Kỹ năng & Tiêu hao Linh Lực (MỆNH LỆNH):** Bất cứ khi nào câu chuyện mô tả một nhân vật (người chơi hoặc NPC) sử dụng một kỹ năng có tên, bạn **BẮT BUỘC** phải tìm kỹ năng đó trong dữ liệu được cung cấp và trừ đi lượng Linh Lực (\`mana\`) tương ứng với \`manaCost\` của kỹ năng đó. Việc này phải được phản ánh trong \`updatedStats\` (cho người chơi) hoặc trong đối tượng tương ứng trong \`updatedNPCs\` bằng cách cung cấp một giá trị âm (ví dụ: \`"mana": -50\`).
 -   **Kinh nghiệm Kỹ năng (HỌC BẰNG CÁCH LÀM):** Bất cứ khi nào một nhân vật (người chơi hoặc NPC) sử dụng một kỹ năng trong 'story', bạn **PHẢI** trao thưởng kinh nghiệm cho kỹ năng đó qua 'updatedSkills' (cho người chơi) hoặc suy ra từ logic cho NPC.
 -   **Đột Phá Cảnh Giới Trực Tiếp:** Nếu câu chuyện mô tả một nhân vật (người chơi hoặc NPC) đột phá đến một cảnh giới cụ thể, bạn **PHẢI** sử dụng trường 'breakthroughToRealm' để chỉ định cảnh giới mới.
 -   **Thức Tỉnh Huyết Mạch & Trạng Thái Mới:** Khi một nhân vật (người chơi hoặc NPC) thức tỉnh một năng lực mới, bạn **BẮT BUỘC** phải tạo ra một \`StatusEffect\` tương ứng và thêm vào 'newStatusEffects'.

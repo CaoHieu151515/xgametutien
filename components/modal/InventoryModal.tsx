@@ -1,14 +1,15 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
-import { CharacterProfile, Item, ItemType, EquipmentSlot, EquipmentType, EquipmentStat } from '../../types';
+import { CharacterProfile, Item, ItemType, EquipmentSlot, EquipmentType, EquipmentStat, NPC, Choice } from '../../types';
 import { recalculateDerivedStats } from '../../services/progressionService';
 
 interface InventoryModalProps {
     isOpen: boolean;
     onClose: () => void;
     profile: CharacterProfile;
+    npcs: NPC[]; // Add npcs to props
     onUpdateProfile: (newProfile: CharacterProfile) => void;
-    onUseItem: (item: Item) => void;
+    onUseItem: (item: Item, npcId?: string) => void;
+    onAction: (choice: Choice) => void; // Add onAction to props
 }
 
 const itemTypeFilters = ['Tất cả', ...Object.values(ItemType)];
@@ -74,14 +75,16 @@ const statTranslations: Record<EquipmentStat['key'], string> = {
     maxMana: 'Linh Lực Tối Đa',
 };
 
-export const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, onClose, profile, onUpdateProfile, onUseItem }) => {
+export const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, onClose, profile, npcs, onUpdateProfile, onUseItem, onAction }) => {
     const [itemTypeFilter, setItemTypeFilter] = useState('Tất cả');
     const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+    const [giveTargetNpcId, setGiveTargetNpcId] = useState('');
 
     useEffect(() => {
         if (!isOpen) {
             setItemTypeFilter('Tất cả');
             setSelectedItemId(null);
+            setGiveTargetNpcId('');
         }
     }, [isOpen]);
     
@@ -93,6 +96,9 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, onClose,
         if (itemTypeFilter === 'Tất cả') return unequipped;
         return unequipped.filter(item => item.type === itemTypeFilter);
     }, [profile.items, itemTypeFilter]);
+    
+    const livingNpcs = useMemo(() => npcs.filter(npc => !npc.isDead), [npcs]);
+
 
     const handleEquipItem = (itemToEquip: Item, slot: EquipmentSlot) => {
         if (!itemToEquip.equipmentDetails) return;
@@ -145,6 +151,22 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, onClose,
 
     const handleUse = (item: Item) => {
         onUseItem(item);
+        onClose();
+    };
+    
+    const handleGiveItem = () => {
+        if (!selectedItem || !giveTargetNpcId) return;
+        const targetNpc = npcs.find(n => n.id === giveTargetNpcId);
+        if (!targetNpc) return;
+
+        const choice: Choice = {
+            title: `(Hệ thống) Tặng vật phẩm '${selectedItem.name}' (ID: ${selectedItem.id}) cho NPC '${targetNpc.name}' (ID: ${targetNpc.id})`,
+            benefit: `${targetNpc.name} sẽ nhận được vật phẩm.`,
+            risk: 'Không có.',
+            successChance: 100,
+            durationInMinutes: 5,
+        };
+        onAction(choice);
         onClose();
     };
 
@@ -294,6 +316,20 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, onClose,
                                         )}
                                         {selectedItem.type === ItemType.DUOC_PHAM && (
                                             <button onClick={() => handleUse(selectedItem)} className="w-full py-2 bg-green-600 text-white font-bold rounded-lg hover:bg-green-500 transition-colors text-sm">Sử Dụng</button>
+                                        )}
+                                        {selectedItem.type === ItemType.BI_KIP && !isSelectedItemEquipped && (
+                                            <div className="border-t border-slate-700 pt-3 mt-3 space-y-2">
+                                                 <h4 className="text-sm font-bold text-center text-slate-300">Tặng cho NPC</h4>
+                                                 <div className="flex items-center gap-2">
+                                                    <select value={giveTargetNpcId} onChange={e => setGiveTargetNpcId(e.target.value)} className="w-full p-2 bg-slate-700 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400">
+                                                        <option value="">-- Chọn NPC --</option>
+                                                        {livingNpcs.map(npc => (
+                                                            <option key={npc.id} value={npc.id}>{npc.name}</option>
+                                                        ))}
+                                                    </select>
+                                                    <button onClick={handleGiveItem} disabled={!giveTargetNpcId} className="px-5 py-2 bg-purple-600 text-white font-bold rounded-lg hover:bg-purple-500 transition-colors disabled:opacity-50 flex-shrink-0 text-sm">Tặng</button>
+                                                 </div>
+                                            </div>
                                         )}
                                     </div>
                                 </div>

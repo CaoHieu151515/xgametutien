@@ -1,15 +1,16 @@
 
 import {
     StoryResponse, NarrativePerspective, CharacterGender, CharacterProfile,
-    WorldSettings, NPC, Skill, StoryApiResponse
+    WorldSettings, NPC, Skill, StoryApiResponse, NewNPCFromAI
 } from '../types';
 import { getSystemInstruction } from '../config/instructions';
 import { log } from './logService';
 import {
-    buildUnifiedPrompt, buildInitialStoryPrompt, buildWorldGenPrompt, buildNewSkillDescriptionPrompt
+    buildUnifiedPrompt, buildInitialStoryPrompt, buildWorldGenPrompt, buildNewSkillDescriptionPrompt, buildNpcSkillsGenPrompt
 } from '../aiPipeline/prompts';
 import { callOpenAiApi } from '../aiPipeline/callOpenAI';
 import { parseAndValidateJson, validateWorldGenResponse } from '../aiPipeline/validate';
+import { GAME_CONFIG } from '../config/gameConfig';
 
 const getApiResponse = (data: any): StoryApiResponse => {
     const storyResponse = parseAndValidateJson<StoryResponse>(data.choices[0].message.content);
@@ -62,7 +63,13 @@ export const getInitialStory = async (
 export const generateWorldFromIdea = async (storyIdea: string, openingScene: string, apiKey: string): Promise<{ characterProfile: CharacterProfile, worldSettings: WorldSettings }> => {
     const systemInstruction = `Bạn là một người sáng tạo thế giới và viết truyện chuyên nghiệp cho một trò chơi nhập vai tương tác. Nhiệm vụ của bạn là tạo ra một thế giới phong phú và một nhân vật chính hấp dẫn dựa trên ý tưởng của người dùng.`;
     const prompt = buildWorldGenPrompt(storyIdea, openingScene);
-    const data = await callOpenAiApi({ systemInstruction, prompt, apiKey, isWorldGen: true });
+    const data = await callOpenAiApi({ 
+        systemInstruction, 
+        prompt, 
+        apiKey, 
+        isWorldGen: true, 
+        maxTokens: GAME_CONFIG.worldGen.ai.maxOutputTokens 
+    });
     const result = parseAndValidateJson<any>(data.choices[0].message.content);
     validateWorldGenResponse(result);
     return result as { characterProfile: CharacterProfile, worldSettings: WorldSettings };
@@ -88,6 +95,30 @@ export const generateNewSkillDescription = async (
         const err = e as Error;
         if (err.message.includes("JSON")) {
              console.error("Failed to parse JSON response from OpenAI for skill description:", err);
+             throw new Error("Lỗi phân tích phản hồi từ AI (OpenAI). Phản hồi không phải là một JSON hợp lệ.");
+        }
+        throw err;
+    }
+};
+
+export const generateNpcSkills = async (
+    npc: NewNPCFromAI,
+    worldSettings: WorldSettings,
+    apiKey: string
+): Promise<Omit<Skill, 'id' | 'experience' | 'level' | 'isNew'>[]> => {
+    log('openaiService.ts', `Generating skills for NPC: ${npc.name}`, 'API');
+    const systemInstruction = `You are a creative game designer for a fantasy RPG. Your task is to design a set of starting skills for an NPC based on their profile. You MUST respond with a single, valid JSON array of skill objects in Vietnamese. Each skill object must have a unique 'type'. Do not generate more than 6 skills.`;
+    const prompt = buildNpcSkillsGenPrompt(npc, worldSettings);
+    
+    try {
+        const data = await callOpenAiApi({ systemInstruction, prompt, apiKey });
+        const result = parseAndValidateJson<Omit<Skill, 'id' | 'experience' | 'level' | 'isNew'>[]>(data.choices[0].message.content);
+        log('openaiService.ts', `NPC skills generation successful for ${npc.name}.`, 'API');
+        return result;
+    } catch (e) {
+        const err = e as Error;
+        if (err.message.includes("JSON")) {
+             console.error("Failed to parse JSON response from OpenAI for NPC skills:", err);
              throw new Error("Lỗi phân tích phản hồi từ AI (OpenAI). Phản hồi không phải là một JSON hợp lệ.");
         }
         throw err;

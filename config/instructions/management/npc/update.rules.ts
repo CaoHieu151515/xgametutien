@@ -5,6 +5,7 @@ export const getNpcUpdateRules = (daoLuTermPlayer: string, playerGenderVietnames
 -   **Cập nhật NPC:**
     -   Sử dụng mảng 'updatedNPCs' để sửa đổi các NPC đã tồn tại. Chỉ bao gồm 'id' và các trường đã thay đổi.
     -   **Kinh nghiệm và Đột phá:** Cung cấp 'gainedExperience' hoặc 'breakthroughToRealm' để NPC tiến bộ.
+    -   **Xử lý Time Skip & Tu luyện Tự động:** Khi bạn xử lý một hành động tua nhanh thời gian (ví dụ: 'tua nhanh X lượt'), bạn **BẮT BUỘC** phải tính toán sự tiến bộ cho tất cả các NPC đang sống. Đối với MỖI kỹ năng hiện có của MỖI NPC, hãy trao cho họ \`X * 5\` điểm kinh nghiệm. Sử dụng mảng \`updatedNPCs[...].updatedSkills\` để ghi lại những thay đổi này. Nếu một kỹ năng lên cấp hoặc đột phá phẩm chất, bạn PHẢI đề cập đến điều này trong bản tóm tắt 'story'.
     -   **QUY TẮC HỒI PHỤC HOÀN TOÀN (LOGIC CỐT LÕI):** Nếu trong câu chuyện, một NPC sử dụng một kỹ năng hoặc vật phẩm có tác dụng **hồi phục hoàn toàn/đầy** sinh lực và linh lực, bạn **BẮT BUỘC** phải đặt trường \`"usedFullRestoreSkill": true\` trong đối tượng cập nhật của NPC đó. Hệ thống sẽ tự động tính toán và đặt lại sinh lực/linh lực về mức tối đa. **KHÔNG** cần cung cấp giá trị cho \`health\` và \`mana\` trong trường hợp này.
     -   **Quan hệ:** Trường 'relationship' phản ánh mối quan hệ của NPC với người chơi. Nó là một số từ -1000 (kẻ thù không đội trời chung) đến 1000 (tri kỷ, đạo lữ).
         -   Hành động tích cực (giúp đỡ, tặng quà): tăng điểm.
@@ -134,4 +135,59 @@ export const getNpcUpdateRules = (daoLuTermPlayer: string, playerGenderVietnames
 
 **4.3. Khám phá Nhóm NPC:**
 - Khi bạn tạo ra một nhóm NPC mới cùng lúc trong \`newNPCs\` và câu chuyện cho thấy họ đã quen biết nhau từ trước (ví dụ: một nhóm bạn, một gia đình), bạn **PHẢI** định nghĩa các mối quan hệ tương hỗ của họ với nhau trong trường \`npcRelationships\` của mỗi NPC ngay từ đầu.
-`
+
+---
+**MỆNH LỆNH NÂNG CAO: PHÁT TRIỂN KỸ NĂNG NPC THEO CỐT TRUYỆN (DO NGƯỜI CHƠI DẪN DẮT)**
+---
+
+Đây là một cơ chế tương tác sâu, cho phép người chơi, dựa trên kiến thức và năng lực của chính mình, trực tiếp bồi dưỡng kỹ năng cho NPC. Bạn PHẢI diễn giải các hành động tùy chỉnh của người chơi và chuyển hóa chúng thành các cập nhật logic.
+
+**A. NHẬN DIỆN HÀNH ĐỘNG:**
+*   **Từ khóa kích hoạt:** "dạy", "chỉ điểm", "truyền thụ", "cải tiến", "nâng cấp", "thêm thuộc tính", "truyền bản nguyên".
+*   **Ví dụ hành động:**
+    *   "> Ta sẽ dạy cho Mộng Liên Vô Ảnh Kiếm Pháp."
+    *   "> Dùng kiến thức luyện đan của ta để cải tiến Hồi Xuân Thuật cho nàng."
+    *   "> Truyền một tia lôi đình bản nguyên vào kiếm pháp của Lý Hàn."
+
+**B. CÁC KỊCH BẢN XỬ LÝ (MỆNH LỆNH LOGIC):**
+
+Bạn PHẢI phân tích hành động của người chơi để xác định họ đang thực hiện kịch bản nào dưới đây.
+
+**KỊCH BẢN 1: TRUYỀN THỤ KỸ NĂNG MỚI**
+*   **Điều kiện:** Hành động của người chơi là dạy cho NPC một kỹ năng cụ thể mà **chính người chơi đã sở hữu**.
+*   **Quy trình Bắt buộc:**
+    1.  **Xác thực:** Kiểm tra danh sách kỹ năng của người chơi (\`characterProfile.skills\`) để xác nhận họ thực sự biết kỹ năng đó. Nếu không, hành động thất bại và mô tả sự thất bại trong 'story'.
+    2.  **Tạo Kỹ năng Mới:** Nếu hợp lệ, tạo một đối tượng kỹ năng mới cho NPC. Kỹ năng này sẽ là phiên bản cấp 1, phẩm chất thấp nhất của kỹ năng gốc.
+    3.  **Cập nhật JSON (QUAN TRỌNG):**
+        *   Trong mảng \`updatedNPCs\`, tìm đúng NPC.
+        *   Thêm đối tượng kỹ năng mới vừa tạo vào mảng \`newlyLearnedSkills\` của NPC đó.
+*   **Ví dụ:**
+    *   **Hành động:** "> Ta dạy cho Mộng Liên Vô Ảnh Kiếm Pháp."
+    *   **JSON:** \`"updatedNPCs": [{ "id": "id_mong_lien", "newlyLearnedSkills": [{ "id": "...", "name": "Vô Ảnh Kiếm Pháp", "type": "Công Kích", "quality": "Phàm Phẩm", "level": 1, "experience": 0, "description": "...", "effect": "..." }] }]\`
+
+**KỊCH BẢN 2: CẢI TIẾN/NÂNG CẤP KỸ NĂNG HIỆN CÓ**
+*   **Điều kiện:** Hành động của người chơi là dùng kiến thức chuyên môn hoặc tu vi cao thâm của mình để nâng cấp một kỹ năng mà NPC **đã có**.
+*   **Quy trình Bắt buộc:**
+    1.  **Xác thực Năng lực:** Đánh giá xem người chơi có đủ khả năng không (ví dụ: có kỹ năng liên quan ở phẩm chất cao hơn, cảnh giới cao hơn đáng kể). Nếu không, hành động thất bại.
+    2.  **Sáng tạo Phiên bản Nâng cấp:** Nếu hợp lệ, bạn PHẢI tự mình sáng tạo ra một phiên bản mạnh mẽ hơn của kỹ năng gốc.
+        *   **Tên mới:** Đặt một cái tên mới, hoành tráng hơn (ví dụ: "Hồi Xuân Thuật" → "Vạn Mộc Hồi Xuân Thuật").
+        *   **Mô tả & Hiệu ứng mới:** Viết lại mô tả và hiệu ứng để thể hiện sức mạnh vượt trội.
+        *   **Phẩm chất (Tùy chọn):** Có thể tăng phẩm chất lên một bậc.
+    3.  **Cập nhật JSON (LOGIC THAY THẾ - CỰC KỲ QUAN TRỌNG):**
+        *   Trong mảng \`updatedNPCs\`, tìm đúng NPC.
+        *   Tạo một đối tượng kỹ năng đầy đủ cho phiên bản **đã được nâng cấp**.
+        *   Thêm đối tượng kỹ năng MỚI này vào mảng \`newlyLearnedSkills\`. **Hệ thống sẽ tự động dùng nó để GHI ĐÈ lên kỹ năng cũ cùng loại (\`SkillType\`).**
+
+**KỊCH BẢN 3: THÊM THUỘC TÍNH MỚI VÀO KỸ NĂNG**
+*   **Điều kiện:** Hành động của người chơi là dùng năng lực đặc biệt của mình (ví dụ: thể chất Lôi Linh, Hỏa Linh Căn) để truyền một thuộc tính mới vào kỹ năng của NPC.
+*   **Quy trình Bắt buộc:**
+    1.  **Sáng tạo Phiên bản Mới:** Tương tự như nâng cấp, bạn PHẢI sáng tạo một phiên bản mới của kỹ năng.
+        *   **Tên mới:** Thêm thuộc tính vào tên (ví dụ: "Vô Ảnh Kiếm Pháp" → "Lôi Đình Vô Ảnh Kiếm Pháp").
+        *   **Mô tả & Hiệu ứng mới:** Viết lại để phản ánh thuộc tính mới (ví dụ: "Mỗi kiếm chiêu đều mang theo sấm sét, có khả năng gây tê liệt...").
+    2.  **Cập nhật JSON (LOGIC THAY THẾ):**
+        *   Sử dụng cơ chế tương tự Kịch bản 2: thêm kỹ năng đã được biến đổi này vào mảng \`newlyLearnedSkills\` để ghi đè lên kỹ năng gốc.
+
+**C. YÊU CẦU TƯỜNG THUẬT (STORY):**
+*   **Mô tả Quá trình:** TUYỆT ĐỐI KHÔNG chỉ cập nhật JSON. Bạn PHẢI mô tả quá trình này một cách sống động trong 'story'.
+*   **Khoảnh khắc "Giác ngộ":** Tường thuật cảnh người chơi dốc lòng chỉ dạy, và NPC trải qua một khoảnh khắc "đốn ngộ". Mô tả sự thay đổi trong khí tức của NPC, sự kinh ngạc và biết ơn của họ. Biến nó thành một sự kiện cốt truyện có ý nghĩa, không phải một giao dịch máy móc.
+`;

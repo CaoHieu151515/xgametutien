@@ -1,4 +1,5 @@
-import { CharacterProfile, WorldSettings, NPC, Location, Skill, StoryResponse, Milestone, GameEvent } from '../types';
+
+import { CharacterProfile, WorldSettings, NPC, Location, Skill, StoryResponse, Milestone, GameEvent, NewNPCFromAI } from '../types';
 import { buildContextForPrompt } from './promptUtils';
 import { GAME_CONFIG } from '../config/gameConfig';
 
@@ -28,18 +29,27 @@ Bạn PHẢI trả về một đối tượng JSON duy nhất tuân thủ nghiê
     *   Ưu tiên các chủ đề và thể loại phương Đông như Tiên Hiệp, Huyền Huyễn, Tu Chân.
     *   Chỉ sử dụng các chủ đề thần thoại hoặc bối cảnh phương Tây nếu người dùng yêu cầu rõ ràng.
 
-2.  **Hệ Thống Sức Mạnh (\`powerSystems\`):**
+2.  **Bối cảnh Chi tiết (\`context\`):**
+    *   Dựa trên chủ đề và thể loại, hãy viết một đoạn văn **chi tiết, sống động và có chiều sâu** cho trường \`context\`.
+    *   **Độ dài (QUAN TRỌNG):** Đoạn văn này PHẢI có độ dài khoảng **300 TỪ**.
+    *   **Nội dung:** Mô tả bối cảnh chính của thế giới, các sự kiện lịch sử quan trọng đã định hình nó, các xung đột lớn đang diễn ra, và không khí chung của thế giới (ví dụ: đen tối, hy vọng, hỗn loạn). Đây là phần quan trọng nhất để thiết lập "tone" cho câu chuyện.
+
+3.  **Hệ Thống Sức Mạnh (\`powerSystems\`):**
     *   Thiết kế ít nhất ${powerSystems} hệ thống sức mạnh.
     *   **Tên Hệ Thống:** Tên phải bao quát và cụ thể (ví dụ: 'Tiên Đạo Tu Luyện', 'Ma Đạo Tu Luyện').
-    *   **Cảnh Giới:** Mỗi hệ thống **BẮT BUỘC** phải có chính xác MƯỜI (10) cảnh giới, bắt đầu bằng \`Phàm Nhân - \`.
+    *   **Cảnh Giới:** Mỗi hệ thống **BẮT BUỘC** phải có chính xác MƯỜI (10) cảnh giới, được phân cách bằng ' - '. Cảnh giới đầu tiên **PHẢI** là \`Phàm Nhân\`. Ví dụ: \`Phàm Nhân - Luyện Khí - Trúc Cơ - ...\`.
 
-3.  **Nhân vật chính (\`characterProfile\`):**
+4.  **Phẩm chất & Tư chất (\`qualityTiers\`, \`aptitudeTiers\`):**
+    *   **MỆNH LỆNH VỀ DẤU PHÂN CÁCH:** Các bậc trong mỗi chuỗi **TUYỆT ĐỐI BẮT BUỘC** phải được phân cách bằng dấu gạch ngang có dấu cách ở hai bên (' - '). Việc sử dụng dấu phẩy hoặc các dấu khác là một lỗi hệ thống.
+    *   **Nội dung:** Tạo ra một danh sách các bậc phẩm chất (cho vật phẩm/kỹ năng) và tư chất (cho nhân vật) phong phú, phù hợp với bối cảnh tu tiên. Thứ tự phải từ thấp đến cao. Ví dụ: \`Phổ Thông - Hiếm - Sử Thi - Truyền Thuyết - Thần Thoại - Thần Khí\`.
+
+5.  **Nhân vật chính (\`characterProfile\`):**
     *   Tạo ra một nhân vật chính có tiểu sử, tính cách và mục tiêu phù hợp.
     *   **Chủng tộc (\`race\`):** Tên Chủng tộc phải ngắn gọn và mang tính thần thoại phương Đông (ví dụ: Nhân Tộc, Long Tộc, Ma Tộc).
     *   **Cấp độ khởi đầu (\`level\`):** Gán cho nhân vật một cấp độ khởi đầu từ 1 đến 5.
-    *   **Kỹ năng khởi đầu (\`skills\`):** Nhân vật chính PHẢI bắt đầu với ít nhất ${skills} kỹ năng đa dạng.
+    *   **Kỹ năng khởi đầu (\`skills\`):** Nhân vật chính PHẢI bắt đầu với ít nhất ${skills} kỹ năng đa dạng. Mỗi kỹ năng PHẢI có một giá trị \`manaCost\` hợp lý.
 
-4.  **Yếu tố ban đầu (\`initialNpcs\`, \`initialLocations\`, \`initialItems\`, \`initialMonsters\`):**
+6.  **Yếu tố ban đầu (\`initialNpcs\`, \`initialLocations\`, \`initialItems\`, \`initialMonsters\`):**
     *   **NPC Khởi đầu (QUAN TRỌNG):** Tạo ít nhất ${npcs} NPC có vai trò quan trọng và phù hợp. **BẮT BUỘC** phải bao gồm: một sư phụ hoặc trưởng bối, một đối thủ, và một nhân vật bí ẩn. Giới tính có thể linh hoạt.
     *   **Chủng tộc NPC:** Khi tạo NPC thuộc chủng tộc người, BẮT BUỘC sử dụng "Nhân Tộc" hoặc "Nhân Loại", TUYỆT ĐỐI KHÔNG sử dụng "Con người".
     *   **Quan hệ NPC ban đầu:** Tạo một vài mối quan hệ ban đầu giữa các NPC trong trường \`npcRelationships\`.
@@ -61,18 +71,32 @@ Bạn PHẢI trả về một đối tượng JSON duy nhất tuân thủ nghiê
     *   **Trang bị khởi đầu (\`initialItems\`):** BẮT BUỘC phải tạo ít nhất ${items} vật phẩm khởi đầu phù hợp, bao gồm một vũ khí.
         *   **BẮT BUỘC:** Đối với vật phẩm có \`type\` là 'Trang Bị' hoặc 'Đặc Thù', bạn PHẢI cung cấp đầy đủ đối tượng \`equipmentDetails\`. Trường \`value\` PHẢI là một con số (có thể là 0 nếu vô giá), TUYỆT ĐỐI KHÔNG được là \`null\`. Nếu một vật phẩm không có hiệu ứng (\`effectsDescription\`), hãy **BỎ QUA HOÀN TOÀN** trường đó, không đặt là \`null\`.
         *   **QUY TẮC CHỈ SỐ (CỰC KỲ QUAN TRỌNG):** Các chỉ số trong \`stats.key\` CHỈ ĐƯỢỢC PHÉP là: \`'attack'\`, \`'maxHealth'\`, \`'maxMana'\`.
+        *   **QUY TẮC PHÂN LOẠI VŨ KHÍ (CỰC KỲ QUAN TRỌNG):** Đối với bất kỳ vật phẩm nào là vũ khí (ví dụ: kiếm, đao, thương, cung, roi, trượng, búa, v.v.), trường \`equipmentDetails.type\` **BẮT BUỘC** phải được đặt là \`'Vũ Khí'\`. Việc phân loại sai (ví dụ: đặt roi là 'Phụ Kiện') là một lỗi logic hệ thống nghiêm trọng.
         *   **LOGIC QUAN TRỌNG:** Giá trị chỉ số (\`stats.value\`) của trang bị PHẢI tương xứng với phẩm chất (\`quality\`).
 
-5.  **Tri Thức Thế Giới (\`initialKnowledge\`) - Cốt lõi:**
+7.  **Tri Thức Thế Giới (\`initialKnowledge\`) - Cốt lõi:**
     *   Tạo ra ít nhất ${knowledge} mục tri thức phong phú để giải thích các khái niệm của thế giới.
     *   **Bắt buộc** phải có các mục tri thức RIÊNG BIỆT cho:
         *   Chủng tộc (\`race\`) của nhân vật chính. Mục tri thức này phải mô tả về nguồn gốc, đặc điểm và vị thế của chủng tộc đó trong thế giới.
         *   Thể Chất Đặc Biệt (\`specialConstitution\`) của nhân vật chính.
         *   Thiên Phú (\`talent\`) của nhân vật chính.
         *   Loại Tiền Tệ (\`currencyName\`).
-    *   Gán một \`category\` phù hợp cho mỗi mục tri thức.
+    *   **QUY TẮC ĐỊNH DẠNG TIÊU ĐỀ (MỆNH LỆNH TUYỆT ĐỐI):**
+        *   Trường \`title\` của mỗi mục tri thức **CHỈ** được chứa **TÊN GỌI** của khái niệm đó.
+        *   **TUYỆT ĐỐI KHÔNG** được thêm bất kỳ dấu câu (như dấu hai chấm \`:\`) hoặc mô tả ngắn nào vào trường \`title\`.
+        *   **VÍ DỤ:**
+            *   \`"title": "Long Phượng Thể"\` -> **ĐÚNG**
+            *   \`"title": "Chủng Tộc: Ma Tộc"\` -> **SAI** (Phải là \`"title": "Ma Tộc"\`)
+            *   \`"title": "Long Phượng Thể: Bí Ẩn Song Sinh"\` -> **SAI** (Phần mô tả phải nằm trong trường \`content\`)
+    *   **QUY TẮC PHÂN LOẠI TRI THỨC (MỆNH LỆNH TUYỆT ĐỐI):**
+        *   Bạn PHẢI gán một \`category\` chính xác cho mỗi mục tri thức. Các loại hợp lệ là: \`'Bang Phái'\`, \`'Lịch Sử'\`, \`'Nhân Vật'\`, \`'Khác'\`.
+        *   \`'Bang Phái'\`: Chỉ sử dụng cho các tổ chức, tông môn, thế lực.
+        *   \`'Nhân Vật'\`: Chỉ sử dụng cho các khái niệm liên quan trực tiếp đến nhân vật như Chủng tộc, Thể chất, Thiên phú.
+        *   \`'Lịch Sử'\`: Sử dụng cho các sự kiện lịch sử, truyền thuyết, nguồn gốc thế giới.
+        *   \`'Khác'\`: Sử dụng cho các khái niệm còn lại như Tiền tệ, các quy tắc đặc biệt.
+        *   Việc gán sai \`category\` là một lỗi logic nghiêm trọng.
 
-6.  **Kết Nối Sâu (MỆNH LỆNH SÁNG TẠO):**
+8.  **Kết Nối Sâu (MỆNH LỆNH SÁNG TẠO):**
     *   **Nguyên tắc:** Tạo ra các liên kết có ý nghĩa giữa các yếu tố.
     *   **Liên kết Tiểu sử:** Tiểu sử (\`backstory\`) của nhân vật chính **PHẢI** liên quan trực tiếp đến ít nhất **MỘT NPC** và **MỘT Địa điểm** khởi đầu.
     *   **Liên kết NPC & Địa điểm:** Ít nhất **MỘT NPC** khởi đầu phải có vai trò hoặc mối liên kết mạnh mẽ với một địa điểm khởi đầu cụ thể.
@@ -306,5 +330,35 @@ Dựa trên thông tin trên, hãy sáng tạo ra một **MÔ TẢ** và **HIỆ
 - **Hiệu ứng mới:** Phải là một phiên bản nâng cấp rõ rệt của hiệu ứng cũ (ví dụ: sát thương cao hơn, thêm hiệu ứng phụ, giảm thời gian hồi chiêu, v.v.).
 
 Trả về một đối tượng JSON duy nhất.
+`;
+};
+
+export const buildNpcSkillsGenPrompt = (
+    npc: NewNPCFromAI,
+    worldSettings: WorldSettings
+): string => {
+    return `
+Dựa trên thông tin chi tiết về một NPC, hãy tạo ra một bộ kỹ năng khởi đầu phù hợp cho họ.
+
+**Thông tin NPC:**
+- **Tên:** ${npc.name}
+- **Chủng tộc:** ${npc.race}
+- **Tính cách:** ${npc.personality || 'Chưa rõ.'}
+- **Mô tả/Tiểu sử:** ${npc.description || 'Chưa rõ.'}
+- **Ngoại hình:** ${npc.ngoaiHinh || 'Chưa rõ.'}
+- **Cấp độ:** ${npc.level}
+- **Hệ thống tu luyện:** ${npc.powerSystem}
+
+**Thông tin Thế giới:**
+- **Phẩm chất có thể có:** ${worldSettings.qualityTiers}
+- **Các loại kỹ năng:** Công Kích, Phòng Ngự, Thân Pháp, Tu Luyện, Hỗ Trợ, Đặc Biệt.
+
+**YÊU CẦU TUYỆT ĐỐI (LỖI HỆ THỐNG SẼ XẢY RA NẾU VI PHẠM):**
+1.  **Số lượng:** Tạo ra từ 3 đến 6 kỹ năng.
+2.  **ĐỘC NHẤT LOẠI KỸ NĂNG:** Mỗi kỹ năng trong bộ kỹ năng được tạo ra **PHẢI** có một \`type\` (loại kỹ năng) **DUY NHẤT**. **TUYỆT ĐỐI KHÔNG** được tạo ra hai kỹ năng cùng loại (ví dụ: hai kỹ năng 'Công Kích').
+3.  **PHÙ HỢP LOGIC:** Các kỹ năng được tạo ra phải hoàn toàn phù hợp với bối cảnh, vai trò, và sức mạnh của NPC. Phẩm chất của kỹ năng phải tương xứng với cấp độ của NPC.
+4.  **PHẢI CÓ KỸ NĂNG TU LUYỆN:** Mọi NPC là tu tiên giả PHẢI có một kỹ năng loại 'Tu Luyện'.
+5.  **TIÊU HAO LINH LỰC (\`manaCost\`):** Đối với mỗi kỹ năng được tạo ra, bạn PHẢI cung cấp một giá trị \`manaCost\`. Phẩm chất càng cao, cấp độ càng cao thì \`manaCost\` càng lớn. Kỹ năng 'Công Kích' và 'Đặc Biệt' thường tốn nhiều linh lực nhất.
+6.  **ĐỊNH DẠNG ĐẦU RA:** Trả về một MẢNG (ARRAY) JSON duy nhất chứa các đối tượng kỹ năng, tuân thủ nghiêm ngặt schema đã cung cấp.
 `;
 };

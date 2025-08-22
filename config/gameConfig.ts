@@ -1,4 +1,5 @@
-import { ItemType } from '../types';
+
+import { ItemType, SkillType } from '../types';
 
 /**
  * Tệp cấu hình trung tâm cho các tham số và "biến số ma thuật" của game.
@@ -87,6 +88,21 @@ export const GAME_CONFIG = {
             exponent: 1.5,
             qualityMultiplier: 0.75, // Mức nhân thêm cho mỗi bậc phẩm chất
         },
+        // Cấu hình tiêu hao linh lực cho kỹ năng
+        manaCost: {
+            base: 10,
+            perLevel: 5,
+            qualityMultiplier: 1.8, // Cost = (base + perLevel) * (qualityMultiplier ^ qualityIndex)
+            typeMultiplier: {
+                [SkillType.ATTACK]: 1.2,
+                [SkillType.DEFENSE]: 1.0,
+                [SkillType.MOVEMENT]: 0.8,
+                [SkillType.CULTIVATION]: 1.5,
+                [SkillType.SUPPORT]: 1.1,
+                [SkillType.SPECIAL]: 2.0,
+            },
+        },
+        npcSkillExpPerTurn: 5, // Lượng EXP kỹ năng NPC nhận được mỗi lượt khi tua nhanh thời gian
         // Cấu hình thưởng kinh nghiệm từ tư chất
         aptitude: {
             bonusPerTier: 0.15, // 15% thưởng EXP cho mỗi bậc tư chất
@@ -181,6 +197,13 @@ export const GAME_CONFIG = {
      * Cấu hình liên quan đến việc tạo thế giới ban đầu.
      */
     worldGen: {
+         /**
+         * Cấu hình AI dành riêng cho việc tạo thế giới.
+         */
+        ai: {
+            maxOutputTokens: 16384,
+            thinkingBudget: 8192,
+        },
         /**
          * Các tham số cho chức năng "Để AI Điền Giúp".
          */

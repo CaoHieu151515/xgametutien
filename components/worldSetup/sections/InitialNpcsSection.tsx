@@ -1,23 +1,27 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
-import { CharacterProfile, WorldSettings, NewNPCFromAI, CharacterGender, MienLuc, NpcRelationship } from '../../../types';
+import { CharacterProfile, WorldSettings, NewNPCFromAI, CharacterGender, MienLuc, NpcRelationship, Skill, SkillType } from '../../../types';
 import { FormInput, FormSelect, FormTextArea, FormLabel, RemoveIcon, WandIcon } from '../common';
 import { findBestAvatar } from '../../../services/avatarService';
 import { GAME_CONFIG } from '../../../config/gameConfig';
+import { calculateManaCost } from '../../../services/progressionService';
 
 interface InitialNpcsSectionProps {
     profile: CharacterProfile;
     worldSettings: WorldSettings;
     setProfile: React.Dispatch<React.SetStateAction<CharacterProfile>>;
+    onAiFillSkills: (npcId: string) => void;
+    isAiLoading: boolean;
 }
 
-const DetailSection: React.FC<{ title: string, children: React.ReactNode }> = ({ title, children }) => (
+const DetailSection: React.FC<{ title: React.ReactNode, children: React.ReactNode }> = ({ title, children }) => (
     <div className="border-t border-slate-700 pt-4">
-        <h4 className="text-md font-semibold text-amber-200 mb-2">{title}</h4>
+        <div className="text-md font-semibold text-amber-200 mb-2">{title}</div>
         <div className="space-y-4">{children}</div>
     </div>
 );
 
-export const InitialNpcsSection: React.FC<InitialNpcsSectionProps> = ({ profile, worldSettings, setProfile }) => {
+export const InitialNpcsSection: React.FC<InitialNpcsSectionProps> = ({ profile, worldSettings, setProfile, onAiFillSkills, isAiLoading }) => {
     const [selectedNpcId, setSelectedNpcId] = useState<string | null>(null);
 
     const initialNpcs = useMemo(() => profile.initialNpcs || [], [profile.initialNpcs]);
@@ -49,6 +53,7 @@ export const InitialNpcsSection: React.FC<InitialNpcsSectionProps> = ({ profile,
             locationId: profile.initialLocations?.[0]?.id || '',
             statusEffects: [],
             npcRelationships: [],
+            skills: [],
         };
         
         // Automatically find an avatar
@@ -126,6 +131,60 @@ export const InitialNpcsSection: React.FC<InitialNpcsSectionProps> = ({ profile,
         }
         handleUpdateInitialNpc(selectedNpc.id, 'npcRelationships', newRelationships);
     };
+
+    const handleAddNpcSkill = (npcId: string) => {
+        const npc = profile.initialNpcs?.find(n => n.id === npcId);
+        if (!npc || (npc.skills?.length || 0) >= 6) return;
+    
+        const existingSkillTypes = new Set(npc.skills?.map(s => s.type) || []);
+        const firstAvailableType = Object.values(SkillType).find(type => !existingSkillTypes.has(type));
+    
+        if (!firstAvailableType) return; // All 6 types are used, no more skills can be added.
+
+        const newSkill: Skill = {
+            id: `npcskill_${npcId}_${Date.now()}`,
+            name: '',
+            type: firstAvailableType,
+            quality: worldSettings.qualityTiers.split(' - ')[0]?.trim() || 'Phàm Phẩm',
+            level: 1,
+            experience: 0,
+            description: '',
+            effect: '',
+            manaCost: 0, // Will be calculated
+        };
+        setProfile(prev => ({
+            ...prev,
+            initialNpcs: (prev.initialNpcs || []).map(npc => 
+                npc.id === npcId ? { ...npc, skills: [...(npc.skills || []), newSkill] } : npc
+            )
+        }));
+    };
+
+    const handleRemoveNpcSkill = (npcId: string, skillId: string) => {
+        setProfile(prev => ({
+            ...prev,
+            initialNpcs: (prev.initialNpcs || []).map(npc => 
+                npc.id === npcId ? { ...npc, skills: (npc.skills || []).filter(s => s.id !== skillId) } : npc
+            )
+        }));
+    };
+
+    const handleUpdateNpcSkill = (npcId: string, skillId: string, field: keyof Skill, value: any) => {
+        setProfile(prev => ({
+            ...prev,
+            initialNpcs: (prev.initialNpcs || []).map(npc => 
+                npc.id === npcId ? { 
+                    ...npc, 
+                    skills: (npc.skills || []).map(s => 
+                        s.id === skillId ? { ...s, [field]: value } : s
+                    ) 
+                } : npc
+            )
+        }));
+    };
+    
+    const levelsPerRealm = GAME_CONFIG.progression.subRealmLevels.length;
+
 
     return (
         <div className="flex flex-col md:flex-row gap-4 min-h-[500px]">
@@ -205,6 +264,64 @@ export const InitialNpcsSection: React.FC<InitialNpcsSectionProps> = ({ profile,
                             <div><FormLabel>Thể Chất Đặc Biệt (Mô tả)</FormLabel><FormTextArea value={selectedNpc.specialConstitution?.description || ''} onChange={e => handleUpdateInitialNpc(selectedNpc.id, 'specialConstitution.description', e.target.value)} /></div>
                             <div><FormLabel>Thiên Phú (Tên)</FormLabel><FormInput value={selectedNpc.innateTalent?.name || ''} onChange={e => handleUpdateInitialNpc(selectedNpc.id, 'innateTalent.name', e.target.value)} /></div>
                             <div><FormLabel>Thiên Phú (Mô tả)</FormLabel><FormTextArea value={selectedNpc.innateTalent?.description || ''} onChange={e => handleUpdateInitialNpc(selectedNpc.id, 'innateTalent.description', e.target.value)} /></div>
+                        </DetailSection>
+
+                        <DetailSection title={
+                            <div className="flex justify-between items-center">
+                                <span>Kỹ Năng Ban Đầu</span>
+                                <button
+                                    type="button"
+                                    onClick={() => onAiFillSkills(selectedNpc.id)}
+                                    disabled={isAiLoading || !selectedNpc.description}
+                                    className="flex items-center gap-2 px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded hover:bg-blue-500 transition-colors disabled:opacity-50"
+                                    title="Để AI tự động tạo các kỹ năng phù hợp cho NPC này dựa trên mô tả và cấp độ của họ."
+                                >
+                                    <WandIcon />
+                                    <span>Điền Tự Động</span>
+                                </button>
+                            </div>
+                        }>
+                            <div className="space-y-3 max-h-48 overflow-y-auto custom-scrollbar pr-2">
+                                {(selectedNpc.skills || []).map(skill => {
+                                    const existingSkillTypesForNpc = new Set(selectedNpc.skills?.map(s => s.type));
+                                    const availableSkillTypesForThisSkill = Object.values(SkillType).filter(type => 
+                                        !existingSkillTypesForNpc.has(type) || type === skill.type
+                                    );
+
+                                    return (
+                                        <div key={skill.id} className="bg-slate-900/50 p-3 rounded-md border border-slate-700/50 space-y-3">
+                                            <div className="flex justify-between items-center">
+                                                <FormInput value={skill.name} onChange={e => handleUpdateNpcSkill(selectedNpc.id, skill.id, 'name', e.target.value)} placeholder="Tên Kỹ Năng" className="text-sm font-semibold"/>
+                                                <button type="button" onClick={() => handleRemoveNpcSkill(selectedNpc.id, skill.id)} className="text-red-500 hover:text-red-400 font-bold text-lg px-2 flex-shrink-0">&times;</button>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                                <div>
+                                                    <FormLabel htmlFor={`npc-skill-type-${skill.id}`} className="text-xs !mb-0.5">Loại</FormLabel>
+                                                    <FormSelect id={`npc-skill-type-${skill.id}`} value={skill.type} onChange={(e) => handleUpdateNpcSkill(selectedNpc.id, skill.id, 'type', e.target.value as SkillType)}>
+                                                        {availableSkillTypesForThisSkill.map(type => <option key={type} value={type}>{type}</option>)}
+                                                    </FormSelect>
+                                                </div>
+                                                <div>
+                                                    <FormLabel htmlFor={`npc-skill-quality-${skill.id}`} className="text-xs !mb-0.5">Phẩm chất</FormLabel>
+                                                    <FormSelect id={`npc-skill-quality-${skill.id}`} value={skill.quality} onChange={(e) => handleUpdateNpcSkill(selectedNpc.id, skill.id, 'quality', e.target.value)}>{worldSettings.qualityTiers.split(' - ').map(q => q.trim()).filter(Boolean).map(tier => <option key={tier} value={tier}>{tier}</option>)}</FormSelect>
+                                                </div>
+                                                 <div>
+                                                    <FormLabel htmlFor={`npc-skill-level-${skill.id}`} className="text-xs !mb-0.5">Cấp</FormLabel>
+                                                    <FormSelect id={`npc-skill-level-${skill.id}`} value={skill.level} onChange={(e) => handleUpdateNpcSkill(selectedNpc.id, skill.id, 'level', parseInt(e.target.value, 10))}>{Array.from({ length: levelsPerRealm }, (_, i) => i + 1).map(level => <option key={level} value={level}>{level}</option>)}</FormSelect>
+                                                </div>
+                                                <div>
+                                                    <FormLabel className="text-xs !mb-0.5">Tiêu hao Linh Lực</FormLabel>
+                                                    <FormInput value={calculateManaCost(skill, worldSettings.qualityTiers)} disabled />
+                                                </div>
+                                            </div>
+                                            <div><FormLabel htmlFor={`npc-skill-desc-${skill.id}`} className="text-xs !mb-0.5">Mô tả</FormLabel><FormTextArea id={`npc-skill-desc-${skill.id}`} value={skill.description} onChange={(e) => handleUpdateNpcSkill(selectedNpc.id, skill.id, 'description', e.target.value)} rows={2} /></div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            <button type="button" onClick={() => handleAddNpcSkill(selectedNpc.id)}  disabled={(selectedNpc.skills?.length || 0) >= 6} className="w-full mt-2 py-1.5 px-3 border-2 border-dashed border-slate-600 rounded-lg text-slate-400 hover:text-amber-300 hover:border-amber-400 transition-all text-xs disabled:opacity-50 disabled:cursor-not-allowed disabled:text-slate-600 disabled:border-slate-700">
+                                + Thêm Kỹ Năng (Tối đa 6)
+                            </button>
                         </DetailSection>
 
                         <DetailSection title="Mối Quan Hệ Ban Đầu">

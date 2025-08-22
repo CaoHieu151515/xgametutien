@@ -1,5 +1,6 @@
+
 import { StoryResponse, CharacterProfile, WorldSettings, AppSettings, ApiProvider, Skill, ItemType, Item, SkillType, Milestone, Choice } from '../../types';
-import { processLevelUps, getLevelFromRealmName, calculateExperienceForBreakthrough, processSkillLevelUps, recalculateDerivedStats } from '../../services/progressionService';
+import { processLevelUps, getLevelFromRealmName, calculateExperienceForBreakthrough, processSkillLevelUps, recalculateDerivedStats, calculateManaCost } from '../../services/progressionService';
 import { GAME_CONFIG } from '../../config/gameConfig';
 import * as geminiService from '../../services/geminiService';
 import * as openaiService from '../../services/openaiService';
@@ -42,6 +43,7 @@ const calculateItemValue = (item: Omit<Item, 'value' | 'id' | 'quantity'>, world
     return Math.round(baseValue * qualityMultiplier);
 };
 
+
 export const applyPlayerMutations = async ({
     response,
     profile,
@@ -54,131 +56,40 @@ export const applyPlayerMutations = async ({
 }: ApplyPlayerMutationsParams): Promise<CharacterProfile> => {
     let nextProfile = { ...profile };
 
-    const api = settings.apiProvider === ApiProvider.OPENAI ? openaiService : geminiService;
-    const apiKeyForService = settings.apiProvider === ApiProvider.OPENAI
-        ? settings.openaiApiKey
-        : (settings.gemini.useDefault
-            ? USE_DEFAULT_KEY_IDENTIFIER
-            : (settings.gemini.customKeys.find(k => k.id === settings.gemini.activeCustomKeyId)?.key || ''));
-
-    // Handle full restoration first as it's an absolute state change.
-    if (response.updatedStats?.usedFullRestoreSkill) {
-        const healthRestored = nextProfile.maxHealth - nextProfile.health;
-        const manaRestored = nextProfile.maxMana - nextProfile.mana;
-
-        if (healthRestored > 0 || manaRestored > 0) {
-            nextProfile.health = nextProfile.maxHealth;
-            nextProfile.mana = nextProfile.maxMana;
-            notifications.push(`✨ Bạn đã khôi phục hoàn toàn Sinh Lực và Linh Lực!`);
-        }
-    }
-
-    // --- XP & Leveling ---
-    const gainedXpFromAI = response.updatedStats?.gainedExperience ?? 0;
-    let finalGainedXp = 0;
-    const breakthroughRealm = response.updatedStats?.breakthroughToRealm;
-
-    if (breakthroughRealm) {
-        const targetLevel = getLevelFromRealmName(breakthroughRealm, nextProfile.powerSystem, worldSettings);
-        if (targetLevel > nextProfile.level) {
-            const xpForBreakthrough = calculateExperienceForBreakthrough(nextProfile.level, nextProfile.experience, targetLevel);
-            finalGainedXp = gainedXpFromAI + xpForBreakthrough;
-            notifications.push(`✨ **ĐỘT PHÁ THẦN TỐC!** Vận may ập đến, bạn nhận được một lượng lớn kinh nghiệm để đạt đến <b>${breakthroughRealm}</b>.`);
-        }
-    } else if (gainedXpFromAI > 0) {
-        const { levelBonusDivisor, cultivationSkillBonusMultiplier } = GAME_CONFIG.progression.xp;
-        const levelBonus = 1 + (nextProfile.level / levelBonusDivisor);
-        const cultivationSkills = nextProfile.skills.filter(s => s.type === SkillType.CULTIVATION);
-        const qualityTiers = worldSettings.qualityTiers.split(' - ').map(q => q.trim());
-        let cultivationBonus = 1.0;
-        cultivationSkills.forEach(skill => {
-            const qualityIndex = qualityTiers.indexOf(skill.quality);
-            if (qualityIndex !== -1) cultivationBonus += (qualityIndex + 1) * cultivationSkillBonusMultiplier;
-        });
-        const adjustedXp = Math.max(1, Math.round(gainedXpFromAI * levelBonus * cultivationBonus));
-        finalGainedXp = adjustedXp;
-        const bonusDescriptions: string[] = [];
-        if (levelBonus > 1.01) bonusDescriptions.push(`nhờ Cấp độ ${nextProfile.level} (x${levelBonus.toFixed(2)})`);
-        if (cultivationBonus > 1.01) bonusDescriptions.push(`nhờ Công pháp (x${cultivationBonus.toFixed(2)})`);
-        if (bonusDescriptions.length > 0) {
-            notifications.push(`Bạn nhận được <b>${adjustedXp.toLocaleString()} EXP</b> (gốc: ${gainedXpFromAI.toLocaleString()}, ${bonusDescriptions.join(', ')}).`);
-        } else {
-            notifications.push(`Bạn nhận được <b>${adjustedXp.toLocaleString()} EXP</b>.`);
-        }
-    }
-
-    const oldLevel = nextProfile.level;
-    const oldRealm = nextProfile.realm;
-    if (finalGainedXp > 0) {
-        nextProfile = processLevelUps(nextProfile, finalGainedXp, worldSettings);
-        if (nextProfile.level > oldLevel) {
-            notifications.push(`🎉 Chúc mừng! Bạn đã đạt đến <b>cấp độ ${nextProfile.level}</b>.`);
-            if (nextProfile.realm !== oldRealm) {
-                notifications.push(`⚡️ Đột phá! Bạn đã tiến vào cảnh giới <b>${nextProfile.realm}</b>.`);
-            }
-        }
-    } else {
-        nextProfile = recalculateDerivedStats(nextProfile);
-    }
-    const didLevelUp = finalGainedXp > 0 && nextProfile.level > originalProfile.level;
-
-    // --- Skills ---
-    if (response.updatedSkills?.length) {
-        const skillUpdatePromises = nextProfile.skills.map(async (skill) => {
-            const skillUpdate = response.updatedSkills!.find(su => su.skillName === skill.name);
-            if (skillUpdate) {
-                notifications.push(`💪 Kỹ năng "<b>${skill.name}</b>" nhận được <b>${skillUpdate.gainedExperience} EXP</b>.`);
-                const { updatedSkill, breakthroughInfo } = processSkillLevelUps(skill, skillUpdate.gainedExperience, worldSettings.qualityTiers);
-                if (breakthroughInfo) {
-                    notifications.push(`🔥 **ĐỘT PHÁ!** Kỹ năng "<b>${skill.name}</b>" đã đột phá từ <b>${breakthroughInfo.oldQuality}</b> lên <b>${breakthroughInfo.newQuality}</b>!`);
-                    try {
-                        const newDetails = await api.generateNewSkillDescription(updatedSkill, breakthroughInfo.newQuality, worldSettings, apiKeyForService);
-                        return { ...updatedSkill, description: newDetails.description, effect: newDetails.effect };
-                    } catch (err) {
-                        console.error("Lỗi khi tạo mô tả kỹ năng mới:", err);
-                    }
-                }
-                return updatedSkill;
-            }
-            return skill;
-        });
-        nextProfile.skills = await Promise.all(skillUpdatePromises);
-    }
-    if (response.newSkills?.length) {
-        const newlyAcquiredSkills: Skill[] = response.newSkills.map((newSkillPart, index) => ({
-            ...newSkillPart, id: `${Date.now()}-${index}`, level: 1, experience: 0, isNew: true,
-        }));
-        nextProfile.skills = [...nextProfile.skills, ...newlyAcquiredSkills];
-    }
-
-    // --- Stats, Status Effects, Achievements ---
+    // --- Stats Update ---
     if (response.updatedStats) {
-        const stats = response.updatedStats;
-        if (!didLevelUp) {
-            // Health Change
-            const healthChangeInput = stats.health;
-            if (healthChangeInput && !stats.usedFullRestoreSkill) {
+        const {
+            health, mana, currencyAmount, gainedExperience, breakthroughToRealm, usedFullRestoreSkill,
+            newStatusEffects, removedStatusEffects, newAchievements, updatedAchievements
+        } = response.updatedStats;
+        
+        const maxStats = { maxHealth: nextProfile.maxHealth, maxMana: nextProfile.maxMana };
+
+        if (usedFullRestoreSkill) {
+            nextProfile.health = maxStats.maxHealth;
+            nextProfile.mana = maxStats.maxMana;
+            notifications.push(`✨ Bạn đã khôi phục hoàn toàn Sinh Lực và Linh Lực!`);
+        } else {
+            if (health !== undefined) {
                 let actualHealthChange = 0;
-                if (typeof healthChangeInput === 'string' && healthChangeInput.endsWith('%')) {
-                    const percentage = parseFloat(healthChangeInput) / 100;
-                    actualHealthChange = Math.round(nextProfile.maxHealth * percentage);
-                } else if (typeof healthChangeInput === 'number') {
-                    actualHealthChange = healthChangeInput;
+                if (typeof health === 'string' && health.endsWith('%')) {
+                    const percentage = parseFloat(health) / 100;
+                    actualHealthChange = Math.round(maxStats.maxHealth * percentage);
+                } else if (typeof health === 'number') {
+                    actualHealthChange = health;
                 }
                 nextProfile.health += actualHealthChange;
                 if (actualHealthChange > 0) notifications.push(`💚 Bạn hồi phục <b>${actualHealthChange.toLocaleString()} Sinh Lực</b>.`);
                 else if (actualHealthChange < 0) notifications.push(`🩸 Bạn mất <b>${Math.abs(actualHealthChange).toLocaleString()} Sinh Lực</b>.`);
             }
 
-            // Mana Change
-            const manaChangeInput = stats.mana;
-            if (manaChangeInput && !stats.usedFullRestoreSkill) {
+            if (mana !== undefined) {
                 let actualManaChange = 0;
-                if (typeof manaChangeInput === 'string' && manaChangeInput.endsWith('%')) {
-                    const percentage = parseFloat(manaChangeInput) / 100;
-                    actualManaChange = Math.round(nextProfile.maxMana * percentage);
-                } else if (typeof manaChangeInput === 'number') {
-                    actualManaChange = manaChangeInput;
+                if (typeof mana === 'string' && mana.endsWith('%')) {
+                    const percentage = parseFloat(mana) / 100;
+                    actualManaChange = Math.round(maxStats.maxMana * percentage);
+                } else if (typeof mana === 'number') {
+                    actualManaChange = mana;
                 }
                 nextProfile.mana += actualManaChange;
                 if (actualManaChange > 0) notifications.push(`💧 Bạn hồi phục <b>${actualManaChange.toLocaleString()} Linh Lực</b>.`);
@@ -186,133 +97,159 @@ export const applyPlayerMutations = async ({
             }
         }
         
-        // Currency
-        if (stats.currencyAmount) {
-            const change = stats.currencyAmount;
-            nextProfile.currencyAmount += change;
-             if (change > 0) notifications.push(`💰 Bạn nhận được <b>${change.toLocaleString()} ${nextProfile.currencyName}</b>.`);
-             else if (change < 0) notifications.push(`💸 Bạn đã tiêu <b>${Math.abs(change).toLocaleString()} ${nextProfile.currencyName}</b>.`);
+        nextProfile.health = Math.max(0, Math.min(maxStats.maxHealth, nextProfile.health));
+        nextProfile.mana = Math.max(0, Math.min(maxStats.maxMana, nextProfile.mana));
+
+        if (currencyAmount) nextProfile.currencyAmount += currencyAmount;
+
+        let totalExpGained = gainedExperience || 0;
+        if (breakthroughToRealm) {
+            const oldRealm = nextProfile.realm;
+            const targetLevel = getLevelFromRealmName(breakthroughToRealm, nextProfile.powerSystem, worldSettings);
+            const expForBreakthrough = calculateExperienceForBreakthrough(nextProfile.level, nextProfile.experience, targetLevel);
+            totalExpGained += expForBreakthrough;
+            notifications.push(`⚡️ **ĐỘT PHÁ!** Bạn đã đột phá từ <b>${oldRealm}</b> lên cảnh giới <b>${breakthroughToRealm}</b>.`);
         }
         
-        let newStatusEffectsList = [...nextProfile.statusEffects];
-        if (stats.removedStatusEffects?.length) {
-            const effectsToRemove = new Set(stats.removedStatusEffects);
-            newStatusEffectsList.filter(effect => effectsToRemove.has(effect.name))
-                .forEach(effect => notifications.push(`🍃 Trạng thái "<b>${effect.name}</b>" của bạn đã kết thúc.`));
-            newStatusEffectsList = newStatusEffectsList.filter(effect => !effectsToRemove.has(effect.name));
+        if (totalExpGained > 0) {
+            const oldLevel = nextProfile.level;
+            nextProfile = processLevelUps(nextProfile, totalExpGained, worldSettings);
+            if(nextProfile.level > oldLevel) {
+                notifications.push(`✨ Bạn đã đạt đến <b>cấp độ ${nextProfile.level}</b>! Sinh lực và linh lực đã được hồi đầy.`);
+            } else {
+                 notifications.push(`🌟 Bạn nhận được <b>${totalExpGained.toLocaleString()} EXP</b>.`);
+            }
         }
-        if (stats.newStatusEffects?.length) {
-            stats.newStatusEffects.forEach(newEffect => {
-                const existingIndex = newStatusEffectsList.findIndex(e => e.name === newEffect.name);
+
+        let currentStatusEffects = [...nextProfile.statusEffects];
+        if (removedStatusEffects?.length) {
+            const toRemove = new Set(removedStatusEffects);
+            currentStatusEffects.filter(e => toRemove.has(e.name)).forEach(e => notifications.push(`🍃 Trạng thái "<b>${e.name}</b>" đã kết thúc.`));
+            currentStatusEffects = currentStatusEffects.filter(e => !toRemove.has(e.name));
+        }
+        if (newStatusEffects?.length) {
+            newStatusEffects.forEach(newEffect => {
+                const existingIndex = currentStatusEffects.findIndex(e => e.name === newEffect.name);
                 if (existingIndex !== -1) {
                     notifications.push(`ℹ️ Trạng thái "<b>${newEffect.name}</b>" đã được làm mới.`);
-                    newStatusEffectsList[existingIndex] = newEffect;
+                    currentStatusEffects[existingIndex] = newEffect;
                 } else {
                     notifications.push(`✨ Bạn nhận được trạng thái: <b>${newEffect.name}</b>.`);
-                    newStatusEffectsList.push(newEffect);
+                    currentStatusEffects.push(newEffect);
                 }
             });
         }
-        nextProfile.statusEffects = newStatusEffectsList;
+        nextProfile.statusEffects = currentStatusEffects;
 
-        if (stats.newAchievements?.length) {
-            stats.newAchievements.forEach(newAch => {
-                if (!nextProfile.achievements.some(a => a.name === newAch.name)) {
-                    nextProfile.achievements.push({ ...newAch, isNew: true });
-                    notifications.push(`🏆 Bạn đã đạt được thành tích mới: <b>${newAch.name}</b>!`);
-                }
-            });
+        if (newAchievements?.length) {
+            const achievementsWithNewFlag = newAchievements.map(a => ({ ...a, isNew: true }));
+            achievementsWithNewFlag.forEach(a => notifications.push(`🏆 Thành tích mới: <b>${a.name}</b>!`));
+            nextProfile.achievements = [...nextProfile.achievements, ...achievementsWithNewFlag];
         }
-        if (stats.updatedAchievements?.length) {
-            stats.updatedAchievements.forEach(update => {
-                const achIndex = nextProfile.achievements.findIndex(a => a.name === update.name);
-                if (achIndex !== -1) {
-                    const oldAch = nextProfile.achievements[achIndex];
-                    nextProfile.achievements[achIndex] = { ...oldAch, ...update, isNew: true };
-                    notifications.push(`🏆 Thành tích "<b>${update.name}</b>" đã được cập nhật.`);
+
+        if (updatedAchievements?.length) {
+             nextProfile.achievements = nextProfile.achievements.map(ach => {
+                const update = updatedAchievements.find(u => u.name === ach.name);
+                if (update) {
+                    notifications.push(`🏆 Thành tích "<b>${ach.name}</b>" đã được cập nhật!`);
+                    return { ...ach, ...update, isNew: true };
                 }
+                return ach;
             });
         }
     }
 
     // --- Items ---
-    let newItems = [...nextProfile.items];
-    if (response.removedItemIds) newItems = newItems.filter(item => !response.removedItemIds?.includes(item.id));
-    if (response.updatedItems) {
+    if (response.newItems?.length) {
+        const itemsWithCalculatedValue = response.newItems.map(item => ({
+            ...item,
+            value: calculateItemValue(item, worldSettings),
+            isNew: true
+        }));
+        nextProfile.items = [...nextProfile.items, ...itemsWithCalculatedValue];
+        nextProfile.discoveredItems = [...(nextProfile.discoveredItems || []), ...itemsWithCalculatedValue];
+    }
+    if (response.updatedItems?.length) {
         response.updatedItems.forEach(update => {
-            const itemIndex = newItems.findIndex(i => i.name === update.name);
-            if (itemIndex > -1) newItems[itemIndex].quantity = update.quantity;
-        });
-        newItems = newItems.filter(item => item.quantity > 0);
-    }
-    if (response.newItems) {
-        response.newItems.forEach(newItemFromAI => {
-            const calculatedValue = calculateItemValue(newItemFromAI, worldSettings);
-            const newItem = { ...newItemFromAI, value: calculatedValue, isNew: true };
-            const isEquipment = newItem.type === ItemType.TRANG_BI || newItem.type === ItemType.DAC_THU;
-            const existingItemIndex = isEquipment ? -1 : newItems.findIndex(i => i.name === newItem.name && i.quality === newItem.quality);
-            if (existingItemIndex > -1) {
-                newItems[existingItemIndex].quantity += newItem.quantity;
-                newItems[existingItemIndex].isNew = true;
-            } else {
-                newItems.push(newItem);
-            }
+            const itemIndex = nextProfile.items.findIndex(i => i.name === update.name);
+            if (itemIndex > -1) nextProfile.items[itemIndex].quantity = update.quantity;
         });
     }
-    nextProfile.items = newItems;
-    if (response.newItems) {
-        const newlyDiscovered = response.newItems
-            .filter(newItem => !nextProfile.discoveredItems.some(i => i.name === newItem.name))
-            .map(newItem => ({ ...newItem, isNew: true }));
-        if (newlyDiscovered.length > 0) nextProfile.discoveredItems = [...nextProfile.discoveredItems, ...newlyDiscovered];
-    }
-    
-    // --- Misc ---
-    if (response.updatedGender && response.updatedGender !== nextProfile.gender) {
-        nextProfile.gender = response.updatedGender;
-        notifications.push(`🚻 Giới tính của bạn đã thay đổi thành <b>${response.updatedGender === 'male' ? 'Nam' : 'Nữ'}</b>!`);
+    if (response.removedItemIds?.length) {
+        const idsToRemove = new Set(response.removedItemIds);
+        nextProfile.items = nextProfile.items.filter(item => !idsToRemove.has(item.id));
     }
 
-    const oldDate = new Date(nextProfile.gameTime);
-    let newDate: Date | null = null;
+    // --- Skills ---
+    if (response.newSkills?.length) {
+        const brandNewSkills: Skill[] = response.newSkills.map(s => ({
+            ...s,
+            id: `skill_${Date.now()}_${s.name.replace(/\s+/g, '')}`,
+            level: 1,
+            experience: 0,
+            isNew: true,
+            manaCost: calculateManaCost({ ...s, level: 1 }, worldSettings.qualityTiers)
+        }));
+        nextProfile.skills = [...nextProfile.skills, ...brandNewSkills];
+    }
+    if (response.updatedSkills?.length) {
+        let skills = [...nextProfile.skills];
+        const api = settings.apiProvider === ApiProvider.OPENAI ? openaiService : geminiService;
+        const apiKey = settings.apiProvider === ApiProvider.OPENAI ? settings.openaiApiKey : settings.gemini.useDefault ? USE_DEFAULT_KEY_IDENTIFIER : (settings.gemini.customKeys.find(k => k.id === settings.gemini.activeCustomKeyId)?.key || '');
+        
+        for (const skillUpdate of response.updatedSkills) {
+            const skillIndex = skills.findIndex(s => s.name === skillUpdate.skillName);
+            if (skillIndex > -1) {
+                const originalSkill = skills[skillIndex];
+                const { updatedSkill, breakthroughInfo } = processSkillLevelUps(originalSkill, skillUpdate.gainedExperience, worldSettings.qualityTiers);
+                skills[skillIndex] = updatedSkill;
+                if (updatedSkill.level > originalSkill.level) {
+                    notifications.push(`💪 Kỹ năng "<b>${originalSkill.name}</b>" đã tăng lên cấp ${updatedSkill.level}.`);
+                }
+                if (breakthroughInfo) {
+                    notifications.push(`🔥 **ĐỘT PHÁ!** Kỹ năng "<b>${originalSkill.name}</b>" đã đột phá từ <b>${breakthroughInfo.oldQuality}</b> lên <b>${breakthroughInfo.newQuality}</b>!`);
+                    try {
+                        const { description, effect } = await api.generateNewSkillDescription(originalSkill, breakthroughInfo.newQuality, worldSettings, apiKey);
+                        skills[skillIndex].description = description;
+                        skills[skillIndex].effect = effect;
+                        notifications.push(`✨ Kỹ năng "<b>${originalSkill.name}</b>" đã có mô tả và hiệu ứng mới!`);
+                    } catch (e) {
+                        notifications.push(`⚠️ Không thể tạo mô tả mới cho kỹ năng "${originalSkill.name}".`);
+                    }
+                }
+            }
+        }
+        nextProfile.skills = skills;
+    }
+
+    // --- Other Profile Updates ---
+    if (response.updatedGender) {
+        nextProfile.gender = response.updatedGender;
+        notifications.push(`✨ Giới tính của bạn đã thay đổi!`);
+    }
     if (response.updatedGameTime) {
-        newDate = new Date(response.updatedGameTime);
-        const timeDiffMs = newDate.getTime() - oldDate.getTime();
-        if (timeDiffMs > 0) {
-            const yearsPassed = (timeDiffMs / (1000 * 60 * 60 * 24 * 365.25));
-            if (yearsPassed >= 1) notifications.push(`⏳ <b>${Math.floor(yearsPassed)} năm</b> đã trôi qua.`);
-        }
+        nextProfile.gameTime = response.updatedGameTime;
     } else {
-        let minutesPassed = 0;
-        if (choice.isTimeSkip && choice.turnsToSkip) {
-            minutesPassed = choice.turnsToSkip * GAME_CONFIG.gameplay.time.minutesPerTurn;
-            notifications.push(`⏳ Thời gian đã trôi qua: <b>${choice.turnsToSkip} lượt</b>.`);
-        } else if (choice.durationInMinutes > 0) {
-            minutesPassed = choice.durationInMinutes;
-            notifications.push(`⏳ Thời gian đã trôi qua: <b>${choice.durationInMinutes} phút</b>.`);
-        }
-        if(minutesPassed > 0) newDate = new Date(oldDate.getTime() + minutesPassed * 60 * 1000);
+        const newTime = new Date(nextProfile.gameTime);
+        newTime.setMinutes(newTime.getMinutes() + (choice.durationInMinutes || 0));
+        nextProfile.gameTime = newTime.toISOString();
     }
-    if (newDate) {
-        const yearsPassed = newDate.getFullYear() - oldDate.getFullYear();
-        if (yearsPassed > 0) nextProfile.lifespan -= yearsPassed;
-        nextProfile.gameTime = newDate.toISOString();
-    }
-    
-    if (response.newMilestone && response.newMilestone.trim()) {
-        const newMilestoneEntry: Milestone = { turnNumber, summary: response.newMilestone.trim(), isNew: true };
-        nextProfile.milestones.push(newMilestoneEntry);
-        notifications.push(`- **Sổ Ký Ức được cập nhật:** ${newMilestoneEntry.summary}`);
+    if (response.newMilestone) {
+        const newMilestone: Milestone = {
+            turnNumber,
+            summary: response.newMilestone,
+            isNew: true
+        };
+        nextProfile.milestones = [...(nextProfile.milestones || []), newMilestone];
+        notifications.push(`⭐ Cột mốc mới được ghi nhận: <b>${response.newMilestone}</b>`);
     }
 
     if (response.updatedPlayerLocationId !== undefined) {
         nextProfile.currentLocationId = response.updatedPlayerLocationId;
     }
-
-    // --- Final Stat Clamping ---
-    nextProfile.health = Math.max(0, Math.min(nextProfile.maxHealth, nextProfile.health));
-    nextProfile.mana = Math.max(0, Math.min(nextProfile.maxMana, nextProfile.mana));
-    nextProfile.currencyAmount = Math.max(0, nextProfile.currencyAmount);
+    
+    // Final recalculation of derived stats from equipment
+    nextProfile = recalculateDerivedStats(nextProfile);
 
     return nextProfile;
 };

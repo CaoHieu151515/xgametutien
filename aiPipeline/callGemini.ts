@@ -18,9 +18,11 @@ interface CallParams {
     prompt: string;
     apiKey: string;
     schema: any;
+    maxOutputTokens?: number;
+    thinkingBudget?: number;
 }
 
-export const callGeminiApi = async ({ systemInstruction, prompt, apiKey, schema }: CallParams): Promise<GenerateContentResponse> => {
+export const callGeminiApi = async ({ systemInstruction, prompt, apiKey, schema, maxOutputTokens, thinkingBudget }: CallParams): Promise<GenerateContentResponse> => {
     log('callGemini.ts', `Calling Gemini API... Prompt (start): ${prompt.substring(0, 150)}...`, 'API');
     try {
         const finalApiKey = getFinalApiKey(apiKey);
@@ -34,8 +36,8 @@ export const callGeminiApi = async ({ systemInstruction, prompt, apiKey, schema 
                 ...(systemInstruction && { systemInstruction }),
                 responseMimeType: "application/json",
                 responseSchema: schema,
-                maxOutputTokens: GAME_CONFIG.ai.maxOutputTokens,
-                thinkingConfig: { thinkingBudget: GAME_CONFIG.ai.thinkingBudget },
+                maxOutputTokens: maxOutputTokens ?? GAME_CONFIG.ai.maxOutputTokens,
+                thinkingConfig: { thinkingBudget: thinkingBudget ?? GAME_CONFIG.ai.thinkingBudget },
             },
         });
         
