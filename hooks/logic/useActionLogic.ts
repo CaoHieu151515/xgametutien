@@ -301,7 +301,8 @@ export const useActionLogic = (props: UseActionLogicProps) => {
         
         try {
             let { nextProfile, nextNpcs, finalWorldSettings, notifications } = await applyStoryResponseToState({
-                storyResponse, characterProfile, npcs, worldSettings, settings, choice, turnNumber: newTurnNumber, isSuccess
+                storyResponse, characterProfile, npcs, worldSettings, settings, choice, turnNumber: newTurnNumber, isSuccess,
+                api, apiKey: apiKeyForService,
             });
 
             if (!choice.isTimeSkip) {

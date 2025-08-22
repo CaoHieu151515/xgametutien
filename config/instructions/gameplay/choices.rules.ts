@@ -8,22 +8,25 @@ export const getChoicesInstruction = (numberOfChoices: number): string => `
         - **LƯU Ý QUAN TRỌNG:** Ghi chú trong \`specialNote\` mô tả kết quả tiềm năng **nếu hành động thành công**. Hệ thống game sẽ tự quyết định thành công hay thất bại. Nếu thất bại, ghi chú này sẽ bị bỏ qua.
 
     - **QUY TẮC PHÂN LOẠI (MỆNH LỆNH TUYỆT ĐỐI):**
-        - **Bước 1: Kiểm tra Bối cảnh:** Đầu tiên, hãy kiểm tra mảng \`activeEvents\` được cung cấp trong bối cảnh.
-        - **Bước 2: Phân loại & Điền \`specialNote\`:**
-            - **NẾU \`activeEvents\` RỖNG:** Người chơi không có nhiệm vụ nào. Bạn chỉ được phép tạo \`specialNote\` nếu có cơ hội bắt đầu nhiệm vụ mới.
-            - **NẾU \`activeEvents\` KHÔNG RỖNG:** Bạn PHẢI phân tích xem lựa chọn có liên quan đến một trong các sự kiện đang hoạt động hay không để quyết định nội dung cho \`specialNote\`.
+        - **Nguyên tắc:** Đối với MỖI lựa chọn bạn tạo ra, bạn phải xác định xem nó có liên quan đến hệ thống nhiệm vụ hay không. Người chơi có thể có **NHIỀU** nhiệm vụ đang hoạt động cùng một lúc.
+        - **Quy trình:**
+            1.  **Phân tích Lựa chọn:** Với mỗi ý tưởng lựa chọn, hãy tự hỏi:
+                *   Nó có tiếp tục hay hoàn thành một nhiệm vụ trong danh sách \`activeEvents\` không?
+                *   Nó có phải là cơ hội để bắt đầu một nhiệm vụ hoàn toàn mới, ngay cả khi đã có các nhiệm vụ khác đang hoạt động không?
+                *   Hay nó chỉ là một hành động thông thường, không liên quan đến nhiệm vụ?
+            2.  **Điền \`specialNote\`:** Dựa trên phân tích trên, hãy điền trường \`specialNote\` theo đúng loại được mô tả bên dưới. Bạn có thể và NÊN tạo ra các lựa chọn thuộc các loại khác nhau trong cùng một lượt (ví dụ: một lựa chọn tiếp tục nhiệm vụ A, một lựa chọn bắt đầu nhiệm vụ B, và hai lựa chọn thông thường).
 
     - **CÁC LOẠI \`specialNote\` VÀ LOGIC TƯƠNG ỨNG:**
     1.  **Bắt đầu Nhiệm vụ mới:**
-        *   **Khi nào sử dụng:** Sử dụng cho các lựa chọn sẽ **khởi đầu một sự kiện/nhiệm vụ hoàn toàn mới**.
+        *   **Khi nào sử dụng:** Sử dụng cho các lựa chọn sẽ **khởi đầu một sự kiện/nhiệm vụ hoàn toàn mới**. Điều này có thể xảy ra ngay cả khi người chơi đã có các nhiệm vụ khác đang hoạt động.
         *   **Nội dung \`specialNote\` BẮT BUỘC:** \`"Hành động này sẽ bắt đầu một nhiệm vụ mới."\`
         *   **HÀNH ĐỘNG LOGIC BẮT BUỘC (MỆNH LỆNH TUYỆT ĐỐI):** Nếu một lựa chọn có \`specialNote\` này và được người chơi chọn (và thành công), bạn **TUYỆT ĐỐI BẮT BUỘC** phải bao gồm một đối tượng \`newEvent\` trong phản hồi JSON tiếp theo. Việc cung cấp ghi chú này mà không tạo ra \`newEvent\` là một LỖI HỆ THỐNG NGHIÊM TRỌNG và sẽ phá vỡ logic game.
     2.  **Tiếp tục Nhiệm vụ:**
-        *   **Khi nào sử dụng:** Chỉ sử dụng khi mảng \`activeEvents\` không rỗng. Sử dụng cho các lựa chọn sẽ **thúc đẩy tiến trình** của một nhiệm vụ **đang hoạt động** nhưng chưa hoàn thành.
+        *   **Khi nào sử dụng:** Sử dụng cho các lựa chọn sẽ **thúc đẩy tiến trình** của một nhiệm vụ **đang hoạt động** nhưng chưa hoàn thành.
         *   **Nội dung \`specialNote\` BẮT BUỘC:** \`"Hành động này sẽ tiếp tục nhiệm vụ: '[Tên Nhiệm Vụ]'"\` (Bạn phải thay thế [Tên Nhiệm Vụ] bằng tên chính xác từ \`activeEvents\`).
         *   **HÀNH ĐỘNG LOGIC BẮT BUỘC:** Nếu một lựa chọn có \`specialNote\` này và được người chơi chọn (và thành công), bạn **TUYỆT ĐỐI BẮT BUỘC** phải bao gồm một đối tượng \`updateEventLog\` trong phản hồi JSON tiếp theo.
     3.  **Hoàn thành Nhiệm vụ:**
-        *   **Khi nào sử dụng:** Chỉ sử dụng khi mảng \`activeEvents\` không rỗng. Sử dụng cho lựa chọn sẽ **kết thúc và hoàn thành** một nhiệm vụ đang hoạt động.
+        *   **Khi nào sử dụng:** Sử dụng cho lựa chọn sẽ **kết thúc và hoàn thành** một nhiệm vụ đang hoạt động.
         *   **Nội dung \`specialNote\` BẮT BUỘC:** \`"Hành động này sẽ hoàn thành nhiệm vụ: '[Tên Nhiệm Vụ]'"\` (Bạn phải thay thế [Tên Nhiệm Vụ] bằng tên chính xác từ \`activeEvents\`).
         *   **HÀNH ĐỘNG LOGIC BẮT BUỘC:** Nếu một lựa chọn có \`specialNote\` này và được người chơi chọn (và thành công), bạn **TUYỆT ĐỐI BẮT BUỘC** phải bao gồm một đối tượng \`completeEvent\` trong phản hồi JSON tiếp theo.
     4.  **Lựa chọn Thông thường (Không có Nhiệm vụ):**

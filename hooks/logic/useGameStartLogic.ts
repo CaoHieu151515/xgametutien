@@ -107,6 +107,8 @@ export const useGameStartLogic = (props: UseGameStartLogicProps) => {
                 },
                 turnNumber: 1,
                 isSuccess: true,
+                api,
+                apiKey: apiKeyForService,
             });
             
             const initialStoryPart: StoryPart = { 

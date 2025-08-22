@@ -1,12 +1,15 @@
 import { StoryResponse, NPC, WorldSettings, NewNPCFromAI, Skill, SkillUpdate } from '../../types';
 import { processNpcLevelUps, getLevelFromRealmName, calculateBaseStatsForLevel, getRealmDisplayName, processSkillLevelUps } from '../../services/progressionService';
 import { findBestAvatar } from '../../services/avatarService';
+import { log } from '../../services/logService';
 
 interface ApplyNpcMutationsParams {
     response: StoryResponse;
     npcs: NPC[];
     worldSettings: WorldSettings;
     notifications: string[];
+    api: any;
+    apiKey: string;
 }
 
 export const applyNpcMutations = async ({
@@ -14,15 +17,43 @@ export const applyNpcMutations = async ({
     npcs,
     worldSettings,
     notifications,
+    api,
+    apiKey,
 }: ApplyNpcMutationsParams): Promise<NPC[]> => {
     let nextNpcs = [...npcs];
 
     // --- New NPCs ---
     if (response.newNPCs?.length) {
-        // Find avatars for all new NPCs concurrently
-        const avatarUpdatePromises = response.newNPCs.map(async (newNpc) => {
+        // Step 1: Auto-generate skills for any new NPC that doesn't have them.
+        const skillGenerationPromises = response.newNPCs.map(async (newNpc) => {
+            if (!newNpc.skills || newNpc.skills.length === 0) {
+                try {
+                    const generatedSkillsData: Omit<Skill, 'id' | 'experience' | 'level' | 'isNew'>[] = await api.generateNpcSkills(newNpc, worldSettings, apiKey);
+                    
+                    const fullSkills: Skill[] = generatedSkillsData.map(s => ({
+                        ...s,
+                        id: `npcskill_${newNpc.id}_${Date.now()}_${s.name.replace(/\s+/g, '')}`,
+                        level: 1,
+                        experience: 0,
+                        isNew: true, // Mark as new for UI highlight
+                    }));
+
+                    notifications.push(`⚙️ Hệ thống đã tự động tạo kỹ năng cho <b>${newNpc.name}</b>.`);
+                    return { ...newNpc, skills: fullSkills };
+                } catch (err) {
+                    log('npcMutators.ts', `Failed to auto-generate skills for NPC ${newNpc.name}: ${(err as Error).message}`, 'ERROR');
+                    notifications.push(`⚠️ Không thể tự động tạo kỹ năng cho <b>${newNpc.name}</b>.`);
+                    return newNpc; // Return the NPC without skills if generation fails
+                }
+            }
+            return newNpc;
+        });
+        const npcsWithSkills = await Promise.all(skillGenerationPromises);
+
+        // Step 2: Find avatars for all new NPCs concurrently
+        const avatarUpdatePromises = npcsWithSkills.map(async (newNpc) => {
             if (!newNpc.avatarUrl) {
-                const allOtherNpcs = [...nextNpcs, ...response.newNPCs!].filter(n => n.id !== newNpc.id);
+                const allOtherNpcs = [...nextNpcs, ...npcsWithSkills].filter(n => n.id !== newNpc.id);
                 const avatarUrl = await findBestAvatar(newNpc, allOtherNpcs);
                 if (avatarUrl) return { ...newNpc, avatarUrl };
             }

@@ -20,6 +20,8 @@ interface ApplyDiffParams {
     choice: Choice;
     turnNumber: number;
     isSuccess: boolean;
+    api: any;
+    apiKey: string;
 }
 
 interface ApplyDiffResult {
@@ -38,6 +40,8 @@ export const applyStoryResponseToState = async ({
     choice,
     turnNumber,
     isSuccess,
+    api,
+    apiKey,
 }: ApplyDiffParams): Promise<ApplyDiffResult> => {
     // Make a mutable copy of the response to correct inconsistencies before applying
     const response: StoryResponse = JSON.parse(JSON.stringify(storyResponse)); 
@@ -89,6 +93,8 @@ export const applyStoryResponseToState = async ({
         npcs: nextNpcs,
         worldSettings: finalWorldSettings,
         notifications,
+        api,
+        apiKey,
     });
 
     // World mutations (locations, knowledge, monsters). This can also update the player profile.
