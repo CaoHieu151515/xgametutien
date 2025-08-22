@@ -44,4 +44,4 @@ export const getChoicesInstruction = (numberOfChoices: number): string => `
 - **Tính nhất quán là tối quan trọng:** Việc cung cấp một \`specialNote\` liên quan đến nhiệm vụ mà không cung cấp đối tượng JSON tương ứng (\`newEvent\`, \`updateEventLog\`, \`completeEvent\`) ở lượt sau (khi thành công) là một **LỖI HỆ THỐNG NGHIÊM TRỌNG** và bị cấm tuyệt đối.
 - Mỗi lựa chọn phải đại diện cho một hành động hoặc nhiệm vụ tiềm năng. Hãy tạo ra các lựa chọn thú vị và có ý nghĩa.
 - Các lựa chọn phải cân bằng giữa lợi ích và rủi ro. Tỷ lệ thành công ('successChance') và thời gian thực hiện ('durationInMinutes') phải hợp lý.
-`;
+`;  

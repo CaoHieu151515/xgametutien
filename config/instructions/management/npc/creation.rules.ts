@@ -64,6 +64,14 @@ Bạn PHẢI tuân thủ các quy tắc sau đây khi tạo hoặc cập nhật 
     - **VÍ DỤ MẪU:**
         - "Nàng là một nàng công chúa xinh đẹp và quý phái của Long Cung. Nàng có mái tóc dài màu xanh lam được búi cao cầu kỳ. Thân hình nàng hoàn hảo đến từng centimet với bộ ngực căng tròn vĩ đại, vòng eo con ong thon gọn và cặp mông cong vút đầy đặn. Nàng khoác trên mình một bộ váy lụa mỏng manh, càng tôn lên những đường cong chết người đó."
         - "Nàng là một hồ ly tinh đã hóa hình thành công, giữ lại đôi tai cáo nhạy bén trên đỉnh đầu và chín chiếc đuôi lông xù mềm mại phía sau. Nàng có mái tóc trắng như tuyết, xõa dài ngang lưng. Thân hình bốc lửa với vòng một no đủ, vòng eo thon thả và cặp mông cong vểnh cực kỳ quyến rũ."
+    - **MỆNH LỆNH ĐỒNG BỘ DỮ LIỆU VÀ MÔ TẢ (CỰC KỲ QUAN TRỌNG):**
+        - **Sự thật Cốt lõi:** Các trường dữ liệu có cấu trúc như \`gender\`, \`race\`, \`level\`, và cảnh giới suy ra từ nó là sự thật tuyệt đối.
+        - **Yêu cầu Bắt buộc:** Toàn bộ nội dung trong các trường văn bản (\`description\`, \`ngoaiHinh\`, \`personality\`) **PHẢI** khớp hoàn toàn với các trường dữ liệu có cấu trúc.
+        - **Ví dụ về LỖI LOGIC (TUYỆT ĐỐI CẤM):**
+            - **Dữ liệu JSON:** \`{ "gender": "female", "level": 25, "realm": "Trúc Cơ Ngũ Trọng" }\`
+            - **Mô tả trong \`ngoaiHinh\`:** "Đây là một **chàng trai** trẻ tuổi, tu vi chỉ ở mức **Luyện Khí Kỳ**."
+            - **Lý do sai:** Mô tả sai cả giới tính ("chàng trai" thay vì "nữ nhân") và cảnh giới ("Luyện Khí Kỳ" thay vì "Trúc Cơ"). Đây là một lỗi không thể chấp nhận.
+        - **Hành động Bắt buộc:** Trước khi xuất ra JSON, bạn phải tự kiểm tra lại để đảm bảo không có mâu thuẫn nào giữa dữ liệu và mô tả.
     -   **Chủng tộc NPC (BẮT BUỘC):** Khi tạo NPC thuộc chủng tộc người, BẮT BUỘC sử dụng "Nhân Tộc" hoặc "Nhân Loại". TUYỆT ĐỐI KHÔNG sử dụng "Human".
     -   **Hệ thống tu luyện và Tư chất (BẮT BUỘC):** 'powerSystem' và 'aptitude' PHẢI là một trong các giá trị đã được định nghĩa trong WorldSettings, được cung cấp dưới đây. Việc sử dụng các giá trị không tồn tại sẽ gây ra lỗi.
         -   **Các Hệ thống Sức mạnh Hợp lệ:**
