@@ -1,15 +1,4 @@
 
-
-
-
-
-
-
-
-
-
-
-
 import React, { useState, useRef } from 'react';
 import { CharacterProfile, CharacterGender, WorldSettings, PowerSystemDefinition, Skill, NewNPCFromAI, Location, Item, ApiProvider, SkillType, LocationType, ItemType } from '../../types';
 import { Loader } from '../Loader';
@@ -318,6 +307,20 @@ export const WorldSetup: React.FC<WorldSetupProps> = ({ onStartGame, onBackToMen
             const generateWorldFromIdea = apiProvider === ApiProvider.OPENAI ? openaiService.generateWorldFromIdea : geminiService.generateWorldFromIdea;
             const { characterProfile, worldSettings: newWorldSettings } = await generateWorldFromIdea(worldSettings.storyIdea, worldSettings.openingScene, apiKey);
     
+            // FIX: Normalize gender from AI response to prevent case-sensitivity issues.
+            if (characterProfile.gender) {
+                characterProfile.gender = characterProfile.gender.toLowerCase() as CharacterGender;
+            }
+
+            // FIX: Normalize gender for initial NPCs from AI response.
+            if (characterProfile.initialNpcs && Array.isArray(characterProfile.initialNpcs)) {
+                characterProfile.initialNpcs.forEach((npc: NewNPCFromAI) => {
+                    if (npc.gender) {
+                        npc.gender = npc.gender.toLowerCase() as CharacterGender;
+                    }
+                });
+            }
+
             const mergedProfile: CharacterProfile = { 
                 ...initialProfile, 
                 ...characterProfile, 

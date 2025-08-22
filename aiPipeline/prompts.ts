@@ -1,4 +1,3 @@
-
 import { CharacterProfile, WorldSettings, NPC, Location, Skill, StoryResponse, Milestone, GameEvent, NewNPCFromAI } from '../types';
 import { buildContextForPrompt } from './promptUtils';
 import { GAME_CONFIG } from '../config/gameConfig';
@@ -276,6 +275,11 @@ export const buildInitialStoryPrompt = (
 - **${talent.name}:** ${talent.description}
 `;
 
+    const isMale = characterProfile.gender === 'male' || (characterProfile.gender as string).toLowerCase() === 'nam';
+    const gender = isMale ? 'Nam' : 'Nữ';
+    const genderDescription = isMale ? 'một nam nhân' : 'một nữ nhân';
+    const genderStyle = isMale ? 'oai hùng, nam tính' : 'quyến rũ, xinh đẹp';
+
     return `
 Hãy bắt đầu một câu chuyện mới cho nhân vật sau đây.
 
@@ -301,8 +305,13 @@ ${JSON.stringify(summarizedBagItems, null, 2)}
 ${JSON.stringify(optimizedWorldSettings, null, 2)}
 \`\`\`
 
-Bạn PHẢI bắt đầu câu chuyện tại vị trí hiện tại của nhân vật ('currentLocationId'), được cung cấp trong Bối cảnh nhân vật. Hãy viết đoạn mở đầu thật hấp dẫn, giới thiệu nhân vật và thế giới tại địa điểm đó.
-Sau đó, cung cấp chính xác BỐN (4) lựa chọn hành động đầu tiên cho người chơi theo định dạng đã được chỉ định trong schema.
+**MỆNH LỆNH KHỞI ĐẦU:**
+- Bạn PHẢI bắt đầu câu chuyện tại vị trí hiện tại của nhân vật ('currentLocationId'). Hãy viết đoạn mở đầu thật hấp dẫn, giới thiệu nhân vật và thế giới tại địa điểm đó.
+- **MỆNH LỆNH TUYỆT ĐỐI VỀ GIỚI TÍNH KHI BẮT ĐẦU (LỖI HỆ THỐNG NẾU VI PHẠM):**
+    1.  **GIỚI TÍNH CỐ ĐỊNH:** Giới tính của nhân vật đã được người chơi thiết lập là **${gender}**. Đây là sự thật tuyệt đối cho lượt đi đầu tiên này.
+    2.  **ĐỒNG BỘ CỐT TRUYỆN:** Toàn bộ nội dung tường thuật trong trường 'story' của bạn **BẮT BUỘC** phải mô tả nhân vật là **${genderDescription}**. Phong cách miêu tả phải **${genderStyle}**. Bạn phải sử dụng các đại từ nhân xưng phù hợp (chàng, y, hắn cho nam; nàng, cô, thị cho nữ). TUYỆT ĐỐI KHÔNG được mô tả nhân vật biến đổi hoặc có giới tính khác.
+    3.  **CẤM CẬP NHẬT JSON:** Bạn **TUYỆT ĐỐI BỊ CẤM** sử dụng trường \`updatedGender\` trong phản hồi đầu tiên này. Việc thay đổi giới tính khi bắt đầu game là một lỗi logic nghiêm trọng.
+- Sau đó, cung cấp chính xác BỐN (4) lựa chọn hành động đầu tiên cho người chơi theo định dạng đã được chỉ định trong schema.
 `;
 };
 

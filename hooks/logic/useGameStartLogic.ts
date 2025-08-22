@@ -1,6 +1,7 @@
 
+
 import { useCallback } from 'react';
-import { CharacterProfile, WorldSettings, GameState, AppSettings, NPC, StoryPart, NewNPCFromAI, GameSnapshot, Choice, ToastMessage, Skill } from '../../types';
+import { CharacterProfile, WorldSettings, GameState, AppSettings, NPC, StoryPart, NewNPCFromAI, GameSnapshot, Choice, ToastMessage, Skill, CharacterGender } from '../../types';
 import * as saveService from '../../services/saveService';
 import { log } from '../../services/logService';
 import { processLevelUps, calculateBaseStatsForLevel, getRealmDisplayName, calculateManaCost } from '../../services/progressionService';
@@ -59,6 +60,12 @@ export const useGameStartLogic = (props: UseGameStartLogicProps) => {
         const finalProfile = processLevelUps(newProfile, 0, newWorldSettings);
     
         const initialNpcs: NPC[] = (finalProfile.initialNpcs || []).map((newNpcData: NewNPCFromAI) => {
+             // FIX: Normalize gender for initial NPCs before starting the game.
+             // This catches inconsistencies from AI-fill, manual edits, or file imports.
+             if (newNpcData.gender) {
+                newNpcData.gender = newNpcData.gender.toLowerCase() as CharacterGender;
+             }
+
              const isValidPowerSystem = newWorldSettings.powerSystems.some(ps => ps.name === newNpcData.powerSystem);
              const npcPowerSystem = isValidPowerSystem ? newNpcData.powerSystem : (newWorldSettings.powerSystems[0]?.name || '');
              const stats = calculateBaseStatsForLevel(newNpcData.level);

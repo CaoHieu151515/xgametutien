@@ -1,5 +1,6 @@
 
-import { StoryResponse, CharacterProfile, WorldSettings, AppSettings, ApiProvider, Skill, ItemType, Item, SkillType, Milestone, Choice } from '../../types';
+
+import { StoryResponse, CharacterProfile, WorldSettings, AppSettings, ApiProvider, Skill, ItemType, Item, SkillType, Milestone, Choice, CharacterGender } from '../../types';
 import { processLevelUps, getLevelFromRealmName, calculateExperienceForBreakthrough, processSkillLevelUps, recalculateDerivedStats, calculateManaCost } from '../../services/progressionService';
 import { GAME_CONFIG } from '../../config/gameConfig';
 import * as geminiService from '../../services/geminiService';
@@ -224,16 +225,38 @@ export const applyPlayerMutations = async ({
 
     // --- Other Profile Updates ---
     if (response.updatedGender) {
-        nextProfile.gender = response.updatedGender;
-        notifications.push(`✨ Giới tính của bạn đã thay đổi!`);
+        const newGender = response.updatedGender.toLowerCase();
+        if (newGender === 'male' || newGender === 'female') {
+            nextProfile.gender = newGender as CharacterGender;
+            notifications.push(`✨ Giới tính của bạn đã thay đổi!`);
+        }
     }
+
     if (response.updatedGameTime) {
         nextProfile.gameTime = response.updatedGameTime;
     } else {
-        const newTime = new Date(nextProfile.gameTime);
-        newTime.setMinutes(newTime.getMinutes() + (choice.durationInMinutes || 0));
-        nextProfile.gameTime = newTime.toISOString();
+        const duration = choice.durationInMinutes || 0;
+        if (duration > 0) {
+            const newTime = new Date(nextProfile.gameTime);
+            newTime.setMinutes(newTime.getMinutes() + duration);
+            nextProfile.gameTime = newTime.toISOString();
+            
+            const formatDuration = (minutes: number): string => {
+                if (minutes < 60) return `${minutes} phút`;
+                if (minutes < 1440) { // Less than a day
+                     const hours = Math.floor(minutes / 60);
+                     const remainingMinutes = minutes % 60;
+                     return `${hours} giờ` + (remainingMinutes > 0 ? ` ${remainingMinutes} phút` : '');
+                }
+                const days = Math.floor(minutes / 1440);
+                const remainingHours = Math.floor((minutes % 1440) / 60);
+                return `${days} ngày` + (remainingHours > 0 ? ` ${remainingHours} giờ` : '');
+            };
+            
+            notifications.push(`⏳ Thời gian đã trôi qua: <b>${formatDuration(duration)}</b>.`);
+        }
     }
+    
     if (response.newMilestone) {
         const newMilestone: Milestone = {
             turnNumber,

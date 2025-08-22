@@ -1,4 +1,5 @@
-import { StoryResponse, NPC, WorldSettings, NewNPCFromAI, Skill, SkillUpdate } from '../../types';
+
+import { StoryResponse, NPC, WorldSettings, NewNPCFromAI, Skill, SkillUpdate, CharacterGender } from '../../types';
 import { processNpcLevelUps, getLevelFromRealmName, calculateBaseStatsForLevel, getRealmDisplayName, processSkillLevelUps } from '../../services/progressionService';
 import { findBestAvatar } from '../../services/avatarService';
 import { log } from '../../services/logService';
@@ -69,8 +70,14 @@ export const applyNpcMutations = async ({
                 const npcPowerSystem = isValidPowerSystem ? newNpcData.powerSystem : (worldSettings.powerSystems[0]?.name || '');
                 const stats = calculateBaseStatsForLevel(newNpcData.level);
 
+                // FIX: Normalize gender for new NPCs during gameplay to prevent case-sensitivity issues.
+                if (newNpcData.gender) {
+                    newNpcData.gender = newNpcData.gender.toLowerCase() as CharacterGender;
+                }
+
                 return {
                     ...newNpcData,
+                    powerSystem: npcPowerSystem,
                     experience: 0,
                     health: stats.maxHealth,
                     mana: stats.maxMana,
@@ -232,7 +239,9 @@ export const applyNpcMutations = async ({
                     // Apply other direct updates
                     Object.assign(modifiedNpc, {
                         locationId: update.locationId ?? modifiedNpc.locationId,
-                        gender: update.gender ?? modifiedNpc.gender,
+                        gender: (update.gender && (update.gender.toLowerCase() === 'male' || update.gender.toLowerCase() === 'female')) 
+                            ? update.gender.toLowerCase() as CharacterGender 
+                            : modifiedNpc.gender,
                         personality: update.personality ?? modifiedNpc.personality,
                         description: update.description ?? modifiedNpc.description,
                         ngoaiHinh: update.ngoaiHinh ?? modifiedNpc.ngoaiHinh,
