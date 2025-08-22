@@ -1,4 +1,4 @@
-import { CharacterProfile, WorldSettings, NPC, Location, Item, Achievement, Monster, LocationType, Milestone, GameEvent, ItemType, Skill } from '../../types';
+import { CharacterProfile, WorldSettings, NPC, Location, Item, Achievement, Monster, LocationType, Milestone, GameEvent, ItemType, Skill } from '../types';
 
 interface ContextualPromptData {
     contextualNpcs: Partial<NPC>[];
