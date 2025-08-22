@@ -139,7 +139,7 @@ export const buildContextForPrompt = (
 
     return {
         contextualNpcs: contextualNpcs as Partial<NPC>[],
-        localLocations,
+        localLocations,             
         globalLocations,
         locationRules,
         minimalCharacterProfile,
