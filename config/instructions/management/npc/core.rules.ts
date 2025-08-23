@@ -61,11 +61,15 @@ export const coreNpcRules = `
     - **Ví dụ Đúng:** Người chơi lần đầu gặp chủ tiệm tạp hóa. [Chủ tiệm]: "Chào mừng đạo hữu. Cần tìm gì sao?"
 - **CẤM NPC không liên quan:** TUYỆT ĐỐI KHÔNG được nhắc đến, mô tả suy nghĩ, hay đưa vào hành động của bất kỳ NPC nào không có mặt tại địa điểm của người chơi. Ví dụ: Nếu nhân vật chính đang ở "Thiên Đấu Thành", một NPC ở "Vạn Kiếm Tông" sẽ KHÔNG biết và KHÔNG thể tham gia vào các sự kiện tại thành.
 
+**1.4. QUY TẮC TUYỆT ĐỐI VỀ CÁI CHẾT (MỆNH LỆNH HỆ THỐNG - KHÔNG THỂ VI PHẠM)**
+- **SỰ THẬT DUY NHẤT:** Dữ liệu JSON được cung cấp trong prompt là sự thật tuyệt đối. Nếu một NPC có trạng thái \`"isDead": true\`, hoặc nếu một NPC không xuất hiện trong danh sách \`contextualNpcs\`, điều đó có nghĩa là họ **KHÔNG CÓ MẶT** và **KHÔNG THỂ TƯƠNG TÁC**.
+- **CẤM TUYỆT ĐỐI HỒI SINH NGẪU NHIÊN:** Bạn **TUYỆT ĐỐI BỊ CẤM** để một NPC đã chết xuất hiện trở lại, nói chuyện, hoặc hành động như thể họ còn sống. Đây là một lỗi logic nghiêm trọng và phá vỡ hoàn toàn sự nhập tâm.
+- **HÀNH ĐỘNG BẮT BUỘC:** Trước khi viết về bất kỳ NPC nào, hãy kiểm tra lại danh sách \`contextualNpcs\` được cung cấp. Nếu họ không có trong danh sách đó, bạn không được sử dụng họ.
+- **NGOẠI LỆ DUY NHẤT:** Việc hồi sinh chỉ có thể xảy ra thông qua một sự kiện cốt truyện cực kỳ đặc biệt và có chủ đích (ví dụ: người chơi sử dụng một thần vật hồi sinh). Nếu không có sự kiện như vậy, cái chết là vĩnh viễn.
+
 ---
 **PHẦN 2: LOGIC HÀNH VI - ĐỘNG LỰC VÀ TÍNH CÁCH**
 ---
-
-NPC không phải là những con rối thụ động. Họ có ý chí, tính cách, và quan trọng nhất là động lực riêng.
 
 **2.1. Tính Cách Bất Biến & Các Trạng Thái Ngoại Lệ (MỆNH LỆNH TỐI CAO)**
 -   **Tính cách là Luật Lệ Tuyệt Đối:** Tính cách ('personality') của NPC được cung cấp trong dữ liệu là **luật lệ không thể thay đổi**, không phải là một gợi ý. Mọi hành động, lời nói, và suy nghĩ nội tâm của NPC PHẢI được lọc qua lăng kính tính cách cốt lõi này. Một NPC "tàn bạo" sẽ luôn hành động và suy nghĩ một cách tàn bạo. Một NPC "cao ngạo" sẽ luôn nói năng và hành xử một cách cao ngạo.

@@ -118,4 +118,50 @@ Nơi một NPC sinh sống và tu luyện cũng ảnh hưởng đến bộ kỹ 
 
 **Số lượng Kỹ năng:**
 *   Gán một số lượng kỹ năng hợp lý. Một NPC cấp thấp chỉ nên có 1-2 kỹ năng. Một trưởng lão cấp cao có thể có 4-5 kỹ năng.
+
+---
+**PHẦN 3.4: MỆNH LỆNH SUY LUẬN & ĐỒNG BỘ MỐI QUAN HỆ GIA ĐÌNH (LOGIC CỐT LÕI MỚI)**
+---
+*   **Kích hoạt:** Khi bạn tạo ra **NHIỀU HƠN MỘT** NPC mới trong cùng một lượt (\`newNPCs\`).
+*   **Nhiệm vụ Phân tích (BẮT BUỘC):** Bạn **PHẢI** phân tích tên và mô tả của tất cả các NPC mới được tạo ra trong lượt đó để suy luận ra các mối quan hệ gia đình hoặc hôn nhân tiềm ẩn.
+    *   **Dấu hiệu nhận biết:**
+        *   **Họ chung:** Các NPC có cùng họ (ví dụ: "Vương Lão Gia", "Vương Phu Nhân", "Vương Tiểu Thư").
+        *   **Chức danh:** Các chức danh mang tính gia đình (ví dụ: "Phụ Thân", "Mẫu Thân", "Phu Nhân", "Lão Gia", "Tiểu Thư", "Công Tử").
+*   **Hành động BẮT BUỘC (Đồng bộ hai chiều):**
+    1.  Nếu bạn suy luận được một mối quan hệ, bạn **BẮT BUỘC** phải định nghĩa nó một cách rõ ràng và **hai chiều** trong trường \`npcRelationships\` của các NPC liên quan.
+    2.  Mối quan hệ **PHẢI** có \`relationshipType\` là một chuỗi văn bản mô tả chính xác (ví dụ: "Phu Thê", "Phụ thân", "Mẫu thân", "Con gái") và một giá trị \`value\` dương cao (ví dụ: 900-1000).
+*   **VÍ DỤ CỤ THỂ (HỌC THUỘC LÒNG - SỬA LỖI HỆ THỐNG):**
+    *   **Bối cảnh:** Nhiệm vụ giải cứu "Vương Tiểu Thư". Trong quá trình này, bạn tạo ra hai NPC mới là "Vương Lão Gia" và "Vương Phu Nhân".
+    *   **Phân tích của bạn (BẮT BUỘC):** "Vương Lão Gia" và "Vương Phu Nhân" có cùng họ "Vương" và chức danh "Lão Gia" (chủ gia đình) và "Phu Nhân" (vợ). Họ rõ ràng là vợ chồng. Họ cũng là cha mẹ của "Vương Tiểu Thư".
+    *   **JSON CẬP NHẬT (Bắt buộc):**
+        \`\`\`json
+        "newNPCs": [
+          {
+            "id": "id_vuong_lao_gia",
+            "name": "Vương Lão Gia",
+            "npcRelationships": [
+              { "targetNpcId": "id_vuong_phu_nhan", "value": 1000, "relationshipType": "Phu Thê" },
+              { "targetNpcId": "id_vuong_tieu_thu", "value": 950, "relationshipType": "Con gái" }
+            ]
+          },
+          {
+            "id": "id_vuong_phu_nhan",
+            "name": "Vương Phu Nhân",
+            "npcRelationships": [
+              { "targetNpcId": "id_vuong_lao_gia", "value": 1000, "relationshipType": "Phu Thê" },
+              { "targetNpcId": "id_vuong_tieu_thu", "value": 950, "relationshipType": "Con gái" }
+            ]
+          }
+        ],
+        "updatedNPCs": [
+          {
+            "id": "id_vuong_tieu_thu",
+            "updatedNpcRelationships": [
+              { "targetNpcId": "id_vuong_lao_gia", "value": 950, "relationshipType": "Phụ thân" },
+              { "targetNpcId": "id_vuong_phu_nhan", "value": 950, "relationshipType": "Mẫu thân" }
+            ]
+          }
+        ]
+        \`\`\`
+*   **LỖI LOGIC (CẤM):** Tạo ra các thành viên trong cùng một gia đình mà không định nghĩa mối quan hệ của họ trong JSON là một lỗi nghiêm trọng, phá vỡ sự nhất quán của thế giới.
 `;

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { StatusEffect, CharacterGender } from '../../../../types';
 import { getExperienceForNextLevel, getSkillExperienceForNextLevel } from '../../../../services/progressionService';
@@ -110,7 +109,7 @@ export const getStatusEffectType = (effect: StatusEffect): StatusEffectType => {
     if (specialKeywords.some(kw => name.includes(kw))) {
         return 'special';
     }
-    const negativeKeywords = ['độc', 'suy yếu', 'giảm', 'trúng', 'thương', 'bỏng', 'tê liệt', 'choáng', 'hỗn loạn', 'mất', 'trừ', 'nguyền', 'trói', 'phế', 'trọng thương', 'suy nhược'];
+    const negativeKeywords = ['độc', 'suy yếu', 'giảm', 'trúng', 'thương', 'bỏng', 'tê liệt', 'choáng', 'hỗn loạn', 'mất', 'trừ', 'nguyền', 'trói', 'phế', 'trọng thương', 'suy nhược', 'ma khí', 'nhiễu loạn', 'vướng vấn', 'phản phệ', 'suy kiệt', 'ma hóa', 'khô kiệt'];
     if (negativeKeywords.some(kw => name.includes(kw))) {
         return 'negative';
     }

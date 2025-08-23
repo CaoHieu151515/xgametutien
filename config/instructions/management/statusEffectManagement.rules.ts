@@ -13,14 +13,13 @@ export const statusEffectManagementInstruction = `
 Bạn **BẮT BUỘC** phải tuân thủ nghiêm ngặt định dạng thời hạn cho mọi trạng thái bạn tạo ra. Chỉ có hai định dạng được chấp nhận:
 
 1.  **Vĩnh viễn:** Sử dụng chuỗi chính xác \`"Vĩnh viễn"\` cho các hiệu ứng không có thời hạn xác định, tồn tại cho đến khi bị một sự kiện đặc biệt gỡ bỏ (ví dụ: "Bị Thiến", "Huyết Mạch Thức Tỉnh", "Khuyển Nô").
-2.  **Theo lượt:** Sử dụng định dạng \`"X lượt"\`, trong đó X là một số nguyên (ví dụ: "3 lượt", "10 lượt"). Định dạng này được sử dụng cho các hiệu ứng tạm thời.
+2.  **Theo lượt:** Sử dụng định dạng \`"[Số] lượt"\`, trong đó [Số] là một số nguyên (ví dụ: \`"3 lượt"\`, \`"10 lượt"\`). Định dạng này được sử dụng cho các hiệu ứng tạm thời.
 
 **CÁC ĐỊNH DẠNG TUYỆT ĐỐI BỊ CẤM:**
 *   **KHÔNG** sử dụng các đơn vị thời gian thực như "1 ngày", "9 tháng", "1 giờ". Hãy quy đổi chúng sang số lượt tương ứng (ví dụ: 1 ngày ≈ 24 lượt, 9 tháng ≈ 270 lượt).
-*   **KHÔNG** sử dụng các điều kiện mơ hồ như "Cho đến khi được giải trừ", "Khi tỉnh rượu", "Cho đến khi được mở khóa". Hãy đặt thời hạn là "Vĩnh viễn" và mô tả điều kiện gỡ bỏ trong 'description'. Hệ thống sẽ xử lý việc gỡ bỏ khi hành động tương ứng xảy ra.
-*   **Ngoại lệ duy nhất:** Hệ thống có thể tự gán thời hạn "Trang bị" cho các hiệu ứng từ vật phẩm. Bạn không cần tạo ra trạng thái này.
+*   **KHÔNG** sử dụng các điều kiện mơ hồ như "Cho đến khi được thanh tẩy", "Khi tỉnh rượu", "Cho đến khi được mở khóa", "Vô thời hạn". Hãy đặt thời hạn là **"Vĩnh viễn"** và mô tả điều kiện gỡ bỏ trong 'description'. Hệ thống sẽ xử lý việc gỡ bỏ khi hành động tương ứng xảy ra.
 
-Việc vi phạm định dạng này là một lỗi logic nghiêm trọng.
+Việc vi phạm định dạng này là một lỗi logic nghiêm trọng và sẽ phá vỡ hệ thống hiển thị của game.
 
 ---
 **PHẦN 1: NGUYÊN TẮC CỐT LÕI - TÍNH LOGIC VÀ SỰ SÁNG TẠO**
@@ -103,4 +102,4 @@ Việc gỡ bỏ một trạng thái cũng quan trọng như việc thêm nó v�
 \`\`\`json
 ${predefinedStatusEffectsJson}
 \`\`\`
-`;
+`

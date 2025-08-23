@@ -130,9 +130,13 @@ export const applyPlayerMutations = async ({
         }
         if (newStatusEffects?.length) {
             newStatusEffects.forEach(newEffect => {
-                const existingIndex = currentStatusEffects.findIndex(e => e.name === newEffect.name);
+                const isPregnancyEffect = newEffect.name.startsWith('Mang Thai');
+                const existingIndex = currentStatusEffects.findIndex(e =>
+                    isPregnancyEffect ? e.name.startsWith('Mang Thai') : e.name === newEffect.name
+                );
+                
                 if (existingIndex !== -1) {
-                    notifications.push(`ℹ️ Trạng thái "<b>${newEffect.name}</b>" đã được làm mới.`);
+                    notifications.push(`ℹ️ Trạng thái "<b>${currentStatusEffects[existingIndex].name}</b>" đã được cập nhật thành "<b>${newEffect.name}</b>".`);
                     currentStatusEffects[existingIndex] = newEffect;
                 } else {
                     notifications.push(`✨ Bạn nhận được trạng thái: <b>${newEffect.name}</b>.`);

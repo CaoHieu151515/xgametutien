@@ -2,6 +2,37 @@ export const getNpcUpdateRules = (daoLuTermPlayer: string, playerGenderVietnames
 ---
 **PHẦN 3B: CẬP NHẬT NPC (MỆNH LỆNH ĐỒNG BỘ TUYỆT ĐỐI)**
 ---
+
+**MỆNH LỆNH HỆ THỐNG TUYỆT ĐỐI: TỰ ĐỘNG XỬ LÝ CÁI CHẾT (LOGIC CỐT LÕI - KHÔNG THỂ VI PHẠM)**
+
+Đây là một quy tắc máy móc, tự động của game engine. Bạn **BẮT BUỘC** phải tuân thủ nó một cách tuyệt đối để đảm bảo tính nhất quán của thế giới.
+
+*   **ĐIỀU KIỆN KÍCH HOẠT:** Sau khi bạn đã tính toán tất cả các thay đổi về sinh lực (\`health\`) cho một NPC trong một lượt, nếu sinh lực cuối cùng của họ nhỏ hơn hoặc bằng 0.
+
+*   **HÀNH ĐỘNG BẮT BUỘC (LOGIC GAME - QUAN TRỌNG NHẤT):**
+    1.  Bạn **BẮT BUỘC** phải đặt trường \`"isDead": true\` cho NPC đó trong đối tượng cập nhật của họ trong mảng \`updatedNPCs\`.
+    2.  Bạn **BẮT BUỘC** phải đặt trường \`"locationId": null\` để xóa họ khỏi vị trí hiện tại.
+
+*   **HÀNH ĐỘNG BẮT BUỘC (TƯỜNG THUẬT - STORY):**
+    1.  Trong trường \`story\`, bạn PHẢI mô tả cái chết của NPC đó một cách dứt khoát và ngay lập tức trong cùng một lượt.
+    2.  Sau khi một NPC đã được xác định là đã chết, bạn **TUYỆT ĐỐI BỊ CẤM** viết thêm bất kỳ lời thoại, hành động, hoặc suy nghĩ nào cho họ trong các lượt tiếp theo (trừ khi có sự kiện hồi sinh). Họ đã bị xóa khỏi câu chuyện.
+
+*   **VÍ DỤ VỀ LỖI LOGIC (TUYỆT ĐỐI CẤM):**
+    *   **Tình huống:** Người chơi gây 100 sát thương lên NPC A (còn 50 máu).
+    *   **JSON SAI:** \`"updatedNPCs": [{ "id": "npc_a_id", "health": -100 }]\` (Không có \`isDead: true\`)
+    *   **Story SAI:** "NPC A gục ngã, thoi thóp. [NPC A]: 'Ngươi... sẽ phải trả giá...'" (Vẫn còn sống và nói chuyện).
+    *   **Lý do sai:** Không tuân thủ quy tắc tự động. NPC có sinh lực âm nhưng vẫn sống.
+
+*   **VÍ DỤ XỬ LÝ ĐÚNG (BẮT BUỘC):**
+    *   **JSON ĐÚNG:** \`"updatedNPCs": [{ "id": "npc_a_id", "health": -100, "isDead": true, "locationId": null }]\`
+    *   **Story ĐÚNG:** "Một đòn chí mạng! Sinh lực của NPC A cạn kiệt, ánh sáng trong mắt y lụi tàn và y gục ngã xuống đất, không còn hơi thở."
+
+*   **Cảnh báo:** Việc một NPC có sinh lực bằng 0 mà vẫn tiếp tục hành động là một lỗi hệ thống nghiêm trọng nhất, phá vỡ hoàn toàn logic chiến đấu. Mệnh lệnh này là không thể thương lượng.
+
+---
+**2. CÁC CẬP NHẬT CHỈ SỐ KHÁC**
+---
+
 -   **Cập nhật NPC:**
     -   Sử dụng mảng 'updatedNPCs' để sửa đổi các NPC đã tồn tại. Chỉ bao gồm 'id' và các trường đã thay đổi.
     -   **Kinh nghiệm và Đột phá:** Cung cấp 'gainedExperience' hoặc 'breakthroughToRealm' để NPC tiến bộ.

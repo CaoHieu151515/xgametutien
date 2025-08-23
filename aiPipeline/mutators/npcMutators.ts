@@ -1,4 +1,5 @@
 
+
 import { StoryResponse, NPC, WorldSettings, NewNPCFromAI, Skill, SkillUpdate, CharacterGender } from '../../types';
 import { processNpcLevelUps, getLevelFromRealmName, calculateBaseStatsForLevel, getRealmDisplayName, processSkillLevelUps } from '../../services/progressionService';
 import { findBestAvatar } from '../../services/avatarService';
@@ -188,9 +189,13 @@ export const applyNpcMutations = async ({
                     }
                     if (update.newStatusEffects?.length) {
                         update.newStatusEffects.forEach(newEffect => {
-                            const existingIndex = currentStatusEffects.findIndex(e => e.name === newEffect.name);
+                            const isPregnancyEffect = newEffect.name.startsWith('Mang Thai');
+                            const existingIndex = currentStatusEffects.findIndex(e =>
+                                isPregnancyEffect ? e.name.startsWith('Mang Thai') : e.name === newEffect.name
+                            );
+                    
                             if (existingIndex !== -1) {
-                                notifications.push(`ℹ️ Trạng thái "<b>${newEffect.name}</b>" của <b>${modifiedNpc.name}</b> đã được làm mới.`);
+                                notifications.push(`ℹ️ Trạng thái "<b>${currentStatusEffects[existingIndex].name}</b>" của <b>${modifiedNpc.name}</b> đã được cập nhật thành "<b>${newEffect.name}</b>".`);
                                 currentStatusEffects[existingIndex] = newEffect;
                             } else {
                                 notifications.push(`✨ <b>${modifiedNpc.name}</b> nhận được trạng thái: <b>${newEffect.name}</b>.`);

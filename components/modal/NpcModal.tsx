@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { NPC, CharacterGender, StatusEffect, WorldSettings, CharacterProfile, SkillType, Skill } from '../../types';
 import { calculateBaseStatsForLevel } from '../../services/progressionService';
@@ -87,7 +88,7 @@ const getStatusEffectType = (effect: StatusEffect): StatusEffectType => {
     }
 
     // Negative keywords suggest a debuff
-    const negativeKeywords = ['độc', 'suy yếu', 'giảm', 'trúng', 'thương', 'bỏng', 'tê liệt', 'choáng', 'hỗn loạn', 'mất', 'trừ', 'nguyền', 'trói', 'phế', 'trọng thương', 'suy nhược'];
+    const negativeKeywords = ['độc', 'suy yếu', 'giảm', 'trúng', 'thương', 'bỏng', 'tê liệt', 'choáng', 'hỗn loạn', 'mất', 'trừ', 'nguyền', 'trói', 'phế', 'trọng thương', 'suy nhược', 'ma khí', 'nhiễu loạn', 'vướng vấn', 'phản phệ', 'suy kiệt', 'ma hóa', 'khô kiệt'];
     if (negativeKeywords.some(kw => name.includes(kw))) {
         return 'negative';
     }
