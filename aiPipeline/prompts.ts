@@ -127,6 +127,8 @@ export const buildUnifiedPrompt = (
         milestones,
         discoveredMonsters,
         activeEvents,
+        secretsContext,
+        reputationContext,
     } = buildContextForPrompt(characterProfile, worldSettings, npcs, historyText);
 
     const locationMap = new Map(characterProfile.discoveredLocations.map(loc => [loc.id, loc]));
@@ -186,6 +188,9 @@ ${JSON.stringify(activeEvents, null, 2)}
 \`\`\`json
 ${JSON.stringify(minimalCharacterProfile, null, 2)}
 \`\`\`
+
+${secretsContext}
+${reputationContext}
 
 ${(specialConstitution.name || talent.name) ? innateAbilitiesContext : ''}
 

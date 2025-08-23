@@ -1,5 +1,6 @@
 
 
+
 import React, { useMemo, useState, useCallback } from 'react';
 import { GameState, CharacterProfile, WorldSettings, StoryPart, NPC, Choice, AppSettings } from '../../types';
 import { Loader } from '../Loader';
@@ -9,7 +10,7 @@ import { AdventureCard } from '../AdventureCard';
 import { 
     HomeIcon, PlayerIcon, NpcsIcon, WorldIcon, MapIcon, 
     GameLogIcon, BagIcon, LocationIcon, SettingsIcon, SaveIcon, TimeIcon, EventIcon,
-    ChevronDownIcon, ChevronUpIcon
+    ChevronDownIcon, ChevronUpIcon, SecretsIcon
 } from '../ui/Icons';
 import { useComponentLog } from '../../hooks/useComponentLog';
 import { GAME_CONFIG } from '../../config/gameConfig';
@@ -38,6 +39,7 @@ interface GameScreenProps {
     openInventoryModal: () => void;
     openTimeSkipModal: () => void;
     openEventModal: () => void;
+    openSecretsModal: () => void;
 }
 
 const getFormattedGameTime = (isoString: string | null): string => {
@@ -102,6 +104,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     openInventoryModal,
     openTimeSkipModal,
     openEventModal,
+    openSecretsModal,
 }) => {
     useComponentLog('GameScreen.tsx');
     const [backgroundAvatars, setBackgroundAvatars] = useState<string[]>([]);
@@ -170,6 +173,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                         </HeaderButton>
                         <HeaderButton label="NPC" onClick={openNpcModal} disabled={isLoading}>
                             <NpcsIcon />
+                        </HeaderButton>
+                        <HeaderButton label="Bí Mật" onClick={openSecretsModal} disabled={isLoading}>
+                            <SecretsIcon />
                         </HeaderButton>
                         <HeaderButton label="Thế Giới" onClick={openWorldInfoModal} disabled={isLoading}>
                             <WorldIcon />

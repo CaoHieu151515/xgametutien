@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useEffect } from 'react';
 import { SettingsModal } from './components/modal/SettingsModal';
 import { PlayerInfoModal } from './components/modal/PlayerInfoModal';
@@ -10,6 +11,7 @@ import { GameLogModal } from './components/modal/GameLogModal';
 import { InventoryModal } from './components/modal/InventoryModal';
 import { TimeSkipModal } from './components/modal/TimeSkipModal';
 import { EventModal } from './components/modal/EventModal';
+import { SecretsModal } from './components/modal/SecretsModal';
 import { log } from './services/logService';
 import { DebugLogPanel } from './components/DebugLogPanel';
 import { useComponentLog } from './hooks/useComponentLog';
@@ -88,6 +90,7 @@ const App: React.FC = () => {
         openInventoryModal: () => openModal('inventory'),
         openTimeSkipModal: () => openModal('timeSkip'),
         openEventModal: () => openModal('event'),
+        openSecretsModal: () => openModal('secrets'),
     };
 
     return (
@@ -183,6 +186,15 @@ const App: React.FC = () => {
                     isOpen={modals.event}
                     onClose={() => closeModal('event')}
                     events={characterProfile.events}
+                />
+            )}
+            {characterProfile && npcs && modals.secrets && (
+                <SecretsModal
+                    isOpen={modals.secrets}
+                    onClose={() => closeModal('secrets')}
+                    profile={characterProfile}
+                    npcs={npcs}
+                    onUpdateProfile={setCharacterProfile}
                 />
             )}
             {isDebugLogVisible && <DebugLogPanel onClose={() => setIsDebugLogVisible(false)} />}

@@ -2,6 +2,7 @@
 
 
 
+
 export interface GameEventLogEntry {
   turnNumber: number;
   entry: string;
@@ -348,6 +349,18 @@ export interface Milestone {
   isNew?: boolean;
 }
 
+export interface Secret {
+  id: string;
+  title: string;
+  content: string;
+  knownByNpcIds: string[]; // Empty array means only player knows
+}
+
+export interface Reputation {
+  id: string;
+  summary: string;
+}
+
 export interface CharacterProfile {
   id: string; // ID duy nhất cho nhân vật
   name: string;
@@ -410,6 +423,10 @@ export interface CharacterProfile {
   discoveredItems: Item[];
   gameTime: string; // Thời gian trong game, định dạng ISO 8601
   
+  // Secrets & Reputation
+  secrets: Secret[];
+  reputations: Reputation[];
+
   // User-defined initial elements
   initialNpcs?: NewNPCFromAI[];
   initialLocations?: Location[];

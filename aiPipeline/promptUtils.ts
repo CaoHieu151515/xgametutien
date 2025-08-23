@@ -1,4 +1,4 @@
-import { CharacterProfile, WorldSettings, NPC, Location, Item, Achievement, Monster, LocationType, Milestone, GameEvent, ItemType, Skill } from '../types';
+import { CharacterProfile, WorldSettings, NPC, Location, Item, Achievement, Monster, LocationType, Milestone, GameEvent, ItemType, Skill, Secret, Reputation } from '../types';
 
 interface ContextualPromptData {
     contextualNpcs: Partial<NPC>[];
@@ -15,6 +15,8 @@ interface ContextualPromptData {
     milestones: Milestone[];
     discoveredMonsters: Monster[];
     activeEvents: Partial<GameEvent>[];
+    secretsContext: string;
+    reputationContext: string;
 }
 
 /**
@@ -66,6 +68,7 @@ export const buildContextForPrompt = (
         memories,
         skills: skills.map(({ id, name, type, quality, level, experience, description, effect, manaCost }) => ({ id, name, type, quality, level, experience, description, effect, manaCost })),
     }));
+    const contextualNpcIds = new Set(contextualNpcs.map(n => n.id));
 
     // 2. Lọc Địa điểm theo ngữ cảnh: địa phương và toàn cục.
     let localLocations: Partial<Location>[] = [];
@@ -120,7 +123,26 @@ export const buildContextForPrompt = (
         .filter(event => event.status === 'active')
         .map(({ id, title, description }) => ({ id, title, description }));
 
-    // 7. Tối giản Character Profile: loại bỏ các danh sách lớn sẽ được xử lý riêng.
+    // 7. Lọc Bí mật và Tiếng vang
+    const relevantSecrets = (characterProfile.secrets || [])
+        .filter(secret => 
+            secret.knownByNpcIds.length === 0 || // Player-only secret
+            secret.knownByNpcIds.some(npcId => contextualNpcIds.has(npcId)) // Known by a relevant NPC
+        );
+    
+    const secretsContext = (relevantSecrets.length > 0) ? `
+**Bí Mật & Thông Tin Ngầm (Cần xử lý tinh tế):**
+\`\`\`json
+${JSON.stringify(relevantSecrets.map(({title, content, knownByNpcIds}) => ({title, content, knownByNpcIds})), null, 2)}
+\`\`\`
+` : '';
+
+    const reputationContext = (characterProfile.reputations && characterProfile.reputations.length > 0) ? `
+**Tiếng Vang & Tin Đồn Về Nhân Vật Chính:**
+${characterProfile.reputations.map(r => `- ${r.summary}`).join('\n')}
+` : '';
+
+    // 8. Tối giản Character Profile: loại bỏ các danh sách lớn sẽ được xử lý riêng.
     const { 
         items, equipment, discoveredLocations, discoveredMonsters, discoveredItems, 
         initialItems, initialLocations, initialNpcs, initialMonsters,
@@ -128,6 +150,8 @@ export const buildContextForPrompt = (
         talent,
         achievements,
         milestones,
+        secrets,
+        reputations,
         skills,
         events, // exclude events from minimal profile
         ...rest 
@@ -152,5 +176,7 @@ export const buildContextForPrompt = (
         milestones: milestones || [],
         discoveredMonsters: discoveredMonsters || [],
         activeEvents,
+        secretsContext,
+        reputationContext,
     };
 };

@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef } from 'react';
 import { CharacterProfile, CharacterGender, WorldSettings, PowerSystemDefinition, Skill, NewNPCFromAI, Location, Item, ApiProvider, SkillType, LocationType, ItemType } from '../../types';
 import { Loader } from '../Loader';
@@ -77,6 +78,8 @@ const initialProfile: CharacterProfile = {
     discoveredMonsters: [],
     discoveredItems: [],
     gameTime: '',
+    secrets: [],
+    reputations: [],
     initialNpcs: [],
     initialLocations: [],
     initialItems: [],
@@ -223,6 +226,8 @@ export const WorldSetup: React.FC<WorldSetupProps> = ({ onStartGame, onBackToMen
             achievements: profile.achievements,
             milestones: profile.milestones,
             events: profile.events,
+            secrets: profile.secrets,
+            reputations: profile.reputations,
             initialItems: profile.initialItems,
             initialNpcs: profile.initialNpcs,
             initialLocations: profile.initialLocations,
@@ -273,6 +278,8 @@ export const WorldSetup: React.FC<WorldSetupProps> = ({ onStartGame, onBackToMen
                         ...initialProfile, 
                         ...data.profile, 
                         events: data.profile.events || [], // Backward compatibility for events
+                        secrets: data.profile.secrets || [],
+                        reputations: data.profile.reputations || [],
                     };
                     const completeWorldSettings: WorldSettings = { ...initialWorldSettings, ...data.worldSettings };
                     

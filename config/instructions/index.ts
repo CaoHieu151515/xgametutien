@@ -12,6 +12,7 @@ import { getChoicesInstruction } from './gameplay/choices.rules';
 import { statUpdatesInstruction } from './gameplay/statUpdates.rules';
 import { getWorldInstruction } from './gameplay/world.rules';
 import { creationInstruction } from './gameplay/creation.rules';
+import { secretsAndReputationInstruction } from './gameplay/secrets.rules';
 
 // Management
 import { itemManagementInstruction } from './management/itemManagement.rules';
@@ -50,6 +51,7 @@ export const getSystemInstruction = (
         baseInstruction,
         getCharacterInstruction(gender, perspective, race, powerSystem),
         getWorldInstruction(worldSettings),
+        secretsAndReputationInstruction,
         getChoicesInstruction(GAME_CONFIG.ai.numberOfChoices),
         statUpdatesInstruction,
         statusEffectManagementInstruction,
