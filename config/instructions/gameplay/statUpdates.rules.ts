@@ -109,14 +109,10 @@ Sau khi đã đảm bảo lệnh cập nhật JSON được tạo, bạn PHẢI 
     -   Nếu một nhân vật (người chơi hoặc NPC) đang có một trạng thái gây sát thương theo thời gian (ví dụ: 'Trúng Độc', 'Mất Máu'), bạn **PHẢI** áp dụng một lượng sát thương nhỏ lên họ trong lượt đó.
     -   **Hành động BẮT BUỘC:** Cung cấp một giá trị thay đổi \`health\` âm (số hoặc %) và mô tả trong 'story' rằng họ đang chịu ảnh hưởng từ trạng thái đó (ví dụ: "Chất độc trong người bạn phát tác, khiến bạn mất đi một lượng sinh lực.").
 
-**C. Trạng Thái Tạm Thời & Tình Huống (MỆNH LỆNH):**
-- **Nguyên tắc:** Bất cứ khi nào câu chuyện mô tả một nhân vật bị ảnh hưởng bởi một hiệu ứng tạm thời (bị thương, bị trói, bị định thân, say rượu, v.v.), bạn **PHẢI** tạo một \`StatusEffect\` tương ứng và thêm vào 'newStatusEffects'.
-- **Gỡ bỏ Trạng thái (BẮT BUỘC):** Khi tình huống kết thúc, bạn **BẮT BUỘC** phải thêm tên trạng thái vào \`removedStatusEffects\`.
-
-**D. Tiền tệ (BẮT BUỘC - Chỉ người chơi):**
+**C. Tiền tệ (BẮT BUỘC - Chỉ người chơi):**
 -   Chỉ cung cấp số tiền thay đổi (dương nếu nhận, âm nếu mất) trong trường 'currencyAmount'.
 
-**E. Hồi phục Hoàn toàn (LOGIC CỐT LÕI):**
+**D. Hồi phục Hoàn toàn (LOGIC CỐT LÕI):**
 - Nếu trong câu chuyện, người chơi sử dụng một kỹ năng hoặc vật phẩm có tác dụng **hồi phục hoàn toàn/đầy** sinh lực và linh lực, bạn **BẮT BUỘC** phải đặt trường \`"usedFullRestoreSkill": true\` trong đối tượng \`updatedStats\`. Hệ thống sẽ tự động tính toán và đặt lại sinh lực/linh lực về mức tối đa. **KHÔNG** cần cung cấp giá trị cho \`health\` và \`mana\` trong trường hợp này.
 
 ---

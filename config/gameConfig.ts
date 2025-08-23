@@ -131,7 +131,7 @@ export const GAME_CONFIG = {
         },
         actions: {
             custom: {
-                defaultSuccessChance: 75,
+                defaultSuccessChance: 99,
                 defaultDurationMinutes: 10,
             },
             travel: {

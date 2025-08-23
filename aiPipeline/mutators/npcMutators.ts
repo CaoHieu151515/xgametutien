@@ -1,5 +1,3 @@
-
-
 import { StoryResponse, NPC, WorldSettings, NewNPCFromAI, Skill, SkillUpdate, CharacterGender } from '../../types';
 import { processNpcLevelUps, getLevelFromRealmName, calculateBaseStatsForLevel, getRealmDisplayName, processSkillLevelUps } from '../../services/progressionService';
 import { findBestAvatar } from '../../services/avatarService';
@@ -182,10 +180,14 @@ export const applyNpcMutations = async ({
                     
                     let currentStatusEffects = [...(modifiedNpc.statusEffects || [])];
                     if (update.removedStatusEffects?.length) {
-                        const toRemove = new Set(update.removedStatusEffects);
-                        currentStatusEffects.filter(e => toRemove.has(e.name))
-                            .forEach(e => notifications.push(`🍃 Trạng thái "<b>${e.name}</b>" của <b>${modifiedNpc.name}</b> đã kết thúc.`));
-                        currentStatusEffects = currentStatusEffects.filter(e => !toRemove.has(e.name));
+                        const toRemoveNames = update.removedStatusEffects.map(name => name.toLowerCase());
+                        const effectsBeingRemoved = currentStatusEffects.filter(effect => 
+                            toRemoveNames.some(removeName => effect.name.toLowerCase().startsWith(removeName))
+                        );
+                        effectsBeingRemoved.forEach(e => notifications.push(`🍃 Trạng thái "<b>${e.name}</b>" của <b>${modifiedNpc.name}</b> đã kết thúc.`));
+                        currentStatusEffects = currentStatusEffects.filter(effect => 
+                            !toRemoveNames.some(removeName => effect.name.toLowerCase().startsWith(removeName))
+                        );
                     }
                     if (update.newStatusEffects?.length) {
                         update.newStatusEffects.forEach(newEffect => {

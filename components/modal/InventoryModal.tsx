@@ -34,6 +34,7 @@ const equipmentTypeToSlots: Record<EquipmentType, EquipmentSlot[]> = {
     [EquipmentType.AO]: [EquipmentSlot.ARMOR],
     [EquipmentType.GIAY]: [EquipmentSlot.BOOTS],
     [EquipmentType.PHU_KIEN]: [EquipmentSlot.ACCESSORY_1, EquipmentSlot.ACCESSORY_2, EquipmentSlot.ACCESSORY_3, EquipmentSlot.ACCESSORY_4],
+    [EquipmentType.DAC_THU]: [EquipmentSlot.COMMON_1, EquipmentSlot.COMMON_2],
     [EquipmentType.THONG_DUNG]: [EquipmentSlot.COMMON_1, EquipmentSlot.COMMON_2]
 };
 
@@ -101,36 +102,42 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, onClose,
 
 
     const handleEquipItem = (itemToEquip: Item, slot: EquipmentSlot) => {
-        if (!itemToEquip.equipmentDetails) return;
+        let itemToProcess = { ...itemToEquip };
+        // If it's a special item that somehow lacks details, add default ones.
+        if (!itemToProcess.equipmentDetails && itemToProcess.type === ItemType.DAC_THU) {
+            itemToProcess.equipmentDetails = { type: EquipmentType.DAC_THU, stats: [], effect: '' };
+        }
+        if (!itemToProcess.equipmentDetails) return;
 
         let newProfile = { ...profile };
         const currentItemIdInSlot = newProfile.equipment[slot];
         
-        // Unequip current item in target slot
-        if (currentItemIdInSlot) {
-            newProfile.items = newProfile.items.map(i =>
-                i.id === currentItemIdInSlot ? { ...i, isEquipped: false } : i
-            );
-        }
-        
         // Remove item from any other slot it might be in
         const newEquipment = { ...newProfile.equipment };
         for (const s in newEquipment) {
-            if (newEquipment[s as EquipmentSlot] === itemToEquip.id) {
+            if (newEquipment[s as EquipmentSlot] === itemToProcess.id) {
                 delete newEquipment[s as EquipmentSlot];
             }
         }
 
-        newEquipment[slot] = itemToEquip.id;
+        newEquipment[slot] = itemToProcess.id;
         newProfile.equipment = newEquipment;
         
-        newProfile.items = newProfile.items.map(i =>
-            i.id === itemToEquip.id ? { ...i, isEquipped: true } : i
-        );
+        newProfile.items = newProfile.items.map(i => {
+            if (i.id === itemToProcess.id) {
+                // Return the processed item with potentially added details and equipped status
+                return { ...itemToProcess, isEquipped: true };
+            }
+            if (i.id === currentItemIdInSlot) {
+                // Unequip the old item
+                return { ...i, isEquipped: false };
+            }
+            return i;
+        });
 
         const finalProfile = recalculateDerivedStats(newProfile);
         onUpdateProfile(finalProfile);
-        setSelectedItemId(itemToEquip.id);
+        setSelectedItemId(itemToProcess.id);
     };
 
     const handleUnequip = (itemToUnequip: Item) => {
@@ -169,6 +176,16 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, onClose,
         onAction(choice);
         onClose();
     };
+
+    const canBeEquipped = selectedItem && !selectedItem.isEquipped && (selectedItem.equipmentDetails || selectedItem.type === ItemType.DAC_THU);
+
+    const slotsForEquipping = useMemo(() => {
+        if (!selectedItem) return [];
+        const details = selectedItem.equipmentDetails;
+        if (details) return equipmentTypeToSlots[details.type] || [];
+        if (selectedItem.type === ItemType.DAC_THU) return equipmentTypeToSlots[EquipmentType.DAC_THU];
+        return [];
+    }, [selectedItem]);
 
     if (!isOpen) {
         return null;
@@ -298,11 +315,11 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, onClose,
                                         {isSelectedItemEquipped && (
                                              <button onClick={() => handleUnequip(selectedItem)} className="w-full py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-500 transition-colors text-sm">Gỡ Trang Bị</button>
                                         )}
-                                        {(!isSelectedItemEquipped && selectedItem.equipmentDetails) && (
+                                        {canBeEquipped && slotsForEquipping.length > 0 && (
                                             <div className="space-y-2">
                                                 <h4 className="text-sm font-bold text-center text-slate-300">Trang bị vào ô:</h4>
                                                 <div className="grid grid-cols-2 gap-2">
-                                                    {(equipmentTypeToSlots[selectedItem.equipmentDetails.type] || []).map(slot => (
+                                                    {slotsForEquipping.map(slot => (
                                                         <button 
                                                             key={slot}
                                                             onClick={() => handleEquipItem(selectedItem, slot)} 

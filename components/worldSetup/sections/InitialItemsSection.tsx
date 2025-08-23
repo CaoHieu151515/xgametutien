@@ -80,7 +80,8 @@ export const InitialItemsSection: React.FC<InitialItemsSectionProps> = ({ profil
                     // Handle special logic for item type changes
                     if (field === 'type') {
                         if ((value === ItemType.TRANG_BI || value === ItemType.DAC_THU) && !updatedItem.equipmentDetails) {
-                            updatedItem.equipmentDetails = { type: EquipmentType.VU_KHI, stats: [], effect: '' };
+                            const defaultEqType = value === ItemType.DAC_THU ? EquipmentType.DAC_THU : EquipmentType.VU_KHI;
+                            updatedItem.equipmentDetails = { type: defaultEqType, stats: [], effect: '' };
                         } else if (value !== ItemType.TRANG_BI && value !== ItemType.DAC_THU) {
                             delete updatedItem.equipmentDetails;
                         }

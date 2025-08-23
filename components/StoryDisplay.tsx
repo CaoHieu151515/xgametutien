@@ -99,7 +99,7 @@ const KeywordTooltip: React.FC<{ keyword: string; description: string; isNew?: b
             className={`${getPositionClasses()} w-72 p-3 bg-slate-900 border border-slate-600 rounded-lg shadow-lg text-sm text-slate-200 animate-fade-in`}
             style={{ pointerEvents: 'none' }}
         >
-          <p className="whitespace-pre-wrap break-words">{description}</p>
+          <p className="whitespace-pre-wrap break-words" dangerouslySetInnerHTML={{ __html: description }}></p>
         </div>
       )}
     </span>
@@ -236,11 +236,12 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
 
         // NPCs
         npcs.forEach(npc => {
-            allKeywords.push({ keyword: npc.name, description: `[NPC] ${npc.description}`, isNew: npc.isNew });
+            const npcDescription = `<b>[NPC | Cảnh giới: ${npc.realm}]</b><br>${npc.description}`;
+            allKeywords.push({ keyword: npc.name, description: npcDescription, isNew: npc.isNew });
             if (npc.aliases) {
                 npc.aliases.split(',').forEach(alias => {
                     if (alias.trim()) {
-                        allKeywords.push({ keyword: alias.trim(), description: `[NPC] ${npc.description}`, isNew: false });
+                        allKeywords.push({ keyword: alias.trim(), description: npcDescription, isNew: false });
                     }
                 });
             }

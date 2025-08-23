@@ -300,7 +300,8 @@ export enum EquipmentType {
     AO = 'Áo',
     GIAY = 'Giày',
     PHU_KIEN = 'Phụ Kiện',
-    THONG_DUNG = 'Thông Dụng' // For "Đặc Thù" items
+    DAC_THU = 'Đặc Thù',
+    THONG_DUNG = 'Thông Dụng' // For misc equippables that aren't special items
 }
 
 export enum EquipmentSlot {

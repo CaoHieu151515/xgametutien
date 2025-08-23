@@ -1,4 +1,3 @@
-
 export const masterInstruction = `
 # MỆNH LỆNH TỐI THƯỢỢNG - ĐỒNG BỘ TUYỆT ĐỐI GIỮA CỐT TRUYỆN VÀ LOGIC GAME
 
@@ -57,6 +56,16 @@ Trước khi xuất ra kết quả cuối cùng, bạn **BẮT BUỘC** phải t
     *   Đọc lại 'story'.
     *   Tất cả các câu nói trực tiếp của nhân vật PHẢI được định dạng trên dòng riêng theo cấu trúc \`[Tên Nhân Vật]: "..."\`.
     *   **NẾU CÓ BẤT KỲ LỜI THOẠI NÀO NẰM TRONG ĐOẠN VĂN TƯỜNG THUẬT → THẤT BẠI.** Bạn PHẢI tách nó ra.
+
+5.  **KIỂM TRA ĐỒNG BỘ GIẢI TRỪ TRẠNG THÁI (LỖI LOGIC NGHIÊM TRỌNG):**
+    *   Đọc lại 'story'. Nếu nó mô tả một nhân vật (người chơi hoặc NPC) được giải thoát khỏi một trạng thái tiêu cực (khống chế, trúng độc, mê hoặc, v.v.) và tỉnh táo/khỏe mạnh trở lại.
+    *   Hãy tự hỏi: "Mình đã thêm tên của trạng thái đó vào mảng \`removedStatusEffects\` cho nhân vật tương ứng chưa?"
+    *   **NẾU CÂU TRẢ LỜI LÀ "CHƯA" → THẤT BẠI.** Bạn PHẢI thêm lệnh gỡ bỏ trạng thái vào JSON để đồng bộ với câu chuyện.
+
+6.  **KIỂM TRA ĐỒNG BỘ CẢNH GIỚI (LỖI LOGIC NGHIÊM TRỌNG):**
+    *   Đọc lại tất cả các trường \`description\` và \`ngoaiHinh\` bạn đã viết cho tất cả các nhân vật (người chơi và NPC).
+    *   Nếu bạn đề cập đến cảnh giới của một nhân vật trong các trường văn bản này, nó **PHẢI** khớp chính xác với giá trị trong trường \`realm\` của nhân vật đó.
+    *   **NẾU KHÔNG KHỚP → THẤT BẠI.** Bạn phải sửa lại mô tả văn bản cho đúng với dữ liệu logic.
 
 Chỉ khi tất cả các mục trên đều đạt, bạn mới được phép xuất ra phản hồi. Đây là quy tắc hệ thống bắt buộc, **không thể ghi đè** và **không có ngoại lệ**.
 `

@@ -1,5 +1,3 @@
-
-
 import { StoryResponse, CharacterProfile, WorldSettings, AppSettings, ApiProvider, Skill, ItemType, Item, SkillType, Milestone, Choice, CharacterGender } from '../../types';
 import { processLevelUps, getLevelFromRealmName, calculateExperienceForBreakthrough, processSkillLevelUps, recalculateDerivedStats, calculateManaCost } from '../../services/progressionService';
 import { GAME_CONFIG } from '../../config/gameConfig';
@@ -124,9 +122,14 @@ export const applyPlayerMutations = async ({
 
         let currentStatusEffects = [...nextProfile.statusEffects];
         if (removedStatusEffects?.length) {
-            const toRemove = new Set(removedStatusEffects);
-            currentStatusEffects.filter(e => toRemove.has(e.name)).forEach(e => notifications.push(`🍃 Trạng thái "<b>${e.name}</b>" đã kết thúc.`));
-            currentStatusEffects = currentStatusEffects.filter(e => !toRemove.has(e.name));
+            const toRemoveNames = removedStatusEffects.map(name => name.toLowerCase());
+            const effectsBeingRemoved = currentStatusEffects.filter(effect => 
+                toRemoveNames.some(removeName => effect.name.toLowerCase().startsWith(removeName))
+            );
+            effectsBeingRemoved.forEach(e => notifications.push(`🍃 Trạng thái "<b>${e.name}</b>" đã kết thúc.`));
+            currentStatusEffects = currentStatusEffects.filter(effect => 
+                !toRemoveNames.some(removeName => effect.name.toLowerCase().startsWith(removeName))
+            );
         }
         if (newStatusEffects?.length) {
             newStatusEffects.forEach(newEffect => {
