@@ -2,7 +2,7 @@ import {
     StoryResponse, CharacterProfile, NPC, WorldSettings, AppSettings, Choice
 } from '../types';
 import { preprocessStoryResponse } from './mutators/preprocessor';
-import { generateNotifications } from './mutators/notificationMutator';
+import { generateAndMergeNotifications } from './mutators/notificationMutator';
 import { applyPlayerMutations } from './mutators/playerMutators';
 import { applyNpcMutations } from './mutators/npcMutators';
 import { applyWorldMutations } from './mutators/worldMutators';
@@ -23,6 +23,7 @@ interface ApplyDiffParams {
     isSuccess: boolean;
     api: any;
     apiKey: string;
+    preTurnNotifications: string[];
 }
 
 interface ApplyDiffResult {
@@ -43,6 +44,7 @@ export const applyStoryResponseToState = async ({
     isSuccess,
     api,
     apiKey,
+    preTurnNotifications,
 }: ApplyDiffParams): Promise<ApplyDiffResult> => {
     const applyDiffSource = 'applyDiff.ts';
     startTimer('total_apply_diff', applyDiffSource, 'Bắt đầu áp dụng các thay đổi trạng thái');
@@ -58,7 +60,7 @@ export const applyStoryResponseToState = async ({
 
         // --- STEP 1: NOTIFICATION GENERATION ---
         startTimer('apply_notifications', applyDiffSource, 'Tạo thông báo');
-        const notifications = generateNotifications(response, storyResponse, characterProfile, npcs);
+        const notifications = generateAndMergeNotifications(response, storyResponse, characterProfile, npcs, preTurnNotifications);
         endTimer('apply_notifications', applyDiffSource);
 
         // --- STEP 2: STATE MUTATION ---

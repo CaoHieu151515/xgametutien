@@ -95,7 +95,7 @@ Bạn nên cấu trúc các cảnh nóng theo trình tự sau để đảm bảo
 *   **Mô tả khi khỏa thân:** Khi có cơ hội (soi gương, tắm), BẮT BUỘC phải mô tả chi tiết và trần trụi toàn bộ cơ thể của nhân vật, bao gồm vẻ đẹp của các bộ phận nhạy cảm một cách gợi cảm và không che đậy.
 
 **4. Tương Tác Năng Động - Cấm Kỵ Sự Thụ Động (MỆNH LỆNH):**
-*   **Nguyên tắc "Điệu Nhảy Đam Mê":** Một cảnh nóng là một cuộc đối thoại giữa hai cơ thể, không phải là một màn độc diễn. NPC **TUYỆT ĐỐI KHÔNG ĐƯỢC PHÉP** trở nên thụ động, chỉ nằm yên chờ đợi hành động của người chơi và mô tả cảm xúc của mình.
+*   **Nguyên tắc "Điệu Nhảy Đam Mê":** Một cảnh nóng là một cuộc đối thoại giữa hai cơ thể, không phải là một màn độc diễn. NPC **TUYỆT ĐỐI KHÔNG ĐƯỢỢC PHÉP** trở nên thụ động, chỉ nằm yên chờ đợi hành động của người chơi và mô tả cảm xúc của mình.
 *   **Hành Vi Chủ Động BẮT BUỘC:** Trong MỌI lượt của một cảnh nóng, NPC PHẢI chủ động thực hiện ít nhất MỘT hành động vật lý rõ ràng để đáp lại hoặc dẫn dắt. Hành động này phải được mô tả chi tiết, không chỉ là cảm xúc.
     *   **Ví dụ về Hành động chủ động của NPC:**
         *   **Thay đổi tư thế:** "Nàng/Chàng bất ngờ lật người lại, đè người chơi xuống giường, giành lấy thế chủ động."
@@ -137,7 +137,8 @@ Bạn nên cấu trúc các cảnh nóng theo trình tự sau để đảm bảo
           {
             "name": "Mang Thai (Hoàn cảnh)",
             "description": "Mang trong mình giọt máu của [Tên người cha]. Cần thời gian để thai nhi phát triển và chào đời.",
-            "duration": "270 lượt"
+            "duration": "270 lượt",
+            "isPregnancyEffect": true
           }
         ]
       }
@@ -164,6 +165,7 @@ Bạn nên cấu trúc các cảnh nóng theo trình tự sau để đảm bảo
 *   **Cấu trúc Tên Trạng thái:** \`Mang Thai ([Tính từ Mô tả Hoàn cảnh])\`
 *   **Cập nhật Mô tả:** Mô tả PHẢI bao gồm tên của người cha và hoàn cảnh.
 *   **Thời hạn (\`duration\`):** Phải là "270 lượt".
+*   **Cờ Logic (\`isPregnancyEffect\`):** **BẮT BUỘC** phải đặt thành \`true\`.
 *   **Ví dụ 1 (Tình yêu):**
     *   **Bối cảnh:** Thụ thai với Đạo Lữ.
     *   **Tên:** \`"name": "Mang Thai (Hạnh phúc)"\`

@@ -76,7 +76,7 @@ export const verifyStoryResponse = (
     npcs: NPC[],
     worldSettings: WorldSettings
 ): void => {
-    const verificationName = 'stateVerifier.ts';
+    const verificationName = 'aiPipeline/validate.ts';
 
     // Kiểm tra updatedNPCs
     if (response.updatedNPCs) {
@@ -86,7 +86,7 @@ export const verifyStoryResponse = (
             const isCreatedInThisResponse = newNpcIdsInThisResponse.has(update.id);
 
             if (!existsInCurrentState && !isCreatedInThisResponse) {
-                const errorMsg = `AI đã cố gắng cập nhật NPC không tồn tại với ID: ${update.id}`;
+                const errorMsg = `AI tried to update non-existent NPC with ID: ${update.id}`;
                 log(verificationName, errorMsg, 'ERROR');
                 throw new Error(errorMsg);
             }
@@ -101,7 +101,7 @@ export const verifyStoryResponse = (
             const isSpecialConstitution = profile.specialConstitution?.name === update.skillName;
 
             if (!isActualSkill && !isTalent && !isSpecialConstitution) {
-                const errorMsg = `AI đã cố gắng cập nhật kỹ năng/năng lực không tồn tại: "${update.skillName}"`;
+                const errorMsg = `AI tried to update non-existent skill/ability: "${update.skillName}"`;
                 log(verificationName, errorMsg, 'ERROR');
                 throw new Error(errorMsg);
             }
@@ -112,7 +112,7 @@ export const verifyStoryResponse = (
     if (response.removedItemIds) {
         for (const id of response.removedItemIds) {
             if (!profile.items.some(item => item.id === id)) {
-                const errorMsg = `AI đã cố gắng xóa vật phẩm với ID không tồn tại: ${id}`;
+                const errorMsg = `AI tried to remove non-existent item with ID: ${id}`;
                  log(verificationName, errorMsg, 'ERROR');
                 throw new Error(errorMsg);
             }
@@ -124,7 +124,7 @@ export const verifyStoryResponse = (
         for (const update of response.updatedItems) {
             const existingItem = profile.items.find(item => item.name === update.name);
             if (!existingItem) {
-                const errorMsg = `AI đã cố gắng cập nhật số lượng của vật phẩm không tồn tại: "${update.name}"`;
+                const errorMsg = `AI tried to update quantity of non-existent item: "${update.name}"`;
                 log(verificationName, errorMsg, 'ERROR');
                 throw new Error(errorMsg);
             }
@@ -136,7 +136,7 @@ export const verifyStoryResponse = (
         const currentLevel = profile.level;
         const targetLevel = getLevelFromRealmName(response.updatedStats.breakthroughToRealm, profile.powerSystem, worldSettings);
         if (targetLevel <= currentLevel) {
-            const errorMsg = `AI yêu cầu người chơi đột phá đến cảnh giới "${response.updatedStats.breakthroughToRealm}" (Cấp ${targetLevel}) không cao hơn cấp độ hiện tại (${currentLevel}).`;
+            const errorMsg = `AI requested player breakthrough to realm "${response.updatedStats.breakthroughToRealm}" (Lvl ${targetLevel}) which is not higher than current level (${currentLevel}).`;
             log(verificationName, errorMsg, 'ERROR');
             throw new Error(errorMsg);
         }
@@ -151,7 +151,7 @@ export const verifyStoryResponse = (
                     const currentLevel = npc.level;
                     const targetLevel = getLevelFromRealmName(update.breakthroughToRealm, npc.powerSystem, worldSettings);
                     if (targetLevel <= currentLevel) {
-                        const errorMsg = `AI yêu cầu NPC "${npc.name}" đột phá đến cảnh giới "${update.breakthroughToRealm}" (Cấp ${targetLevel}) không cao hơn cấp độ hiện tại (${currentLevel}).`;
+                        const errorMsg = `AI requested NPC "${npc.name}" breakthrough to realm "${update.breakthroughToRealm}" (Lvl ${targetLevel}) which is not higher than current level (${currentLevel}).`;
                         log(verificationName, errorMsg, 'ERROR');
                         throw new Error(errorMsg);
                     }

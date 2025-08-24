@@ -105,9 +105,6 @@ Sau khi đã đảm bảo lệnh cập nhật JSON được tạo, bạn PHẢI 
         -   **Cú pháp:** \`"[số]%"\`, ví dụ: \`"health": "-20%"\` (mất 20% máu tối đa), \`"mana": "50%"\` (hồi 50% linh lực tối đa).
         -   Hệ thống sẽ tự động tính toán giá trị thực dựa trên \`maxHealth\` hoặc \`maxMana\` của nhân vật.
         -   **Sử dụng:** Dùng định dạng này cho các kỹ năng, độc dược, hoặc các hiệu ứng mạnh mẽ có tác động theo tỷ lệ.
--   **Sát thương theo Thời gian (DoT - MỆNH LỆNH MỚI):**
-    -   Nếu một nhân vật (người chơi hoặc NPC) đang có một trạng thái gây sát thương theo thời gian (ví dụ: 'Trúng Độc', 'Mất Máu'), bạn **PHẢI** áp dụng một lượng sát thương nhỏ lên họ trong lượt đó.
-    -   **Hành động BẮT BUỘC:** Cung cấp một giá trị thay đổi \`health\` âm (số hoặc %) và mô tả trong 'story' rằng họ đang chịu ảnh hưởng từ trạng thái đó (ví dụ: "Chất độc trong người bạn phát tác, khiến bạn mất đi một lượng sinh lực.").
 
 **C. Tiền tệ (BẮT BUỘC - Chỉ người chơi):**
 -   Chỉ cung cấp số tiền thay đổi (dương nếu nhận, âm nếu mất) trong trường 'currencyAmount'.

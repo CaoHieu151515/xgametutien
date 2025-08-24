@@ -1,29 +1,108 @@
 import { useState, useCallback } from 'react';
-import { StoryPart, StoryResponse, CharacterProfile, WorldSettings, NPC, Choice, AppSettings, GameSnapshot, Item, StoryApiResponse, ToastMessage } from '../../types';
+import { StoryPart, StoryResponse, CharacterProfile, WorldSettings, NPC, Choice, AppSettings, GameSnapshot, Item, StoryApiResponse, ToastMessage, StatusEffect } from '../../types';
 import { log, startTimer, endTimer } from '../../services/logService';
 import { applyStoryResponseToState } from '../../aiPipeline/applyDiff';
 import { verifyStoryResponse } from '../../aiPipeline/validate';
 import { findBestAvatar } from '../../services/avatarService';
 import { GAME_CONFIG } from '../../config/gameConfig';
 import * as saveService from '../../services/saveService';
+import { calculateBaseStatsForLevel } from '../../services/progressionService';
 
-const updateStatusEffectDurations = <T extends CharacterProfile | NPC>(entity: T): T => {
-    if (!entity.statusEffects || entity.statusEffects.length === 0) return entity;
-    const parseTurnDuration = (duration: string): number | null => {
-        const match = duration.match(/(\d+)\s*lượt/i);
-        return match ? parseInt(match[1], 10) : null;
-    };
-    const updatedEffects = entity.statusEffects.map(effect => {
-        const turns = parseTurnDuration(effect.duration);
-        if (turns !== null && turns > 0) {
-            const newTurns = turns - 1;
-            if (newTurns > 0) return { ...effect, duration: `${newTurns} lượt` };
-            return null;
+const processTurnBasedEffects = (
+    profile: CharacterProfile,
+    npcs: NPC[],
+): {
+    updatedProfile: CharacterProfile,
+    updatedNpcs: NPC[],
+    notifications: string[],
+    systemEventPrompt: string | null
+} => {
+    const notifications: string[] = [];
+    let systemEventPrompt: string | null = null;
+    let updatedProfile = { ...profile, statusEffects: [...profile.statusEffects] };
+    let updatedNpcs = npcs.map(npc => ({ ...npc, statusEffects: [...npc.statusEffects] }));
+
+    const processEntity = <T extends CharacterProfile | NPC>(entity: T, isPlayer: boolean): T => {
+        if (!entity.statusEffects || entity.statusEffects.length === 0) return entity;
+        
+        const entityName = isPlayer ? 'Bạn' : `<b>${entity.name}</b>`;
+        const maxStats = isPlayer ? { maxHealth: (entity as CharacterProfile).maxHealth, maxMana: (entity as CharacterProfile).maxMana } : calculateBaseStatsForLevel(entity.level);
+
+        const nextEffects: StatusEffect[] = [];
+
+        for (const effect of entity.statusEffects) {
+            let effectExpired = false;
+
+            // 1. Duration Countdown
+            const durationMatch = effect.duration.match(/(\d+)\s*lượt/i);
+            let nextDuration = effect.duration;
+
+            if (durationMatch) {
+                const turnsLeft = parseInt(durationMatch[1], 10) - 1;
+                if (turnsLeft <= 0) {
+                    effectExpired = true;
+                    notifications.push(`🍃 Trạng thái "<b>${effect.name}</b>" của ${entityName} đã kết thúc.`);
+                } else {
+                    nextDuration = `${turnsLeft} lượt`;
+                }
+            }
+
+            // 2. Tick Effects
+            if (effect.tickEffect && !effectExpired) {
+                 if (effect.tickEffect.healthChange) {
+                    let actualHealthChange = 0;
+                    const change = effect.tickEffect.healthChange;
+                    if (typeof change === 'string' && change.endsWith('%')) {
+                        actualHealthChange = Math.round(maxStats.maxHealth * (parseFloat(change) / 100));
+                    } else if (typeof change === 'number') {
+                        actualHealthChange = change;
+                    }
+
+                    if (actualHealthChange !== 0) {
+                        entity.health = Math.max(0, Math.min(maxStats.maxHealth, entity.health + actualHealthChange));
+                        if(actualHealthChange < 0) {
+                           notifications.push(`🩸 ${entityName} mất <b>${Math.abs(actualHealthChange)} Sinh Lực</b> vì <i>${effect.name}</i>.`);
+                        } else {
+                           notifications.push(`💚 ${entityName} hồi phục <b>${actualHealthChange} Sinh Lực</b> nhờ <i>${effect.name}</i>.`);
+                        }
+                    }
+                }
+                 if (effect.tickEffect.manaChange) {
+                    let actualManaChange = 0;
+                    const change = effect.tickEffect.manaChange;
+                    if (typeof change === 'string' && change.endsWith('%')) {
+                        actualManaChange = Math.round(maxStats.maxMana * (parseFloat(change) / 100));
+                    } else if (typeof change === 'number') {
+                        actualManaChange = change;
+                    }
+                     if (actualManaChange !== 0) {
+                        entity.mana = Math.max(0, Math.min(maxStats.maxMana, entity.mana + actualManaChange));
+                        if(actualManaChange < 0) {
+                           notifications.push(`💧 ${entityName} mất <b>${Math.abs(actualManaChange)} Linh Lực</b> vì <i>${effect.name}</i>.`);
+                        } else {
+                           notifications.push(`💧 ${entityName} hồi phục <b>${actualManaChange} Linh Lực</b> nhờ <i>${effect.name}</i>.`);
+                        }
+                    }
+                }
+            }
+
+            // 3. Special Expiry Logic (e.g., Birth)
+            if (effectExpired && effect.isPregnancyEffect && !systemEventPrompt) {
+                 systemEventPrompt = `(Hệ thống) ${entity.name} bắt đầu chuyển dạ. Thời khắc sinh nở đã đến. Hãy mô tả sự kiện này một cách chi tiết và kết quả.`;
+            }
+
+            if (!effectExpired) {
+                nextEffects.push({ ...effect, duration: nextDuration });
+            }
         }
-        return effect;
-    }).filter(effect => effect !== null);
-    // @ts-ignore
-    return { ...entity, statusEffects: updatedEffects };
+
+        return { ...entity, statusEffects: nextEffects };
+    };
+
+    updatedProfile = processEntity(updatedProfile, true);
+    updatedNpcs = updatedNpcs.map(npc => npc.isDead ? npc : processEntity(npc, false));
+
+    return { updatedProfile, updatedNpcs, notifications, systemEventPrompt };
 };
 
 const findInconsistentNewEntities = (response: StoryResponse, profile: CharacterProfile, npcs: NPC[], worldSettings: WorldSettings): string[] => {
@@ -113,9 +192,17 @@ export const useActionLogic = (props: UseActionLogicProps) => {
         const actionLogicSource = 'useActionLogic.ts';
         startTimer('total_action_logic', actionLogicSource, 'Xử lý hành động của người chơi');
 
+        // --- STEP 1: Process turn-based effects BEFORE doing anything else ---
+        startTimer('process_turn_effects', actionLogicSource, 'Xử lý hiệu ứng theo lượt');
+        const { updatedProfile, updatedNpcs, notifications: preTurnNotifications, systemEventPrompt } = processTurnBasedEffects(characterProfile, npcs);
+        endTimer('process_turn_effects', actionLogicSource);
+        
+        const currentProfile = updatedProfile;
+        const currentNpcs = updatedNpcs;
+
         try {
             startTimer('autosave', actionLogicSource, 'Tự động lưu đầu lượt');
-            await saveService.saveGame(characterProfile, worldSettings, npcs, history, choices, gameLog);
+            await saveService.saveGame(currentProfile, worldSettings, currentNpcs, history, choices, gameLog);
             endTimer('autosave', actionLogicSource);
         } catch(e) {
             endTimer('autosave', actionLogicSource, 'Thất bại');
@@ -132,7 +219,11 @@ export const useActionLogic = (props: UseActionLogicProps) => {
         
         const isSuccess = Math.random() * 100 < choice.successChance;
         const successText = isSuccess ? '(Thành công)' : '(Thất bại)';
-        let actionPromptText = `${successText} Người chơi đã chọn hành động: "${choice.title}" (Thời gian thực hiện ước tính: ${choice.durationInMinutes} phút). Ghi chú đặc biệt của hành động này là: "${choice.specialNote || 'Không có'}".`;
+        let actionPromptText = systemEventPrompt || `${successText} Người chơi đã chọn hành động: "${choice.title}" (Thời gian thực hiện ước tính: ${choice.durationInMinutes} phút). Ghi chú đặc biệt của hành động này là: "${choice.specialNote || 'Không có'}".`;
+        if (systemEventPrompt) {
+            log('useActionLogic.ts', `System event triggered, overriding player action: "${systemEventPrompt}"`, 'INFO');
+            setToast({ message: 'Một sự kiện quan trọng đã xảy ra!', type: 'info' });
+        }
 
         const { randomEncounterChance, sfwEventWeights, nsfwEventWeights } = GAME_CONFIG.events;
         if (!choice.isTimeSkip && choice.durationInMinutes > 0 && Math.random() < randomEncounterChance) {
@@ -151,7 +242,7 @@ export const useActionLogic = (props: UseActionLogicProps) => {
             }
         }
 
-        const preActionState = { characterProfile, worldSettings, npcs, history, choices };
+        const preActionState = { characterProfile: currentProfile, worldSettings, npcs: currentNpcs, history, choices };
         const newActionPart: StoryPart = { id: Date.now(), type: 'action', text: choice.title };
 
         setChoices([]);
@@ -184,7 +275,7 @@ export const useActionLogic = (props: UseActionLogicProps) => {
                 }
                 
                 startTimer('ai_call', actionLogicSource, `Gọi API AI (lần thử ${attempt})`);
-                const apiResponse = await api.getNextStoryStep(historyText, currentActionText, settings.isMature, settings.perspective, characterProfile, worldSettings, npcs, apiKeyForService);
+                const apiResponse = await api.getNextStoryStep(historyText, currentActionText, settings, currentProfile, worldSettings, currentNpcs, apiKeyForService);
                 endTimer('ai_call', actionLogicSource);
                 
                 log('useActionLogic.ts', `[Attempt ${attempt}] Received story response from API.`, 'API');
@@ -193,70 +284,23 @@ export const useActionLogic = (props: UseActionLogicProps) => {
                 usageMetadata = apiResponse.usageMetadata;
                 
                 // FIX+: Trim recap/duplicate content from AI response
-                const lastStories = history.filter(p => p.type === 'story').slice(-3);
                 if (storyResponse?.story) {
                     let cleaned = storyResponse.story.trim();
-                    // 1) Chặn các câu mở đầu "recap keywords"
-                    const recapOpeners = [
-                        /^tóm\stắt/i,
-                        /^trước\sđó/i,
-                        /^như\sđã/i,
-                        /^ở\slượt\strước/i,
-                        /^sau\snhững\sgì/i,
-                        /^từ\snhững\sdiễn\sbiến\s*trước/i
-                    ];
+                    const recapOpeners = [/^tóm\stắt/i, /^trước\sđó/i, /^như\sđã/i, /^ở\slượt\strước/i, /^sau\snhững\sgì/i, /^từ\snhững\sdiễn\sbiến\s*trước/i];
                     const lines = cleaned.split(/\n+/);
                     while (lines.length > 0 && recapOpeners.some(rx => rx.test(lines[0].trim()))) {
                         lines.shift();
                     }
                     cleaned = lines.join('\n').trim();
-
-                    // 2) Loại các block “--- Lượt X --- …” nếu AI cố tự liệt kê lại lịch sử
                     cleaned = cleaned.replace(/(^|\n)---\sLượt\s\d+\s*---[\s\S]?(?=\n---\sLượt\s*\d+\s*---|\n*$)/g, '').trim();
-
-                    // 3) Cắt phần đầu nếu gần-trùng với 1 trong 3 đoạn story gần nhất (fuzzy)
-                    const similarity = (a: string, b: string) => {
-                        const norm = (t: string) => t.toLowerCase().replace(/\s+/g, ' ').slice(0, 400);
-                        const A = norm(a), B = norm(b);
-                        if (!A || !B) return 0;
-                        // n-gram 5 từ, Jaccard
-                        const grams = (s: string) => {
-                            const ws = s.split(' ');
-                            const set = new Set<string>();
-                            for (let i = 0; i <= ws.length - 5; i++) set.add(ws.slice(i, i + 5).join(' '));
-                            return set;
-                        };
-                        const GA = grams(A), GB = grams(B);
-                        const inter = [...GA].filter(x => GB.has(x)).length;
-                        const union = new Set([...GA, ...GB]).size;
-                        return union ? inter / union : 0;
-                    };
-
-                    for (const prev of lastStories) {
-                        const prevText = prev.text.trim();
-                        if (!prevText) continue;
-                        // Nếu đoạn đầu có độ giống cao với prev, cắt bỏ đoạn đầu tiên (đến xuống dòng kế tiếp)
-                        const firstPara = cleaned.split(/\n\n+/)[0] || cleaned;
-                        if (similarity(firstPara, prevText) >= 0.35) {
-                            cleaned = cleaned.slice(firstPara.length).trim();
-                            break; 
-                        }
-                    }
-                    
-                    // 4) Vẫn giữ check "startsWith" cũ như một chốt chặn cuối
-                    const lastStoryPart = history.length > 0 ? history[history.length - 1] : null;
-                    if (lastStoryPart && lastStoryPart.type === 'story' &&
-                        cleaned.startsWith(lastStoryPart.text.trim())) {
-                        cleaned = cleaned.substring(lastStoryPart.text.trim().length).trim();
-                    }
                     storyResponse.story = cleaned;
                 }
 
                 // Structural and logical verification
-                verifyStoryResponse(storyResponse, characterProfile, npcs, worldSettings);
+                verifyStoryResponse(storyResponse, currentProfile, currentNpcs, worldSettings);
 
                 // Self-correction verification for ghost entities
-                const ghostEntityNames = findInconsistentNewEntities(storyResponse, characterProfile, npcs, worldSettings);
+                const ghostEntityNames = findInconsistentNewEntities(storyResponse, currentProfile, currentNpcs, worldSettings);
                 if (ghostEntityNames.length > 0) {
                     throw new Error(`AI mentioned new entities [[...]] but did not define them: ${ghostEntityNames.join(', ')}.`);
                 }
@@ -290,7 +334,7 @@ export const useActionLogic = (props: UseActionLogicProps) => {
         }
 
         if (storyResponse.newNPCs?.length) {
-            const allNpcsForContext = [...npcs, ...storyResponse.newNPCs];
+            const allNpcsForContext = [...currentNpcs, ...storyResponse.newNPCs];
             const avatarUpdatePromises = storyResponse.newNPCs.map(async (newNpc) => {
                 if (!newNpc.avatarUrl) {
                     const allOtherNpcs = allNpcsForContext.filter(n => n.id !== newNpc.id);
@@ -311,14 +355,13 @@ export const useActionLogic = (props: UseActionLogicProps) => {
         try {
             startTimer('apply_state', actionLogicSource, 'Áp dụng các thay đổi trạng thái');
             let { nextProfile, nextNpcs, finalWorldSettings, notifications } = await applyStoryResponseToState({
-                storyResponse, characterProfile, npcs, worldSettings, settings, choice, turnNumber: newTurnNumber, isSuccess,
-                api, apiKey: apiKeyForService,
+                storyResponse, characterProfile: currentProfile, npcs: currentNpcs, worldSettings, settings, choice, turnNumber: newTurnNumber, isSuccess,
+                api, apiKey: apiKeyForService, preTurnNotifications,
             });
             endTimer('apply_state', actionLogicSource);
 
-            if (!choice.isTimeSkip) {
-                nextProfile = updateStatusEffectDurations(nextProfile);
-                nextNpcs = nextNpcs.map(npc => updateStatusEffectDurations(npc));
+            if (!choice.isTimeSkip && !systemEventPrompt) {
+                // Duration countdowns were already handled at the start. No need to do it again.
             }
 
             const newStoryPart: StoryPart = { id: Date.now() + 1, type: 'story', text: storyResponse.story, notifications };

@@ -1,6 +1,18 @@
 import { GAME_CONFIG } from '../../gameConfig';
 
-export const baseInstruction = `
+export const getBaseInstruction = (maxWordsPerTurn: number): string => {
+    const wordCountRule = maxWordsPerTurn > 0 
+        ? `
+**MỆNH LỆNH GIỚI HẠN TỪ NGỮ (CỰC KỲ QUAN TRỌNG):**
+- **Giới hạn Tuyệt đối:** Phần tường thuật trong trường 'story' của bạn **TUYỆT ĐỐI KHÔNG** được vượt quá **${maxWordsPerTurn} từ**. Đây là một giới hạn nghiêm ngặt.
+- **Yêu cầu:** Bạn PHẢI kể một câu chuyện đầy đủ, bao gồm tường thuật hành động, diễn biến, và phản ứng của NPC, nhưng phải cô đọng trong giới hạn từ ngữ này. Sự súc tích là tối quan trọng.
+- **Hậu quả:** Vượt quá giới hạn từ sẽ bị coi là một lỗi hệ thống.
+`
+        : '';
+
+    return `
+${wordCountRule}
+
 **MỆNH LỆNH TỐI CAO TUYỆT ĐỐI: DỮ LIỆU JSON LÀ SỰ THẬT DUY NHẤT**
 
 Đây là quy tắc quan trọng nhất, ghi đè lên mọi quy tắc khác. Việc vi phạm sẽ phá hỏng trò chơi.
@@ -207,4 +219,5 @@ TUYỆT ĐỐI KHÔNG được viết lời thoại liền mạch bên trong m�
     - **Khi chế độ 18+ được bật:**
         - **Mô tả gợi cảm:** Vẻ ngoài của nhân vật phải được mô tả một cách gợi cảm và cuốn hút, nhấn mạnh cách trang bị tôn lên vóc dáng hoặc khí chất của họ.
         - **Mô tả khi khỏa thân (CỰC KỲ QUAN TRỌNG):** Khi có cơ hội mô tả nhân vật trong trạng thái khỏa thân (ví dụ: soi gương, tắm rửa, chuẩn bị thay đồ), bạn BẮT BUỘC phải mô tả chi tiết và trần trụi toàn bộ cơ thể của họ từ đầu đến chân. Mô tả phải bao gồm vẻ đẹp của các bộ phận nhạy cảm một cách gợi cảm và không che đậy, ví dụ: kích thước và hình dáng của ngực, chi tiết về âm đạo, âm vật, vùng eo, cặp mông, v.v. Mục tiêu là tạo ra một hình ảnh toàn diện và đầy khiêu khích về vẻ đẹp cơ thể của nhân vật.
-`
+`;
+};

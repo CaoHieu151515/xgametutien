@@ -23,6 +23,7 @@ export const useSettingsLogic = () => {
             storyFontSize: 18,
             avatarBackgroundOpacity: 50,
             storyBackgroundOpacity: 70,
+            maxWordsPerTurn: 500,
         };
         try {
             const saved = localStorage.getItem(SETTINGS_KEY);

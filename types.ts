@@ -3,6 +3,7 @@
 
 
 
+
 export interface GameEventLogEntry {
   turnNumber: number;
   entry: string;
@@ -45,6 +46,11 @@ export interface StatusEffect {
   name: string;
   description: string;
   duration: string; // "Vĩnh viễn", "3 lượt", "Trang bị", etc.
+  tickEffect?: {
+    healthChange?: number | string; // Số hoặc chuỗi %, vd: -50 hoặc "-5%"
+    manaChange?: number | string; // Số hoặc chuỗi %, vd: 10 hoặc "2%"
+  };
+  isPregnancyEffect?: boolean; // Cờ đặc biệt cho logic sinh sản
 }
 
 export interface Achievement {
@@ -462,6 +468,7 @@ export interface AppSettings {
    storyFontSize: number;
    avatarBackgroundOpacity: number; // 0-100
    storyBackgroundOpacity: number; // 0-100
+   maxWordsPerTurn: number; // 0 for unlimited
 }
 
 export interface GameSnapshot {

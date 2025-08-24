@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { NarrativePerspective, ApiProvider, AppSettings, StoredApiKey } from '../../types';
 import { MatureContentToggle } from '../MatureContentToggle';
@@ -183,7 +182,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, o
             onClick={onClose}
         >
             <div 
-                className="bg-slate-800 border border-slate-700 rounded-lg shadow-2xl p-8 w-full max-w-lg m-4 text-slate-200 flex flex-col max-h-[95vh]"
+                className="bg-slate-800 border border-slate-700 rounded-lg shadow-2xl p-8 w-full max-w-2xl m-4 text-slate-200 flex flex-col max-h-[95vh]"
                 onClick={(e) => e.stopPropagation()}
             >
                 <h2 className="text-2xl font-bold mb-6 text-amber-300 flex-shrink-0">Cài đặt</h2>
@@ -226,6 +225,59 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, o
                         <p className="text-xs text-slate-500 mt-3 p-2 bg-slate-800 rounded-md border border-slate-700">
                            Lưu ý: API Key của bạn chỉ được lưu trữ cục bộ trong trình duyệt của bạn và không bao giờ được gửi đến máy chủ của chúng tôi.
                         </p>
+                    </div>
+
+                    {/* Gameplay Settings */}
+                    <div className="bg-slate-900/50 p-4 rounded-lg">
+                        <h3 className="text-lg font-semibold mb-3 text-slate-300">Lối Chơi</h3>
+                        <div className="space-y-6">
+                            {/* Max Words Per Turn */}
+                            <div>
+                                <label htmlFor="max-words-slider" className="text-md font-semibold text-slate-300 block">
+                                    Giới hạn từ mỗi lượt
+                                    <span className="text-sm font-normal text-slate-400 ml-2">
+                                        ({settings.maxWordsPerTurn === 0 ? "Không giới hạn" : `~${settings.maxWordsPerTurn} từ`})
+                                    </span>
+                                </label>
+                                <div className="flex items-center space-x-4 mt-2">
+                                    <input
+                                        id="max-words-slider"
+                                        type="range"
+                                        min="0" max="1000" step="50"
+                                        value={settings.maxWordsPerTurn}
+                                        onChange={(e) => setSettings(p => ({ ...p, maxWordsPerTurn: parseInt(e.target.value, 10) }))}
+                                        className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                                    />
+                                    <span className="font-bold text-amber-300 w-20 text-center bg-slate-700 p-1 rounded-md text-sm">{settings.maxWordsPerTurn === 0 ? "Tắt" : settings.maxWordsPerTurn}</span>
+                                </div>
+                                <p className="text-xs text-slate-500 mt-3">
+                                    Đặt giới hạn số từ tối đa cho mỗi phản hồi của AI. 0 để tắt. Giới hạn thấp hơn giúp truyện nhanh hơn và giảm chi phí token, nhưng có thể làm giảm độ chi tiết.
+                                </p>
+                            </div>
+
+                            {/* History Context */}
+                            <div>
+                                <label htmlFor="history-context-slider" className="text-md font-semibold text-slate-300 block">
+                                    Trí nhớ Ngữ cảnh
+                                    <span className="text-base font-normal text-slate-400 ml-2">
+                                        ({settings.historyContextSize === 0 ? "Tắt" : `${settings.historyContextSize} lượt gần nhất`})
+                                    </span>
+                                </label>
+                                <div className="flex items-center space-x-4 mt-2">
+                                    <input
+                                        id="history-context-slider"
+                                        type="range" min="0" max="20" step="1"
+                                        value={settings.historyContextSize}
+                                        onChange={(e) => setSettings(p => ({ ...p, historyContextSize: parseInt(e.target.value, 10) }))}
+                                        className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                                    />
+                                    <span className="font-bold text-amber-300 w-12 text-center bg-slate-700 p-1 rounded-md text-sm">{settings.historyContextSize}</span>
+                                </div>
+                                <p className="text-xs text-slate-500 mt-3">
+                                    Điều chỉnh "trí nhớ ngắn hạn" của AI. Số lớn hơn giúp AI nhớ tốt hơn nhưng tốn nhiều token hơn. 0 để tắt.
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
                     {/* UI Settings */}
@@ -280,29 +332,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, o
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    {/* History Context */}
-                    <div className="bg-slate-900/50 p-4 rounded-lg">
-                        <label htmlFor="history-context-slider" className="text-lg font-semibold mb-3 text-slate-300 block">
-                            Trí nhớ Ngữ cảnh
-                            <span className="text-base font-normal text-slate-400 ml-2">
-                                ({settings.historyContextSize === 0 ? "Tắt" : `${settings.historyContextSize} lượt gần nhất`})
-                            </span>
-                        </label>
-                        <div className="flex items-center space-x-4">
-                            <input
-                                id="history-context-slider"
-                                type="range" min="0" max="20" step="1"
-                                value={settings.historyContextSize}
-                                onChange={(e) => setSettings(p => ({ ...p, historyContextSize: parseInt(e.target.value, 10) }))}
-                                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                            />
-                            <span className="font-bold text-amber-300 w-8 text-center bg-slate-700 p-1 rounded-md">{settings.historyContextSize}</span>
-                        </div>
-                        <p className="text-xs text-slate-500 mt-3">
-                            Điều chỉnh "trí nhớ ngắn hạn" của AI bằng cách cho nó xem lại các lượt đi trước. Số lớn hơn giúp AI nhớ tốt hơn nhưng có thể tốn nhiều token hơn và chậm hơn. 0 để tắt.
-                        </p>
                     </div>
 
                     {/* Mature Content Toggle */}

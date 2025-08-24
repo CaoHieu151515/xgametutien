@@ -1,9 +1,9 @@
-import { NarrativePerspective, CharacterGender, WorldSettings } from '../../types';
+import { AppSettings, CharacterGender, WorldSettings } from '../../types';
 import { GAME_CONFIG } from '../gameConfig';
 
 // System
 import { masterInstruction } from './system/master.rules';
-import { baseInstruction } from './system/base.rules';
+import { getBaseInstruction } from './system/base.rules';
 import { playerDefinedRulesInstruction } from './system/playerDefined.rules';
 
 // Gameplay
@@ -29,26 +29,25 @@ import { bdsmScenariosInstruction } from './mature/bdsmScenarios.rules';
 
 /**
  * Lấy chỉ thị hệ thống phù hợp dựa trên cài đặt của người chơi.
- * @param isMature - Boolean cho biết có nên bao gồm các quy tắc nội dung người lớn hay không.
- * @param perspective - Ngôi kể chuyện được sử dụng.
+ * @param settings - Đối tượng cài đặt ứng dụng.
  * @param gender - Giới tính của nhân vật chính.
  * @param race - Chủng tộc của nhân vật chính.
  * @param powerSystem - Hệ thống sức mạnh của nhân vật chính.
  * @param worldSettings - Cài đặt thế giới.
  * @returns Chuỗi chỉ thị hệ thống hoàn chỉnh.
  */
-export const getSystemInstruction = (
-    isMature: boolean,
-    perspective: NarrativePerspective,
+export const getSystemInstruction = (    
+    settings: AppSettings,
     gender: CharacterGender,
     race: string,
     powerSystem: string,
     worldSettings: WorldSettings | null
 ): string => {
     
+    const { isMature, perspective, maxWordsPerTurn } = settings;
     const instructionParts = [
         masterInstruction,
-        baseInstruction,
+        getBaseInstruction(maxWordsPerTurn),
         getCharacterInstruction(gender, perspective, race, powerSystem),
         getWorldInstruction(worldSettings),
         secretsAndReputationInstruction,

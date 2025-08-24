@@ -3,6 +3,122 @@ import { processNpcLevelUps, getLevelFromRealmName, calculateBaseStatsForLevel, 
 import { findBestAvatar } from '../../services/avatarService';
 import { log } from '../../services/logService';
 
+/**
+ * Xử lý hậu kỳ danh sách NPC mới để sửa lỗi logic của AI và tự động suy luận các mối quan hệ.
+ * 1. Sửa lại họ của NPC cho khớp với mô tả (ví dụ: mô tả "tiểu thư Vương gia" nhưng tên là "Lý Thanh Ca" -> sửa thành "Vương Thanh Ca").
+ * 2. Tự động tạo mối quan hệ hai chiều (vợ chồng, cha con, v.v.) dựa trên họ và chức danh.
+ * @param newNpcs Mảng các NPC mới từ AI.
+ * @returns Mảng NPC đã được xử lý.
+ */
+const postProcessNewNpcs = (newNpcs: NewNPCFromAI[]): NewNPCFromAI[] => {
+    // Deep copy để tránh ảnh hưởng đến đối tượng gốc
+    let processedNpcs: NewNPCFromAI[] = JSON.parse(JSON.stringify(newNpcs));
+
+    // BƯỚC 1: Sửa lại họ không nhất quán dựa trên mô tả
+    const familyNameRegex = /(?<surname>\p{Lu}\p{L}+)\s*(gia|phủ)/u;
+    processedNpcs.forEach(npc => {
+        const descriptionMatch = npc.description.match(familyNameRegex);
+        if (descriptionMatch?.groups?.surname) {
+            const surnameFromDesc = descriptionMatch.groups.surname;
+            const nameParts = npc.name.split(' ');
+            const surnameFromName = nameParts[0];
+
+            if (surnameFromName !== surnameFromDesc) {
+                const oldName = npc.name;
+                const newName = `${surnameFromDesc} ${nameParts.slice(1).join(' ')}`;
+                npc.name = newName;
+                log('npcMutators.ts', `Hậu xử lý: Đã sửa tên NPC từ "${oldName}" thành "${newName}" dựa trên mô tả.`, 'INFO');
+            }
+        }
+    });
+
+    // BƯỚC 2: Suy luận và thêm mối quan hệ gia đình hai chiều
+    const familyTitleMap: { [title: string]: string } = {
+        'Lão Gia': 'father',
+        'Phu Nhân': 'mother',
+        'Công Tử': 'son',
+        'Thiếu Gia': 'son',
+        'Tiểu Thư': 'daughter',
+    };
+
+    const npcInfo: Map<string, { surname: string; role: string; npc: NewNPCFromAI }> = new Map();
+    processedNpcs.forEach(npc => {
+        const nameParts = npc.name.split(' ');
+        const surname = nameParts[0];
+        const restOfName = nameParts.slice(1).join(' ');
+
+        for (const title in familyTitleMap) {
+            if (restOfName.includes(title)) {
+                npcInfo.set(npc.id, { surname, role: familyTitleMap[title], npc });
+                break;
+            }
+        }
+    });
+
+    if (npcInfo.size > 1) {
+        const infoArray = Array.from(npcInfo.values());
+        for (let i = 0; i < infoArray.length; i++) {
+            for (let j = i + 1; j < infoArray.length; j++) {
+                const info1 = infoArray[i];
+                const info2 = infoArray[j];
+
+                if (info1.surname !== info2.surname) continue;
+
+                const addRelationship = (npcSource: NewNPCFromAI, npcTarget: NewNPCFromAI, type: string, value: number = 950) => {
+                    npcSource.npcRelationships = npcSource.npcRelationships || [];
+                    if (!npcSource.npcRelationships.some(r => r.targetNpcId === npcTarget.id)) {
+                        npcSource.npcRelationships.push({ targetNpcId: npcTarget.id, value, relationshipType: type });
+                    }
+                };
+
+                const roles = [info1.role, info2.role].sort();
+                
+                // Vợ chồng
+                if (roles[0] === 'father' && roles[1] === 'mother') {
+                    addRelationship(info1.npc, info2.npc, 'Phu Thê', 1000);
+                    addRelationship(info2.npc, info1.npc, 'Phu Thê', 1000);
+                } 
+                // Cha/Mẹ & Con
+                else if (roles.includes('father') && roles.includes('daughter')) {
+                    const father = info1.role === 'father' ? info1.npc : info2.npc;
+                    const daughter = info1.role === 'daughter' ? info1.npc : info2.npc;
+                    addRelationship(father, daughter, 'Con gái');
+                    addRelationship(daughter, father, 'Phụ thân');
+                } else if (roles.includes('father') && roles.includes('son')) {
+                    const father = info1.role === 'father' ? info1.npc : info2.npc;
+                    const son = info1.role === 'son' ? info1.npc : info2.npc;
+                    addRelationship(father, son, 'Con trai');
+                    addRelationship(son, father, 'Phụ thân');
+                } else if (roles.includes('mother') && roles.includes('daughter')) {
+                    const mother = info1.role === 'mother' ? info1.npc : info2.npc;
+                    const daughter = info1.role === 'daughter' ? info1.npc : info2.npc;
+                    addRelationship(mother, daughter, 'Con gái');
+                    addRelationship(daughter, mother, 'Mẫu thân');
+                } else if (roles.includes('mother') && roles.includes('son')) {
+                    const mother = info1.role === 'mother' ? info1.npc : info2.npc;
+                    const son = info1.role === 'son' ? info1.npc : info2.npc;
+                    addRelationship(mother, son, 'Con trai');
+                    addRelationship(son, mother, 'Mẫu thân');
+                }
+                // Anh chị em
+                else if (roles.includes('son') && roles.includes('daughter')) {
+                    addRelationship(info1.npc, info2.npc, 'Huynh muội/Tỷ đệ');
+                    addRelationship(info2.npc, info1.npc, 'Huynh muội/Tỷ đệ');
+                } else if (roles[0] === 'son' && roles[1] === 'son') {
+                    addRelationship(info1.npc, info2.npc, 'Huynh đệ');
+                    addRelationship(info2.npc, info1.npc, 'Huynh đệ');
+                } else if (roles[0] === 'daughter' && roles[1] === 'daughter') {
+                    addRelationship(info1.npc, info2.npc, 'Tỷ muội');
+                    addRelationship(info2.npc, info1.npc, 'Tỷ muội');
+                }
+            }
+        }
+    }
+
+    return processedNpcs;
+};
+
+
 interface ApplyNpcMutationsParams {
     response: StoryResponse;
     npcs: NPC[];
@@ -21,6 +137,7 @@ export const applyNpcMutations = async ({
     apiKey,
 }: ApplyNpcMutationsParams): Promise<NPC[]> => {
     let nextNpcs = [...npcs];
+    let newNpcIds = new Set<string>();
 
     // --- New NPCs ---
     if (response.newNPCs?.length) {
@@ -60,10 +177,14 @@ export const applyNpcMutations = async ({
             return newNpc;
         });
         const npcsWithAvatars = await Promise.all(avatarUpdatePromises);
-
-        const brandNewNpcsData: NPC[] = npcsWithAvatars
+        
+        // Step 3: Post-process for name correction and relationship inference
+        const postProcessedNpcsData = postProcessNewNpcs(npcsWithAvatars);
+        
+        const brandNewNpcsData: NPC[] = postProcessedNpcsData
             .filter((npcData): npcData is NewNPCFromAI => npcData !== null && typeof npcData === 'object')
             .map((newNpcData: NewNPCFromAI) => {
+                newNpcIds.add(newNpcData.id); // Track newly created NPC IDs
                 const powerSystemForNpc = worldSettings.powerSystems.find(ps => ps.name === newNpcData.powerSystem);
                 const isValidPowerSystem = !!powerSystemForNpc;
                 const npcPowerSystem = isValidPowerSystem ? newNpcData.powerSystem : (worldSettings.powerSystems[0]?.name || '');
@@ -94,7 +215,16 @@ export const applyNpcMutations = async ({
 
     // --- Updated NPCs ---
     if (response.updatedNPCs?.length) {
-        for (const update of response.updatedNPCs) {
+        // *** BUG FIX ***: Filter out updates for NPCs that were just created in this turn.
+        const updatesForExistingNpcs = response.updatedNPCs.filter(update => {
+            if (newNpcIds.has(update.id)) {
+                log('npcMutators.ts', `Skipping update for newly created NPC to prevent conflicts: ${update.id}`, 'INFO');
+                return false;
+            }
+            return true;
+        });
+
+        for (const update of updatesForExistingNpcs) {
             const npcIndex = nextNpcs.findIndex(n => n.id === update.id);
             if (npcIndex !== -1) {
                 let modifiedNpc = { ...nextNpcs[npcIndex] };

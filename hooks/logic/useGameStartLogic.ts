@@ -1,5 +1,4 @@
 
-
 import { useCallback } from 'react';
 import { CharacterProfile, WorldSettings, GameState, AppSettings, NPC, StoryPart, NewNPCFromAI, GameSnapshot, Choice, ToastMessage, Skill, CharacterGender } from '../../types';
 import * as saveService from '../../services/saveService';
@@ -88,7 +87,7 @@ export const useGameStartLogic = (props: UseGameStartLogicProps) => {
         setNpcs(initialNpcs);
     
         try {
-            const { storyResponse, usageMetadata } = await api.getInitialStory(finalProfile, newWorldSettings, settings.isMature, settings.perspective, apiKeyForService);
+            const { storyResponse, usageMetadata } = await api.getInitialStory(finalProfile, newWorldSettings, settings, apiKeyForService);
             
             verifyStoryResponse(storyResponse, finalProfile, initialNpcs, newWorldSettings);
 
@@ -116,6 +115,7 @@ export const useGameStartLogic = (props: UseGameStartLogicProps) => {
                 isSuccess: true,
                 api,
                 apiKey: apiKeyForService,
+                preTurnNotifications: [],
             });
             
             const initialStoryPart: StoryPart = { 

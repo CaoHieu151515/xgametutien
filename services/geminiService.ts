@@ -1,6 +1,5 @@
-
 import {
-    StoryResponse, NarrativePerspective, CharacterGender, CharacterProfile, WorldSettings, Skill, StoryApiResponse, NPC, NewNPCFromAI
+    StoryResponse, AppSettings, CharacterProfile, WorldSettings, Skill, StoryApiResponse, NPC, NewNPCFromAI
 } from '../types';
 import { getSystemInstruction } from '../config/instructions';
 import { log } from './logService';
@@ -42,16 +41,15 @@ export const generateWorldFromIdea = async (storyIdea: string, openingScene: str
 export const getNextStoryStep = async (
     historyText: string,
     actionText: string,
-    isMature: boolean,
-    perspective: NarrativePerspective,
+    settings: AppSettings,
     characterProfile: CharacterProfile,
     worldSettings: WorldSettings,
     npcs: NPC[],
     apiKey: string,
 ): Promise<StoryApiResponse> => {
-    log('geminiService.ts', `Generating next story step with a unified prompt...`, 'API');
+    log('geminiService.ts', `Generating next story step...`, 'API');
     
-    const systemInstruction = getSystemInstruction(isMature, perspective, characterProfile.gender, characterProfile.race, characterProfile.powerSystem, worldSettings);
+    const systemInstruction = getSystemInstruction(settings, characterProfile.gender, characterProfile.race, characterProfile.powerSystem, worldSettings);
     const prompt = buildUnifiedPrompt(historyText, actionText, characterProfile, worldSettings, npcs);
 
     try {
@@ -75,11 +73,10 @@ export const getNextStoryStep = async (
 export const getInitialStory = async (
     characterProfile: CharacterProfile,
     worldSettings: WorldSettings,
-    isMature: boolean,
-    perspective: NarrativePerspective,
+    settings: AppSettings,
     apiKey: string,
 ): Promise<StoryApiResponse> => {
-    const systemInstruction = getSystemInstruction(isMature, perspective, characterProfile.gender, characterProfile.race, characterProfile.powerSystem, worldSettings);
+    const systemInstruction = getSystemInstruction(settings, characterProfile.gender, characterProfile.race, characterProfile.powerSystem, worldSettings);
     const prompt = buildInitialStoryPrompt(characterProfile, worldSettings);
     try {
         const response = await callGeminiApi({ systemInstruction, prompt, apiKey, schema: responseSchema });

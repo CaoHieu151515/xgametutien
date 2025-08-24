@@ -1,6 +1,5 @@
-
 import {
-    StoryResponse, NarrativePerspective, CharacterGender, CharacterProfile,
+    StoryResponse, AppSettings, CharacterProfile,
     WorldSettings, NPC, Skill, StoryApiResponse, NewNPCFromAI
 } from '../types';
 import { getSystemInstruction } from '../config/instructions';
@@ -28,15 +27,14 @@ const getApiResponse = (data: any): StoryApiResponse => {
 export const getNextStoryStep = async (
     historyText: string,
     actionText: string,
-    isMature: boolean,
-    perspective: NarrativePerspective,
+    settings: AppSettings,
     characterProfile: CharacterProfile,
     worldSettings: WorldSettings,
     npcs: NPC[],
     apiKey: string,
 ): Promise<StoryApiResponse> => {
-    log('openaiService.ts', `Generating next story step with a unified prompt...`, 'API');
-    const systemInstruction = getSystemInstruction(isMature, perspective, characterProfile.gender, characterProfile.race, characterProfile.powerSystem, worldSettings);
+    log('openaiService.ts', `Generating next story step...`, 'API');
+    const systemInstruction = getSystemInstruction(settings, characterProfile.gender, characterProfile.race, characterProfile.powerSystem, worldSettings);
     const prompt = buildUnifiedPrompt(historyText, actionText, characterProfile, worldSettings, npcs);
     try {
         const data = await callOpenAiApi({ systemInstruction, prompt, apiKey });
@@ -50,11 +48,10 @@ export const getNextStoryStep = async (
 export const getInitialStory = async (
     characterProfile: CharacterProfile,
     worldSettings: WorldSettings,
-    isMature: boolean,
-    perspective: NarrativePerspective,
+    settings: AppSettings,
     apiKey: string
 ): Promise<StoryApiResponse> => {
-    const systemInstruction = getSystemInstruction(isMature, perspective, characterProfile.gender, characterProfile.race, characterProfile.powerSystem, worldSettings);
+    const systemInstruction = getSystemInstruction(settings, characterProfile.gender, characterProfile.race, characterProfile.powerSystem, worldSettings);
     const prompt = buildInitialStoryPrompt(characterProfile, worldSettings);
     const data = await callOpenAiApi({ systemInstruction, prompt, apiKey });
     return getApiResponse(data);
