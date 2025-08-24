@@ -36,11 +36,16 @@ export const locationManagementInstruction = `
             \`\`\`
 - **LỖI LOGIC NGHIÊM TRỌNG:** Việc một nhân vật di chuyển đến một địa điểm có luật lệ về trạng thái mà bạn không tự động áp dụng hoặc gỡ bỏ trạng thái đó là một lỗi hệ thống không thể chấp nhận.
 
+**QUY TẮC PHÁ HỦY & HỒI SINH ĐỊA ĐIỂM (LOGIC BẤT BIẾN)**
+- **Phá Hủy:** Khi câu chuyện mô tả một địa điểm bị phá hủy, phá hủy hoàn toàn, hoặc trở thành phế tích, bạn **BẮT BUỘC** phải cập nhật trạng thái của nó. Cung cấp toàn bộ đối tượng địa điểm đã được cập nhật trong mảng \`updatedLocations\` với thuộc tính \`isDestroyed\` được đặt thành \`true\`.
+- **Hồi Sinh:** Nếu một sự kiện siêu nhiên hoặc hành động của người chơi khôi phục lại một địa điểm đã bị phá hủy, bạn **BẮT BUỘC** phải cập nhật địa điểm đó trong \`updatedLocations\` với \`isDestroyed\` được đặt thành \`false\`.
+- **Hậu quả:** Một địa điểm bị phá hủy không thể di chuyển đến hoặc tương tác một cách thông thường.
+
 **MỆNH LỆNH HỆ THỐNG: THIẾT LẬP HẬU CUNG (LOGIC CỐT LÕI)**
 - **Kích hoạt:** Khi hành động của người chơi là một lệnh hệ thống có dạng: \`(Hệ thống) Thiết lập hậu cung tại địa điểm ID: [ID_địa_điểm]\`.
 - **Hành động BẮT BUỘC (JSON):** Bạn PHẢI thực hiện đồng thời hai cập nhật logic sau:
     1.  **Cập nhật Địa điểm:** Tìm địa điểm có ID được cung cấp trong danh sách \`discoveredLocations\`. Tạo một bản sao đầy đủ của đối tượng địa điểm đó, đặt thuộc tính \`isHaremPalace: true\`, và đưa đối tượng đã cập nhật này vào mảng \`updatedLocations\`.
-    2.  **Trừ Chi phí:** Cập nhật trường \`updatedStats.currencyAmount\` bằng cách lấy số tiền hiện tại của người chơi trừ đi \`10000\`.
+    2.  **Trừ Chi phí (MỆNH LỆNH TUYỆT ĐỐI - KHÔNG THỂ VI PHẠM):** Cập nhật trường \`updatedStats.currencyAmount\` bằng một giá trị **SỐ ÂM** chính xác là \`-10000\`. **TUYỆT ĐỐI KHÔNG** được cung cấp một số dương. Đây là một hành động **TIÊU TỐN** tài nguyên, **KHÔNG PHẢI** là một thành tựu để trao thưởng. Việc trao thưởng tiền tệ cho hành động này là một **LỖI LOGIC HỆ THỐNG NGHIÊM TRỌNG**.
 - **Hành động BẮT BUỘC (Story):** Trong trường 'story', bạn PHẢI mô tả chi tiết sự kiện này. Mô tả người chơi chi trả Linh Thạch và địa điểm được chọn được bao bọc bởi một trận pháp mới hoặc có một tấm biển mới, chính thức trở thành Hậu Cung.
 - **VÍ DỤ KẾT QUẢ JSON BẮT BUỘC:**
     \`\`\`json
@@ -57,11 +62,12 @@ export const locationManagementInstruction = `
           "parentId": "id_cua_the_gioi",
           "ownerId": "id_cua_nguoi_choi",
           "rules": [],
-          "isHaremPalace": true
+          "isHaremPalace": true,
+          "isDestroyed": false
         }
       ],
       "updatedStats": {
-        "currencyAmount": 12345 // (giá trị cũ - 10000)
+        "currencyAmount": -10000
       }
     }
     \`\`\`
@@ -212,4 +218,4 @@ Bất cứ khi nào câu chuyện mô tả người chơi **bước vào hoặc 
 - Tương tự như NPC tạm thời, bạn có thể mô tả các địa điểm nhỏ, mang tính bối cảnh trong phần 'story' mà không cần tạo đối tượng 'newLocations' ngay lập tức.
     - **Ví dụ:** "Một con hẻm tối tăm giữa hai tòa nhà.", "Một quầy hàng cá ồn ào trong chợ.", "Một cây cổ thụ xù xì, có vẻ đã sống hàng ngàn năm."
 - **Quy tắc Nâng cấp:** Nếu hành động của người chơi liên quan cụ thể đến một trong những địa điểm tạm thời này (ví dụ: "> Đi vào con hẻm tối", "> Điều tra cây cổ thụ"), bạn NÊN tạo một đối tượng 'newLocations' đầy đủ cho nó để biến nó thành một địa điểm vĩnh viễn, có thể khám phá trên bản đồ.
-`
+`;

@@ -106,7 +106,7 @@ export const itemSchema = {
     required: ["id", "name", "description", "type", "quality", "quantity"]
 };
 
-export const locationSchema = {
+export const newLocationSchema = {
     type: Type.OBJECT,
     properties: {
         id: { type: Type.STRING },
@@ -130,6 +130,23 @@ export const locationSchema = {
         },
     },
     required: ["id", "name", "description", "type", "coordinates", "rules"]
+};
+
+export const updatedLocationSchema = {
+    type: Type.OBJECT,
+    properties: {
+        id: { type: Type.STRING },
+        name: { type: Type.STRING },
+        description: { type: Type.STRING },
+        ownerId: { type: Type.STRING },
+        rules: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+        },
+        isDestroyed: { type: Type.BOOLEAN },
+        isHaremPalace: { type: Type.BOOLEAN },
+    },
+    required: ['id']
 };
 
 export const mienLucSchema = {
@@ -236,7 +253,7 @@ export const characterProfileSchema = {
         skills: { type: Type.ARRAY, items: skillSchema },
         initialItems: { type: Type.ARRAY, items: itemSchema },
         initialNpcs: { type: Type.ARRAY, items: newNpcSchema },
-        initialLocations: { type: Type.ARRAY, items: locationSchema },
+        initialLocations: { type: Type.ARRAY, items: newLocationSchema },
         initialMonsters: { type: Type.ARRAY, items: monsterSchema },
     },
     required: ["name", "gender", "race", "powerSystem", "level", "currencyName", "currencyAmount", "personality", "backstory", "goal", "specialConstitution", "talent", "skills", "initialItems", "initialNpcs", "initialLocations", "initialMonsters"]
@@ -425,11 +442,11 @@ const fullResponseProperties = {
     },
     newLocations: {
         type: Type.ARRAY,
-        items: locationSchema,
+        items: newLocationSchema,
     },
     updatedLocations: {
         type: Type.ARRAY,
-        items: locationSchema,
+        items: updatedLocationSchema,
     },
     updatedPlayerLocationId: {
         type: Type.STRING,

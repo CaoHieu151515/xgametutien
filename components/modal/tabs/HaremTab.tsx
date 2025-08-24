@@ -113,15 +113,22 @@ export const HaremTab: React.FC<HaremTabProps> = ({ profile, npcs, onUpdateLocat
 
         switch (confirmingAction.type) {
             case 'establish':
-                choice = {
-                    title: `(Hệ thống) Thiết lập hậu cung tại địa điểm ID: ${confirmingAction.locationId}`,
-                    benefit: "Có một nơi ở riêng tư và an toàn cho các đạo lữ.",
-                    risk: `Tốn ${HAREM_ESTABLISH_COST.toLocaleString()} ${profile.currencyName}.`,
-                    durationInMinutes: 60,
-                    successChance: 100,
-                };
-                onAction(choice);
-                onClose();
+                const locationToUpdate = profile.discoveredLocations.find(loc => loc.id === confirmingAction.locationId);
+                if (locationToUpdate) {
+                    // Proactively update the location on the client side to ensure isHaremPalace is true.
+                    onUpdateLocation({ ...locationToUpdate, isHaremPalace: true });
+
+                    // Create a choice that only handles the transaction.
+                    choice = {
+                        title: `(Hệ thống) Thanh toán ${HAREM_ESTABLISH_COST} ${profile.currencyName} để hoàn tất thiết lập "${confirmingAction.locationName}" làm Hậu Cung.`,
+                        benefit: "Hoàn tất giao dịch.",
+                        risk: `Tốn ${HAREM_ESTABLISH_COST.toLocaleString()} ${profile.currencyName}.`,
+                        durationInMinutes: 5,
+                        successChance: 100,
+                    };
+                    onAction(choice);
+                    onClose(); // Close modal immediately after action is sent
+                }
                 break;
             case 'add':
                 choice = {
