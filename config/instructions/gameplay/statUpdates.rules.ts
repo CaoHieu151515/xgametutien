@@ -91,11 +91,18 @@ Sau khi đã đảm bảo lệnh cập nhật JSON được tạo, bạn PHẢI 
 ---
 
 **A. Kinh nghiệm, Cấp độ và Kỹ năng (Áp dụng cho cả người chơi và NPC):**
--   **Kinh nghiệm Nhân vật & NPC:** Trao thưởng điểm kinh nghiệm qua 'gainedExperience' cho các hành động. Hệ thống sẽ tự xử lý việc lên cấp.
--   **Sử dụng Kỹ năng & Tiêu hao Linh Lực (MỆNH LỆNH):** Bất cứ khi nào câu chuyện mô tả một nhân vật (người chơi hoặc NPC) sử dụng một kỹ năng có tên, bạn **BẮT BUỘC** phải tìm kỹ năng đó trong dữ liệu được cung cấp và trừ đi lượng Linh Lực (\`mana\`) tương ứng với \`manaCost\` của kỹ năng đó. Việc này phải được phản ánh trong \`updatedStats\` (cho người chơi) hoặc trong đối tượng tương ứng trong \`updatedNPCs\` bằng cách cung cấp một giá trị âm (ví dụ: \`"mana": -50\`).
--   **Kinh nghiệm Kỹ năng (HỌC BẰNG CÁCH LÀM):** Bất cứ khi nào một nhân vật (người chơi hoặc NPC) sử dụng một kỹ năng trong 'story', bạn **PHẢI** trao thưởng kinh nghiệm cho kỹ năng đó qua 'updatedSkills' (cho người chơi) hoặc suy ra từ logic cho NPC.
--   **Đột Phá Cảnh Giới Trực Tiếp:** Nếu câu chuyện mô tả một nhân vật (người chơi hoặc NPC) đột phá đến một cảnh giới cụ thể, bạn **PHẢI** sử dụng trường 'breakthroughToRealm' để chỉ định cảnh giới mới.
--   **Thức Tỉnh Huyết Mạch & Trạng Thái Mới:** Khi một nhân vật (người chơi hoặc NPC) thức tỉnh một năng lực mới, bạn **BẮT BUỘC** phải tạo ra một \`StatusEffect\` tương ứng và thêm vào 'newStatusEffects'.
+- **Mở rộng Nguồn Kinh nghiệm:** Việc tu luyện không phải là con đường duy nhất. Bạn PHẢI trao thưởng điểm kinh nghiệm ('gainedExperience') cho người chơi khi họ thực hiện các hành động có ý nghĩa khác, bao gồm nhưng không giới hạn ở:
+    - **Thôn phệ:** Hấp thụ sức mạnh từ kẻ địch, nội đan yêu thú, hoặc các vật phẩm đặc biệt.
+    - **Hấp thụ Môi trường:** Hấp thụ linh khí từ các khu vực có nồng độ linh khí cao (linh mạch, bí cảnh).
+    - **Chiến thắng:** Đánh bại một kẻ thù mạnh hoặc vượt qua một thử thách khó khăn.
+    - **Đốn ngộ:** Có được sự giác ngộ về một công pháp, một quy luật của thế giới, hoặc một triết lý tu luyện.
+    - **Hoàn thành Nhiệm vụ:** Hoàn thành các nhiệm vụ quan trọng.
+    Hãy sáng tạo và trao thưởng một cách hợp lý để phản ánh sự trưởng thành của nhân vật.
+- **Kinh nghiệm Nhân vật & NPC:** Trao thưởng điểm kinh nghiệm qua 'gainedExperience' cho các hành động. Hệ thống sẽ tự xử lý việc lên cấp.
+- **Sử dụng Kỹ năng & Tiêu hao Linh Lực (MỆNH LỆNH):** Bất cứ khi nào câu chuyện mô tả một nhân vật (người chơi hoặc NPC) sử dụng một kỹ năng có tên, bạn **BẮT BUỘC** phải tìm kỹ năng đó trong dữ liệu được cung cấp và trừ đi lượng Linh Lực (\`mana\`) tương ứng với \`manaCost\` của kỹ năng đó. Việc này phải được phản ánh trong \`updatedStats\` (cho người chơi) hoặc trong đối tượng tương ứng trong \`updatedNPCs\` bằng cách cung cấp một giá trị âm (ví dụ: \`"mana": -50\`).
+- **Kinh nghiệm Kỹ năng (HỌC BẰNG CÁCH LÀM):** Bất cứ khi nào một nhân vật (người chơi hoặc NPC) sử dụng một kỹ năng trong 'story', bạn **PHẢI** trao thưởng kinh nghiệm cho kỹ năng đó qua 'updatedSkills' (cho người chơi) hoặc suy ra từ logic cho NPC.
+- **Đột Phá Cảnh Giới Trực Tiếp:** Nếu câu chuyện mô tả một nhân vật (người chơi hoặc NPC) đột phá đến một cảnh giới cụ thể, bạn **PHẢI** sử dụng trường 'breakthroughToRealm' để chỉ định cảnh giới mới.
+- **Thức Tỉnh Huyết Mạch & Trạng Thái Mới:** Khi một nhân vật (người chơi hoặc NPC) thức tỉnh một năng lực mới, bạn **BẮT BUỘC** phải tạo ra một \`StatusEffect\` tương ứng và thêm vào 'newStatusEffects'.
 
 **B. Chỉ số Nhân vật & NPC (MỆNH LỆNH MỚI - HỖ TRỢ %)**
 -   **Đối tượng áp dụng:** Các quy tắc sau áp dụng cho cả \`updatedStats\` của người chơi và các đối tượng trong \`updatedNPCs\`.

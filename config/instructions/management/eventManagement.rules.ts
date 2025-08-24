@@ -47,10 +47,19 @@ export const eventManagementInstruction = `
     *   **\`eventId\`:** ID của sự kiện đã hoàn thành.
     *   **\`finalLog\`:** Một chuỗi văn bản mô tả sự kiện đã kết thúc như thế nào. Ví dụ: "Ta đã trao lại vật gia truyền cho [Tên NPC]. Nàng ấy rất vui mừng và cảm kích."
 
-*   **Phần thưởng:** Việc hoàn thành một sự kiện thường đi kèm với phần thưởng. Bạn PHẢI trao thưởng cho người chơi thông qua các trường khác như \`updatedStats.gainedExperience\`, \`updatedStats.currencyAmount\`, \`newItems\`, v.v.
+*   **MỆNH LỆNH TUYỆT ĐỐI: TRAO THƯỞNG KHI HOÀN THÀNH NHIỆM VỤ (LOGIC CỐT LÕI)**
+    *   **Hành động BẮT BUỘC:** Khi bạn sử dụng \`completeEvent\`, bạn **TUYỆT ĐỐI BẮT BUỘC** phải trao thưởng cho người chơi một cách hợp lý. Phần thưởng phải được phản ánh trong các trường JSON sau: \`updatedStats.gainedExperience\`, \`updatedStats.currencyAmount\`, và/hoặc \`newItems\`.
+    *   **Nguyên tắc Phân cấp Phần thưởng (CỰC KỲ QUAN TRỌNG):** Phần thưởng **PHẢI** tương xứng với **độ khó, tầm quan trọng, và quy mô** của nhiệm vụ đã hoàn thành. Bạn phải tự đánh giá mức độ của nhiệm vụ để quyết định phần thưởng.
+        *   **Nhiệm vụ nhỏ (Ví dụ: giúp một dân làng, đưa thư):** Phần thưởng khiêm tốn. (ví dụ: 50-200 EXP, vài chục đơn vị tiền tệ, một viên đan dược cấp thấp).
+        *   **Nhiệm vụ trung bình (Ví dụ: tiêu diệt một nhóm cướp, điều tra một bí mật nhỏ):** Phần thưởng khá. (ví dụ: 500-2000 EXP, vài trăm đơn vị tiền tệ, một vật phẩm phẩm chất Hiếm).
+        *   **Nhiệm vụ lớn (Ví dụ: cứu một thành trì, đánh bại một trưởng lão phe địch):** Phần thưởng lớn. (ví dụ: 5,000-20,000 EXP, hàng nghìn đơn vị tiền tệ, một công pháp hoặc trang bị phẩm chất Sử Thi).
+        *   **Nhiệm vụ Sử thi (Ví dụ: giải cứu cả một thế giới, đánh bại một Ma Đầu cổ xưa, thay đổi cục diện thế giới):** Phần thưởng **KHỔNG LỒ**. Bạn **PHẢI** trao một lượng lớn kinh nghiệm (hàng trăm nghìn đến hàng triệu EXP), một khoản tiền kếch xù, và ít nhất một vật phẩm phẩm chất Truyền Thuyết hoặc Thần Thoại.
+    *   **Sáng tạo Vật phẩm Phần thưởng (KHUYẾN KHÍCH MẠNH MẼ):** Bạn được phép và được khuyến khích **tự tạo ra các vật phẩm hoặc đan dược hoàn toàn mới** (\`newItems\`) để làm phần thưởng, miễn là chúng phù hợp với bối cảnh.
+        *   **Ví dụ:** Hoàn thành nhiệm vụ giúp một Luyện Đan Sư có thể được thưởng một viên đan dược độc nhất mà ông ta vừa nghiên cứu ra. Hoàn thành nhiệm vụ cho một tông môn kiếm tu có thể được thưởng một thanh phi kiếm đặc chế của tông môn đó.
+    *   **LỖI LOGIC NGHIÊM TRỌNG:** Hoàn thành một nhiệm vụ mà không trao bất kỳ phần thưởng nào (EXP, tiền, hoặc vật phẩm) là một lỗi logic nghiêm trọng và bị cấm tuyệt đối, trừ khi bối cảnh câu chuyện giải thích rõ ràng lý do tại sao không có phần thưởng (ví dụ: bị lừa gạt).
 
 ---
 **QUY TẮC CẤM (LỖI HỆ THỐNG):**
 *   **KHÔNG** được tạo sự kiện cho những hành động thông thường không phải nhiệm vụ.
 *   **CHỈ** sử dụng MỘT trong ba hành động (\`newEvent\`, \`updateEventLog\`, \`completeEvent\`) cho MỘT sự kiện trong MỘT lượt chơi.
-`;
+`
