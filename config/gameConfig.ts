@@ -1,4 +1,3 @@
-
 import { ItemType, SkillType } from '../types';
 
 /**
@@ -223,5 +222,22 @@ export const GAME_CONFIG = {
             // Số lượng hệ thống sức mạnh khởi đầu.
             powerSystems: 2,
         },
+        /**
+         * Các hằng số và ràng buộc cho prompt tạo thế giới.
+         */
+        promptConstraints: {
+            // Giới hạn ký tự tối đa cho các trường tên.
+            maxNameLength: 50,
+            // Giới hạn ký tự tối đa cho các trường mô tả.
+            maxDescriptionLength: 300,
+            // Số lượng từ mục tiêu cho trường 'context' của thế giới.
+            contextWordCount: 300,
+            // Số lượng cảnh giới bắt buộc cho mỗi hệ thống sức mạnh.
+            realmsPerPowerSystem: 10,
+            // Cấp độ khởi đầu tối thiểu cho nhân vật.
+            minStartLevel: 1,
+            // Cấp độ khởi đầu tối đa cho nhân vật.
+            maxStartLevel: 5000,
+        }
     },
 };

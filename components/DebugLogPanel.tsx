@@ -9,12 +9,13 @@ const LogTypeColors: Record<LogEntry['type'], string> = {
     FUNCTION: 'text-green-400',
     ERROR: 'text-red-500 font-bold',
     INFO: 'text-slate-300',
+    PERF: 'text-orange-400',
 };
 
 export const DebugLogPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const [entries, setEntries] = useState(logService.getLogs());
     const [position, setPosition] = useState({ x: 20, y: 20 });
-    const [size, setSize] = useState({ width: 500, height: 400 });
+    const [size, setSize] = useState({ width: 600, height: 450 }); // Increased default size
     const [isDragging, setIsDragging] = useState(false);
     const [isResizing, setIsResizing] = useState(false);
     const panelRef = useRef<HTMLDivElement>(null);
@@ -97,9 +98,9 @@ export const DebugLogPanel: React.FC<{ onClose: () => void }> = ({ onClose }) =>
                 {entries.map(log => (
                     <div key={log.id} className="flex gap-2 text-xs font-mono border-b border-slate-700/50 py-1">
                         <span className="text-slate-500">{log.timestamp}</span>
-                        <span className={`${LogTypeColors[log.type]} w-16 flex-shrink-0`}>[{log.type}]</span>
+                        <span className={`${LogTypeColors[log.type]} w-16 flex-shrink-0 font-semibold`}>[{log.type}]</span>
                         <span className="text-lime-400 w-48 flex-shrink-0 truncate" title={log.source}>{log.source}</span>
-                        <span className="text-slate-200 flex-grow break-words">{log.message}</span>
+                        <span className="text-slate-200 flex-grow break-words whitespace-pre-wrap">{log.message}</span>
                     </div>
                 ))}
             </div>

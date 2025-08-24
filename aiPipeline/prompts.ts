@@ -4,6 +4,15 @@ import { GAME_CONFIG } from '../config/gameConfig';
 
 export const buildWorldGenPrompt = (storyIdea: string, openingScene: string): string => {
     const { npcs, locations, items, monsters, skills, knowledge, powerSystems } = GAME_CONFIG.worldGen.autoFill;
+    const { 
+        maxNameLength, 
+        maxDescriptionLength, 
+        contextWordCount, 
+        realmsPerPowerSystem, 
+        minStartLevel, 
+        maxStartLevel 
+    } = GAME_CONFIG.worldGen.promptConstraints;
+    
     return `
 Dựa trên ý tưởng cốt truyện và bối cảnh sau đây, hãy tạo ra một thế giới hoàn chỉnh và một nhân vật chính để bắt đầu một game nhập vai tương tác.
 
@@ -15,8 +24,8 @@ ${openingScene || "Không có."}
 
 **MỆNH LỆNH TUYỆT ĐỐI: GIỚI HẠN KÝ TỰ (LỖI HỆ THỐNG SẼ XẢY RA NẾU VI PHẠM)**
 Đây là quy tắc quan trọng nhất. Việc vi phạm sẽ khiến JSON không hợp lệ và phá hỏng trò chơi.
--   **Tất cả các trường TÊN (\`name\`):** TUYỆT ĐỐI KHÔNG quá 50 ký tự.
--   **Tất cả các trường MÔ TẢ (\`description\`, \`backstory\`, \`goal\`, \`personality\`):** TUYỆT ĐỐI KHÔNG quá 300 ký tự.
+-   **Tất cả các trường TÊN (\`name\`):** TUYỆT ĐỐI KHÔNG quá ${maxNameLength} ký tự.
+-   **Tất cả các trường MÔ TẢ (\`description\`, \`backstory\`, \`goal\`, \`personality\`):** TUYỆT ĐỐI KHÔNG quá ${maxDescriptionLength} ký tự.
 -   **Lý do:** Đây là một giới hạn kỹ thuật. Việc tạo ra một chuỗi văn bản quá dài sẽ khiến toàn bộ phản hồi JSON bị cắt cụt và gây ra lỗi hệ thống nghiêm trọng. SỰ SÚC TÍCH LÀ BẮT BUỘC.
 
 **YÊU CẦU:**
@@ -30,13 +39,13 @@ Bạn PHẢI trả về một đối tượng JSON duy nhất tuân thủ nghiê
 
 2.  **Bối cảnh Chi tiết (\`context\`):**
     *   Dựa trên chủ đề và thể loại, hãy viết một đoạn văn **chi tiết, sống động và có chiều sâu** cho trường \`context\`.
-    *   **Độ dài (QUAN TRỌNG):** Đoạn văn này PHẢI có độ dài khoảng **300 TỪ**.
+    *   **Độ dài (QUAN TRỌNG):** Đoạn văn này PHẢI có độ dài khoảng **${contextWordCount} TỪ**.
     *   **Nội dung:** Mô tả bối cảnh chính của thế giới, các sự kiện lịch sử quan trọng đã định hình nó, các xung đột lớn đang diễn ra, và không khí chung của thế giới (ví dụ: đen tối, hy vọng, hỗn loạn). Đây là phần quan trọng nhất để thiết lập "tone" cho câu chuyện.
 
 3.  **Hệ Thống Sức Mạnh (\`powerSystems\`):**
     *   Thiết kế ít nhất ${powerSystems} hệ thống sức mạnh.
     *   **Tên Hệ Thống:** Tên phải bao quát và cụ thể (ví dụ: 'Tiên Đạo Tu Luyện', 'Ma Đạo Tu Luyện').
-    *   **Cảnh Giới:** Mỗi hệ thống **BẮT BUỘC** phải có chính xác MƯỜI (10) cảnh giới, được phân cách bằng ' - '. Cảnh giới đầu tiên **PHẢI** là \`Phàm Nhân\`. Ví dụ: \`Phàm Nhân - Luyện Khí - Trúc Cơ - ...\`.
+    *   **Cảnh Giới:** Mỗi hệ thống **BẮT BUỘC** phải có chính xác ${realmsPerPowerSystem} cảnh giới, được phân cách bằng ' - '. Cảnh giới đầu tiên **PHẢI** là \`Phàm Nhân\`. Ví dụ: \`Phàm Nhân - Luyện Khí - Trúc Cơ - ...\`.
 
 4.  **Phẩm chất & Tư chất (\`qualityTiers\`, \`aptitudeTiers\`):**
     *   **MỆNH LỆNH VỀ DẤU PHÂN CÁCH:** Các bậc trong mỗi chuỗi **TUYỆT ĐỐI BẮT BUỘC** phải được phân cách bằng dấu gạch ngang có dấu cách ở hai bên (' - '). Việc sử dụng dấu phẩy hoặc các dấu khác là một lỗi hệ thống.
@@ -45,7 +54,7 @@ Bạn PHẢI trả về một đối tượng JSON duy nhất tuân thủ nghiê
 5.  **Nhân vật chính (\`characterProfile\`):**
     *   Tạo ra một nhân vật chính có tiểu sử, tính cách và mục tiêu phù hợp.
     *   **Chủng tộc (\`race\`):** Tên Chủng tộc phải ngắn gọn và mang tính thần thoại phương Đông (ví dụ: Nhân Tộc, Long Tộc, Ma Tộc).
-    *   **Cấp độ khởi đầu (\`level\`):** Gán cho nhân vật một cấp độ khởi đầu từ 1 đến 5.
+    *   **Cấp độ khởi đầu (\`level\`):** Gán cho nhân vật một cấp độ khởi đầu từ ${minStartLevel} đến ${maxStartLevel}.
     *   **Kỹ năng khởi đầu (\`skills\`):** Nhân vật chính PHẢI bắt đầu với ít nhất ${skills} kỹ năng đa dạng. Mỗi kỹ năng PHẢI có một giá trị \`manaCost\` hợp lý.
 
 6.  **Yếu tố ban đầu (\`initialNpcs\`, \`initialLocations\`, \`initialItems\`, \`initialMonsters\`):**

@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { StoryPart, StoryResponse, CharacterProfile, WorldSettings, NPC, Choice, AppSettings, GameSnapshot, Item, StoryApiResponse, ToastMessage } from '../../types';
-import { log } from '../../services/logService';
+import { log, startTimer, endTimer } from '../../services/logService';
 import { applyStoryResponseToState } from '../../aiPipeline/applyDiff';
 import { verifyStoryResponse } from '../../aiPipeline/validate';
 import { findBestAvatar } from '../../services/avatarService';
@@ -109,11 +109,16 @@ export const useActionLogic = (props: UseActionLogicProps) => {
 
     const handleAction = useCallback(async (choice: Choice) => {
         if (!characterProfile || !worldSettings) return;
+        
+        const actionLogicSource = 'useActionLogic.ts';
+        startTimer('total_action_logic', actionLogicSource, 'Xử lý hành động của người chơi');
 
         try {
+            startTimer('autosave', actionLogicSource, 'Tự động lưu đầu lượt');
             await saveService.saveGame(characterProfile, worldSettings, npcs, history, choices, gameLog);
-            log('useActionLogic.ts', 'Autosave successful at turn start.', 'INFO');
+            endTimer('autosave', actionLogicSource);
         } catch(e) {
+            endTimer('autosave', actionLogicSource, 'Thất bại');
             log('useActionLogic.ts', `Autosave failed: ${(e as Error).message}`, 'ERROR');
             setToast({ message: `Lỗi tự động lưu game: ${(e as Error).message}`, type: 'error' });
         }
@@ -177,8 +182,11 @@ export const useActionLogic = (props: UseActionLogicProps) => {
                 } else if (attempt > 1 && lastErrorReason) {
                     currentActionText = `**System Correction (Attempt ${attempt}):** Your previous response was invalid due to: "${lastErrorReason}". YOU MUST FIX THIS. If you mention a new entity using [[...]] syntax in the story or choices, you MUST define it in the appropriate array (newNPCs, newLocations, newItems, newSkills, or newWorldKnowledge). Do not update NPCs that are not in the provided context.\n\n**Original Action & Result:**\n${actionPromptText}`;
                 }
-
+                
+                startTimer('ai_call', actionLogicSource, `Gọi API AI (lần thử ${attempt})`);
                 const apiResponse = await api.getNextStoryStep(historyText, currentActionText, settings.isMature, settings.perspective, characterProfile, worldSettings, npcs, apiKeyForService);
+                endTimer('ai_call', actionLogicSource);
+                
                 log('useActionLogic.ts', `[Attempt ${attempt}] Received story response from API.`, 'API');
 
                 storyResponse = apiResponse.storyResponse;
@@ -258,6 +266,7 @@ export const useActionLogic = (props: UseActionLogicProps) => {
 
             } catch (e) {
                 lastErrorReason = (e as Error).message;
+                endTimer('ai_call', actionLogicSource, 'Thất bại');
                 log('useActionLogic.ts', `[Attempt ${attempt}] Failed. Reason: ${lastErrorReason}. Retrying...`, 'ERROR');
                 if (attempt > MAX_RETRIES) {
                     const errorMessage = `Lỗi khi xử lý bước tiếp theo sau ${attempt} lần thử: ${lastErrorReason}`;
@@ -300,10 +309,12 @@ export const useActionLogic = (props: UseActionLogicProps) => {
         const newTurnNumber = (gameLog[gameLog.length - 1]?.turnNumber || 0) + 1;
         
         try {
+            startTimer('apply_state', actionLogicSource, 'Áp dụng các thay đổi trạng thái');
             let { nextProfile, nextNpcs, finalWorldSettings, notifications } = await applyStoryResponseToState({
                 storyResponse, characterProfile, npcs, worldSettings, settings, choice, turnNumber: newTurnNumber, isSuccess,
                 api, apiKey: apiKeyForService,
             });
+            endTimer('apply_state', actionLogicSource);
 
             if (!choice.isTimeSkip) {
                 nextProfile = updateStatusEffectDurations(nextProfile);
@@ -335,12 +346,14 @@ export const useActionLogic = (props: UseActionLogicProps) => {
 
         } catch (e: any) {
             const errorMessage = `Lỗi khi áp dụng trạng thái: ${e.message}`;
+            endTimer('apply_state', actionLogicSource, 'Thất bại');
             log('useActionLogic.ts', errorMessage, 'ERROR');
             setToast({ message: `Lỗi khi xử lý câu chuyện: ${e.message}`, type: 'error' });
             setChoices(preActionState.choices);
             if (choice.isCustom) setLastFailedCustomAction(choice.title);
         } finally {
             setIsLoading(false);
+            endTimer('total_action_logic', actionLogicSource);
         }
     }, [characterProfile, worldSettings, npcs, history, choices, gameLog, settings, api, apiKeyForService, setChoices, setHistory, setCharacterProfile, setNpcs, setWorldSettings, setGameLog, setToast, setIsLoading, setError, setLastFailedCustomAction]);
     
