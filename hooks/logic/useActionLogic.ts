@@ -251,12 +251,35 @@ export const useActionLogic = (props: UseActionLogicProps) => {
         const historySize = settings.historyContextSize;
         if (historySize > 0 && gameLog.length > 0) {
             const relevantSnapshots = gameLog.slice(-historySize);
-            historyText = relevantSnapshots.map(snapshot => {
+            const numFullTurns = 5; // The number of most recent turns to show in full detail.
+
+            historyText = relevantSnapshots.map((snapshot, index) => {
+                const isFullTurn = index >= relevantSnapshots.length - numFullTurns;
+
                 const action = snapshot.turnContent.playerAction
                     ? `> Hành động: ${snapshot.turnContent.playerAction.text}`
                     : '> Bắt đầu câu chuyện.';
-                const result = `>> Kết quả: ${snapshot.turnContent.storyResult.text}`;
-                return `--- Lượt ${snapshot.turnNumber} ---\n${action}\n${result}`;
+                
+                let result;
+                if (isFullTurn) {
+                    // Full content for recent turns
+                    result = `>> Kết quả: ${snapshot.turnContent.storyResult.text}`;
+                } else {
+                    // Summarized/filtered content for older turns
+                    const notifications = snapshot.turnContent.storyResult.notifications;
+                    if (notifications && notifications.length > 0) {
+                        // Strip HTML tags for the prompt
+                        const cleanNotifications = notifications.map(n => n.replace(/<[^>]*>?/gm, ''));
+                        result = `>> Diễn biến chính:\n- ${cleanNotifications.join('\n- ')}`;
+                    } else {
+                        // If no notifications, provide a very short summary of the text
+                        const storyText = snapshot.turnContent.storyResult.text;
+                        const firstSentence = storyText.split(/[.!?]/)[0];
+                        result = `>> Diễn biến chính: ${firstSentence}.`;
+                    }
+                }
+
+                return `Lượt ${snapshot.turnNumber}\n${action}\n${result}`;
             }).join('\n\n');
         }
             
