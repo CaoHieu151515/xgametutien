@@ -307,6 +307,8 @@ export const updatedNpcSchema = {
     type: Type.OBJECT,
     properties: {
         id: { type: Type.STRING },
+        newName: { type: Type.STRING },
+        aliases: { type: Type.STRING },
         gainedExperience: { type: Type.NUMBER },
         breakthroughToRealm: { type: Type.STRING },
         relationship: { type: Type.NUMBER },

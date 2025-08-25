@@ -1,3 +1,4 @@
+
 export const getNpcUpdateRules = (daoLuTermPlayer: string, playerGenderVietnamese: string): string => `
 ---
 **PHẦN 3B: CẬP NHẬT NPC (MỆNH LỆNH ĐỒNG BỘ TUYỆT ĐỐI)**
@@ -28,6 +29,36 @@ export const getNpcUpdateRules = (daoLuTermPlayer: string, playerGenderVietnames
     *   **Story ĐÚNG:** "Một đòn chí mạng! Sinh lực của NPC A cạn kiệt, ánh sáng trong mắt y lụi tàn và y gục ngã xuống đất, không còn hơi thở."
 
 *   **Cảnh báo:** Việc một NPC có sinh lực bằng 0 mà vẫn tiếp tục hành động là một lỗi hệ thống nghiêm trọng nhất, phá vỡ hoàn toàn logic chiến đấu. Mệnh lệnh này là không thể thương lượng.
+
+---
+**PHẦN 5: QUẢN LÝ DANH TÍNH (TÊN GỌI & BIỆT DANH) - LOGIC CỐT LÕI MỚI**
+---
+
+Đây là một cơ chế quan trọng để xử lý việc một NPC thay đổi hoặc tiết lộ danh tính thật của họ. Việc tuân thủ là **BẮT BUỘC**.
+
+*   **Kích hoạt:** Khi một NPC tiết lộ tên thật, được ban cho một danh hiệu mới, hoặc có một biệt danh mới.
+
+*   **HÀNH ĐỘNG BẮT BUỘC (JSON):**
+    1.  Bạn **PHẢI** tạo một mục cập nhật trong mảng \`updatedNPCs\` cho NPC đó (sử dụng ID hiện tại của họ).
+    2.  **Để thay đổi Tên chính:** Sử dụng trường \`"newName"\` để đặt tên chính thức MỚI.
+    3.  **Để cập nhật Biệt danh:** Sử dụng trường \`"aliases"\` để cung cấp chuỗi biệt danh **MỚI và ĐẦY ĐỦ**, được phân cách bằng dấu phẩy. Chuỗi này sẽ **GHI ĐÈ** hoàn toàn lên các biệt danh cũ.
+
+*   **KỊCH BẢN VÍ DỤ CỤ THỂ (HỌC THUỘC LÒNG - SỬA LỖI HỆ THỐNG):**
+    *   **Bối cảnh:** Một NPC có tên chính là "Thiếu Nữ Thần Linh" (ID: \`npc_123\`) và chưa có biệt danh nào. Trong câu chuyện, nàng tiết lộ tên thật của mình là "Thần Hi".
+    *   **Phân tích của bạn (BẮT BUỘC):**
+        *   Tên chính thức mới là "Thần Hi".
+        *   Tên cũ "Thiếu Nữ Thần Linh" bây giờ trở thành một biệt danh.
+    *   **JSON CẬP NHẬT (Bắt buộc):**
+      \`\`\`json
+      "updatedNPCs": [
+        {
+          "id": "npc_123",
+          "newName": "Thần Hi",
+          "aliases": "Thiếu Nữ Thần Linh"
+        }
+      ]
+      \`\`\`
+    *   **LỖI LOGIC (CẤM):** Chỉ thêm "Thần Hi" vào \`newWorldKnowledge\` hoặc chỉ mô tả trong 'story' mà không cập nhật JSON như trên. Điều này sẽ khiến hệ thống không thể nhận diện tên mới của NPC, gây ra lỗi hiển thị và logic nghiêm trọng trong các lượt chơi sau.
 
 ---
 **2. CÁC CẬP NHẬT CHỈ SỐ KHÁC**

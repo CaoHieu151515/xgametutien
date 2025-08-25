@@ -177,6 +177,8 @@ export interface NPC extends NewNPCFromAI {
 // Đối tượng dùng để cập nhật một NPC đã tồn tại
 export interface NPCUpdate {
     id: string;
+    newName?: string; // To change the primary name of an NPC
+    aliases?: string; // To set/overwrite the entire aliases string.
     gainedExperience?: number;
     relationship?: number;
     newMemories?: string[]; // Mảng CHỈ chứa các ký ức MỚI.

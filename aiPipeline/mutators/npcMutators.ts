@@ -1,3 +1,4 @@
+
 import { StoryResponse, NPC, WorldSettings, NewNPCFromAI, Skill, SkillUpdate, CharacterGender } from '../../types';
 import { processNpcLevelUps, getLevelFromRealmName, calculateBaseStatsForLevel, getRealmDisplayName, processSkillLevelUps } from '../../services/progressionService';
 import { findBestAvatar } from '../../services/avatarService';
@@ -374,6 +375,7 @@ export const applyNpcMutations = async ({
                     }
 
                     // Apply other direct updates
+                    const oldName = modifiedNpc.name;
                     Object.assign(modifiedNpc, {
                         locationId: update.locationId ?? modifiedNpc.locationId,
                         gender: (update.gender && (update.gender.toLowerCase() === 'male' || update.gender.toLowerCase() === 'female')) 
@@ -387,6 +389,16 @@ export const applyNpcMutations = async ({
                         specialConstitution: update.specialConstitution ?? modifiedNpc.specialConstitution,
                         innateTalent: update.innateTalent ?? modifiedNpc.innateTalent,
                     });
+
+                    // Handle name and alias changes after other direct updates
+                    if (update.newName && update.newName.trim() !== oldName) {
+                        modifiedNpc.name = update.newName.trim();
+                        notifications.push(`✨ <b>${oldName}</b> đã tiết lộ danh tính thật của mình là <b>${modifiedNpc.name}</b>!`);
+                    }
+                    
+                    if (update.aliases !== undefined) {
+                        modifiedNpc.aliases = update.aliases;
+                    }
                 }
                 nextNpcs[npcIndex] = modifiedNpc;
             }
