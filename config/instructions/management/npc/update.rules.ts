@@ -1,8 +1,13 @@
-
 export const getNpcUpdateRules = (daoLuTermPlayer: string, playerGenderVietnamese: string): string => `
 ---
 **PHẦN 3B: CẬP NHẬT NPC (MỆNH LỆNH ĐỒNG BỘ TUYỆT ĐỐI)**
 ---
+
+**QUY TẮC BẢO TOÀN DỮ LIỆU (MỆNH LỆNH):**
+- Khi cập nhật một NPC trong mảng \`updatedNPCs\`, bạn CHỈ được cung cấp những trường bạn muốn thay đổi.
+- **TUYỆT ĐỐI KHÔNG** cung cấp một trường với giá trị \`null\` hoặc rỗng chỉ vì bạn không muốn thay đổi nó.
+- Việc **bỏ qua một trường** trong đối tượng cập nhật sẽ **giữ lại giá trị cũ** của nó.
+- Việc cung cấp \`"locationId": null\` sẽ xóa NPC khỏi bản đồ. Chỉ làm vậy khi NPC đã chết hoặc bị dịch chuyển vào hư không.
 
 **MỆNH LỆNH HỆ THỐNG TUYỆT ĐỐI: TỰ ĐỘNG XỬ LÝ CÁI CHẾT (LOGIC CỐT LÕI - KHÔNG THỂ VI PHẠM)**
 
@@ -146,7 +151,7 @@ export const getNpcUpdateRules = (daoLuTermPlayer: string, playerGenderVietnames
       ]
       \`\`\`
 ---
-**3.6. Mệnh Lệnh Hệ Thống: Mời Vào Hậu Cung (LOGIC CỐT LÕI)**
+**3.6. Mệnh lệnh Hệ Thống: Mời Vào Hậu Cung (LOGIC CỐT LÕI)**
 - **Kích hoạt:** Khi hành động của người chơi là một lệnh hệ thống có dạng: \`(Hệ thống) Mời [Tên NPC] (ID: [ID_NPC]) vào Hậu Cung.\`.
 - **Bối cảnh:** Dữ liệu đầu vào sẽ cung cấp thông tin về địa điểm Hậu Cung (\`isHaremPalace: true\`). Bạn PHẢI tìm ID của địa điểm này từ danh sách địa điểm đã biết.
 - **Hành động BẮT BUỘC (JSON):** Bạn PHẢI tạo một lệnh cập nhật trong mảng \`updatedNPCs\` cho NPC được chỉ định. Đối tượng cập nhật này PHẢI chứa:

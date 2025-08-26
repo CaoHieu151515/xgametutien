@@ -126,6 +126,7 @@ interface ApplyNpcMutationsParams {
     notifications: string[];
     api: any;
     apiKey: string;
+    activeIdentityId: string | null;
 }
 
 export const applyNpcMutations = async ({
@@ -135,6 +136,7 @@ export const applyNpcMutations = async ({
     notifications,
     api,
     apiKey,
+    activeIdentityId,
 }: ApplyNpcMutationsParams): Promise<NPC[]> => {
     let nextNpcs = [...npcs];
     let newNpcIds = new Set<string>();
@@ -299,7 +301,7 @@ export const applyNpcMutations = async ({
                         modifiedNpc.isDaoLu = true;
                         modifiedNpc.relationship = 1000;
                         notifications.push(`❤️ Bạn và <b>${modifiedNpc.name}</b> đã trở thành Đạo Lữ!`);
-                    } else if (update.relationship !== undefined) {
+                    } else if (update.relationship !== undefined && !activeIdentityId) {
                         const oldRel = modifiedNpc.relationship ?? 0;
                         const newRel = Math.max(-1000, Math.min(1000, oldRel + (update.relationship || 0)));
                         modifiedNpc.relationship = newRel;

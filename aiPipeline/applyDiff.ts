@@ -180,6 +180,7 @@ export const applyStoryResponseToState = async ({
             notifications,
             api,
             apiKey,
+            activeIdentityId,
         });
         endTimer('apply_npcs', applyDiffSource);
 
