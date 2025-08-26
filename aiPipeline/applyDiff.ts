@@ -1,13 +1,13 @@
 import {
     StoryResponse, CharacterProfile, NPC, WorldSettings, AppSettings, Choice, Identity
-} from '../../types';
+} from '../types';
 import { preprocessStoryResponse } from './mutators/preprocessor';
 import { generateAndMergeNotifications } from './mutators/notificationMutator';
 import { applyPlayerMutations } from './mutators/playerMutators';
 import { applyNpcMutations } from './mutators/npcMutators';
 import { applyWorldMutations } from './mutators/worldMutators';
 import { applyEventMutations } from './mutators/eventMutator';
-import { startTimer, endTimer } from '../../services/logService';
+import { startTimer, endTimer } from '../services/logService';
 
 
 const USE_DEFAULT_KEY_IDENTIFIER = '_USE_DEFAULT_KEY_';
