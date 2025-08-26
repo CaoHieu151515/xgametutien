@@ -59,11 +59,13 @@ export const PlayerInfoModal: React.FC<PlayerInfoModalProps> = ({ isOpen, onClos
             return {
                 name: activeIdentity.name,
                 avatarUrl: activeIdentity.imageUrl,
+                gender: activeIdentity.gender,
             };
         }
         return {
             name: profile.name,
             avatarUrl: profile.avatarUrl,
+            gender: profile.gender,
         };
     }, [activeIdentity, profile]);
 
@@ -75,6 +77,7 @@ export const PlayerInfoModal: React.FC<PlayerInfoModalProps> = ({ isOpen, onClos
                 personality: activeIdentity.personality,
                 backstory: activeIdentity.backstory,
                 goal: activeIdentity.goal,
+                gender: activeIdentity.gender,
             };
         }
         return profile;
@@ -185,7 +188,7 @@ export const PlayerInfoModal: React.FC<PlayerInfoModalProps> = ({ isOpen, onClos
                             </div>
 
                             <div className="space-y-2 text-sm border-t border-slate-700/50 pt-4">
-                                <p><span className="font-semibold text-slate-400">Giới tính:</span> {profile.gender === CharacterGender.MALE ? 'Nam' : 'Nữ'}</p>
+                                <p><span className="font-semibold text-slate-400">Giới tính:</span> {displayInfo.gender === CharacterGender.MALE ? 'Nam' : 'Nữ'}</p>
                                 <p><span className="font-semibold text-slate-400">Chủng tộc:</span> {profile.race}</p>
                                 <p><span className="font-semibold text-slate-400">Hệ tu luyện:</span> {profile.powerSystem}</p>
                             </div>
@@ -218,7 +221,7 @@ export const PlayerInfoModal: React.FC<PlayerInfoModalProps> = ({ isOpen, onClos
                             <div className="flex-grow p-6 overflow-y-auto custom-scrollbar">
                                 {activeTab === 'stats' && <StatsTab profile={profile} />}
                                 {activeTab === 'skills' && <SkillsTab profile={profile} worldSettings={worldSettings} />}
-                                {activeTab === 'relationships' && <RelationshipsTab npcs={npcsForDisplay} displayName={relationshipsDisplayName} />}
+                                {activeTab === 'relationships' && <RelationshipsTab npcs={npcsForDisplay} displayName={relationshipsDisplayName} playerId={profile.id} playerGender={profile.gender} />}
                                 {activeTab === 'milestones' && <MilestonesTab profile={profile} />}
                                 {activeTab === 'ownedLocations' && <OwnedLocationsTab profile={profile} onUpdateLocation={handleUpdateOwnedLocation} />}
                                 {activeTab === 'harem' && <HaremTab profile={profile} npcs={npcs} onUpdateLocation={onUpdateLocation} onAction={onAction} onClose={onClose} />}

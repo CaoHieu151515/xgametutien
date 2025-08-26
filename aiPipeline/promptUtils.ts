@@ -1,3 +1,4 @@
+
 import { CharacterProfile, WorldSettings, NPC, Location, Item, Achievement, Monster, LocationType, Milestone, GameEvent, ItemType, Skill, Secret, Reputation, Identity } from '../types';
 
 interface ContextualPromptData {
@@ -177,7 +178,15 @@ ${characterProfile.reputations.map(r => `- ${r.summary}`).join('\n')}
         minimalCharacterProfile.goal = `(Dưới nhân dạng này) ${activeIdentity.backstory}`; 
         minimalCharacterProfile.specialConstitution = { name: 'Bí mật', description: 'Che giấu dưới nhân dạng giả.' };
         minimalCharacterProfile.talent = { name: 'Bí mật', description: 'Che giấu dưới nhân dạng giả.' };
-        minimalCharacterProfile.skills = []; // Hide true self skills
+        
+        if (activeIdentity.isGenderSwap) {
+            // Gender swap identity retains the user's skills
+            minimalCharacterProfile.skills = skills.map(({ name, type, quality, level, manaCost }) => ({ name, type, quality, level, manaCost }));
+        } else {
+            // Social identities hide true self skills
+            minimalCharacterProfile.skills = []; 
+        }
+
     } else {
         minimalCharacterProfile.skills = skills.map(({ name, type, quality, level, manaCost }) => ({ name, type, quality, level, manaCost }));
     }

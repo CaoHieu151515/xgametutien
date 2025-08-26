@@ -1,3 +1,4 @@
+
 import {
     StoryResponse, AppSettings, CharacterProfile,
     WorldSettings, NPC, Skill, StoryApiResponse, NewNPCFromAI, Identity
@@ -5,7 +6,7 @@ import {
 import { getSystemInstruction } from '../config/instructions';
 import { log } from './logService';
 import {
-    buildUnifiedPrompt, buildInitialStoryPrompt, buildWorldGenPrompt, buildNewSkillDescriptionPrompt, buildNpcSkillsGenPrompt
+    buildUnifiedPrompt, buildInitialStoryPrompt, buildWorldGenPrompt, buildNewSkillDescriptionPrompt, buildNpcSkillsGenPrompt, buildIdentityGenPrompt
 } from '../aiPipeline/prompts';
 import { callOpenAiApi } from '../aiPipeline/callOpenAI';
 import { parseAndValidateJson, validateWorldGenResponse } from '../aiPipeline/validate';
@@ -91,34 +92,52 @@ export const generateNewSkillDescription = async (
 
     } catch (e) {
         const err = e as Error;
+        log('openaiService.ts', `Skill description generation failed for ${skill.name}: ${err.message}`, 'ERROR');
         if (err.message.includes("JSON")) {
              console.error("Failed to parse JSON response from OpenAI for skill description:", err);
-             throw new Error("Lỗi phân tích phản hồi từ AI (OpenAI). Phản hồi không phải là một JSON hợp lệ.");
         }
         throw err;
     }
 };
 
+// FIX: Add missing generateNpcSkills function to align with geminiService and fix compilation error.
 export const generateNpcSkills = async (
     npc: NewNPCFromAI,
     worldSettings: WorldSettings,
     apiKey: string
 ): Promise<Omit<Skill, 'id' | 'experience' | 'level' | 'isNew'>[]> => {
     log('openaiService.ts', `Generating skills for NPC: ${npc.name}`, 'API');
-    const systemInstruction = `You are a creative game designer for a fantasy RPG. Your task is to design a set of starting skills for an NPC based on their profile. You MUST respond with a single, valid JSON array of skill objects in Vietnamese. Each skill object must have a unique 'type'. Do not generate more than 6 skills.`;
+    const systemInstruction = `You are a creative game designer for a fantasy RPG. Your task is to design a set of starting skills for an NPC based on their profile. You MUST respond with a single, valid JSON array of skill objects in Vietnamese.`;
     const prompt = buildNpcSkillsGenPrompt(npc, worldSettings);
-    
+
     try {
         const data = await callOpenAiApi({ systemInstruction, prompt, apiKey });
         const result = parseAndValidateJson<Omit<Skill, 'id' | 'experience' | 'level' | 'isNew'>[]>(data.choices[0].message.content);
-        log('openaiService.ts', `NPC skills generation successful for ${npc.name}.`, 'API');
+        log('openaiService.ts', 'NPC skills generation successful.', 'API');
         return result;
     } catch (e) {
-        const err = e as Error;
-        if (err.message.includes("JSON")) {
-             console.error("Failed to parse JSON response from OpenAI for NPC skills:", err);
-             throw new Error("Lỗi phân tích phản hồi từ AI (OpenAI). Phản hồi không phải là một JSON hợp lệ.");
-        }
-        throw err;
+        log('openaiService.ts', `NPC skills generation failed: ${(e as Error).message}`, 'ERROR');
+        throw e;
+    }
+};
+
+// FIX: Add missing generateIdentityDetails function to align with geminiService.
+export const generateIdentityDetails = async (
+    identityName: string,
+    identityIdea: string,
+    characterProfile: CharacterProfile,
+    apiKey: string
+): Promise<Omit<Identity, 'id' | 'npcRelationships' | 'imageUrl'>> => {
+    log('openaiService.ts', `Generating details for identity: ${identityName}`, 'API');
+    const systemInstruction = `Bạn là một nhà văn sáng tạo cho một game RPG giả tưởng. Nhiệm vụ của bạn là tạo ra một nhân dạng hợp lý cho một nhân vật. Hãy trả lời bằng một đối tượng JSON hợp lệ duy nhất bằng tiếng Việt.`;
+    const prompt = buildIdentityGenPrompt(identityName, identityIdea, characterProfile);
+    try {
+        const data = await callOpenAiApi({ systemInstruction, prompt, apiKey });
+        const result = parseAndValidateJson<Omit<Identity, 'id' | 'npcRelationships' | 'imageUrl'>>(data.choices[0].message.content);
+        log('openaiService.ts', 'Identity details generation successful.', 'API');
+        return result;
+    } catch (e) {
+        log('openaiService.ts', `Identity details generation failed: ${(e as Error).message}`, 'ERROR');
+        throw e;
     }
 };

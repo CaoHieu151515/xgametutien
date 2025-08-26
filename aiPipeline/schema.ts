@@ -1,5 +1,3 @@
-
-
 import { Type } from '@google/genai';
 import { GAME_CONFIG } from '../config/gameConfig';
 
@@ -25,8 +23,8 @@ export const achievementSchema = {
 export const updatedStatsSchema = {
     type: Type.OBJECT,
     properties: {
-        health: { type: Type.NUMBER },
-        mana: { type: Type.NUMBER },
+        health: { type: Type.STRING },
+        mana: { type: Type.STRING },
         currencyAmount: { type: Type.NUMBER },
         gainedExperience: { type: Type.NUMBER },
         breakthroughToRealm: { type: Type.STRING },
@@ -315,8 +313,8 @@ export const updatedNpcSchema = {
         breakthroughToRealm: { type: Type.STRING },
         relationship: { type: Type.NUMBER },
         newMemories: { type: Type.ARRAY, items: { type: Type.STRING } },
-        health: { type: Type.NUMBER },
-        mana: { type: Type.NUMBER },
+        health: { type: Type.STRING },
+        mana: { type: Type.STRING },
         gender: { type: Type.STRING },
         personality: { type: Type.STRING },
         description: { type: Type.STRING },
@@ -497,6 +495,8 @@ const fullResponseProperties = {
     newEvent: newEventSchema,
     updateEventLog: updateEventLogSchema,
     completeEvent: completeEventSchema,
+    // Identity System
+    activateGenderSwapIdentity: { type: Type.BOOLEAN },
 };
 
 const stateUpdateProperties = { ...fullResponseProperties };
@@ -504,6 +504,8 @@ const stateUpdateProperties = { ...fullResponseProperties };
 delete stateUpdateProperties.story;
 // @ts-ignore
 delete stateUpdateProperties.choices;
+// @ts-ignore
+delete stateUpdateProperties.activateGenderSwapIdentity; // Remove from state-only updates as well
 
 export const responseSchema = {
     type: Type.OBJECT,

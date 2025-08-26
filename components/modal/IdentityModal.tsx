@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { FullGameState, Identity, NPC, NewNPCFromAI, CharacterProfile } from '../../types';
+import { FullGameState, Identity, NPC, NewNPCFromAI, CharacterProfile, CharacterGender } from '../../types';
 import { FormInput, FormTextArea, FormLabel, WandIcon } from '../worldSetup/common';
 import { ImageLibraryModal } from './ImageLibraryModal';
 import { findBestAvatar } from '../../services/avatarService';
@@ -15,7 +15,7 @@ interface IdentityModalProps {
     apiKeyForService: string;
 }
 
-const defaultIdentity: Omit<Identity, 'id'> = {
+const defaultIdentity: Omit<Identity, 'id' | 'gender'> = {
     name: '',
     goal: '',
     backstory: '',
@@ -27,7 +27,7 @@ const defaultIdentity: Omit<Identity, 'id'> = {
 
 export const IdentityModal: React.FC<IdentityModalProps> = ({ isOpen, onClose, fullGameState, onUpdateGameState, npcs, api, apiKeyForService }) => {
     const [selectedId, setSelectedId] = useState<string | 'true_self' | null>(null);
-    const [formData, setFormData] = useState<Omit<Identity, 'id' | 'npcRelationships'>>(defaultIdentity);
+    const [formData, setFormData] = useState<Omit<Identity, 'id' | 'npcRelationships'>>(defaultIdentity as Omit<Identity, 'id' | 'npcRelationships'>);
     const [trueSelfFormData, setTrueSelfFormData] = useState({
         appearance: fullGameState.characterProfile.appearance,
         personality: fullGameState.characterProfile.personality,
@@ -80,6 +80,8 @@ export const IdentityModal: React.FC<IdentityModalProps> = ({ isOpen, onClose, f
             ...defaultIdentity,
             id: `identity_${Date.now()}`,
             name: 'Nhân Dạng Mới',
+            gender: fullGameState.characterProfile.gender, // Default to character's gender
+            isGenderSwap: false,
         };
         const newGameState = { ...fullGameState, identities: [...identities, newIdentity] };
         onUpdateGameState(newGameState);
@@ -251,6 +253,22 @@ export const IdentityModal: React.FC<IdentityModalProps> = ({ isOpen, onClose, f
                                         <FormInput id="name" name="name" value={formData.name} onChange={handleFormChange} disabled={!isEditing} />
                                     </div>
                                     <div>
+                                        <FormLabel>Giới tính</FormLabel>
+                                        <p className="p-2 bg-slate-700/50 border border-slate-600 rounded-md text-slate-400">
+                                            {formData.gender === 'male' ? 'Nam' : 'Nữ'}
+                                        </p>
+                                    </div>
+                                    {formData.isGenderSwap && (
+                                        <div className="flex items-center gap-2 p-2.5 bg-green-900/30 border border-green-500/50 rounded-lg text-sm">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                            </svg>
+                                            <span className="text-green-300 font-semibold">
+                                                Nhân dạng Chuyển giới
+                                            </span>
+                                        </div>
+                                    )}
+                                    <div>
                                         <FormLabel htmlFor="imageUrl">URL Ảnh Đại Diện</FormLabel>
                                         <div className="flex items-center gap-2">
                                             <FormInput id="imageUrl" name="imageUrl" value={formData.imageUrl || ''} onChange={handleFormChange} disabled={!isEditing} />
@@ -271,11 +289,7 @@ export const IdentityModal: React.FC<IdentityModalProps> = ({ isOpen, onClose, f
                                         </div>
                                     )}
                                     <div>
-                                        <FormLabel htmlFor="goal">Mục Tiêu</FormLabel>
-                                        <FormTextArea id="goal" name="goal" value={formData.goal} onChange={handleFormChange} rows={3} disabled={!isEditing} />
-                                    </div>
-                                    <div>
-                                        <FormLabel htmlFor="appearance">Mô Tả Ngoại Hình</FormLabel>
+                                        <FormLabel htmlFor="appearance">Ngoại Hình</FormLabel>
                                         <FormTextArea id="appearance" name="appearance" value={formData.appearance} onChange={handleFormChange} rows={4} disabled={!isEditing} />
                                     </div>
                                     <div>
@@ -283,8 +297,12 @@ export const IdentityModal: React.FC<IdentityModalProps> = ({ isOpen, onClose, f
                                         <FormTextArea id="personality" name="personality" value={formData.personality} onChange={handleFormChange} rows={4} disabled={!isEditing} />
                                     </div>
                                     <div>
-                                        <FormLabel htmlFor="backstory">Tiểu Sử / Bối Cảnh Giả</FormLabel>
+                                        <FormLabel htmlFor="backstory">Tiểu Sử</FormLabel>
                                         <FormTextArea id="backstory" name="backstory" value={formData.backstory} onChange={handleFormChange} rows={6} disabled={!isEditing} />
+                                    </div>
+                                    <div>
+                                        <FormLabel htmlFor="goal">Mục Tiêu</FormLabel>
+                                        <FormTextArea id="goal" name="goal" value={formData.goal} onChange={handleFormChange} rows={3} disabled={!isEditing} />
                                     </div>
                                 </div>
                             ) : isTrueSelfSelected ? (
@@ -307,6 +325,12 @@ export const IdentityModal: React.FC<IdentityModalProps> = ({ isOpen, onClose, f
                                         <p className="text-sm text-slate-400 mt-1">Đây là bản thể thật của bạn. Mọi sức mạnh và mối quan hệ gốc đều bắt nguồn từ đây.</p>
                                     </div>
                                     <div className="space-y-4">
+                                        <div>
+                                            <FormLabel>Giới tính</FormLabel>
+                                            <p className="p-2 bg-slate-700/50 border border-slate-600 rounded-md text-slate-400">
+                                                {fullGameState.characterProfile.gender === CharacterGender.MALE ? 'Nam' : 'Nữ'}
+                                            </p>
+                                        </div>
                                         <div>
                                             <FormLabel htmlFor="true-appearance">Ngoại Hình</FormLabel>
                                             <FormTextArea id="true-appearance" name="appearance" value={isEditing ? trueSelfFormData.appearance : fullGameState.characterProfile.appearance} onChange={handleTrueSelfFormChange} disabled={!isEditing} rows={4} />

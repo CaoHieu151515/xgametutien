@@ -1,13 +1,14 @@
 import {
     StoryResponse, CharacterProfile, NPC, WorldSettings, AppSettings, Choice, Identity
-} from '../types';
+} from '../../types';
 import { preprocessStoryResponse } from './mutators/preprocessor';
 import { generateAndMergeNotifications } from './mutators/notificationMutator';
 import { applyPlayerMutations } from './mutators/playerMutators';
 import { applyNpcMutations } from './mutators/npcMutators';
 import { applyWorldMutations } from './mutators/worldMutators';
 import { applyEventMutations } from './mutators/eventMutator';
-import { startTimer, endTimer } from '../services/logService';
+import { startTimer, endTimer, log } from '../../services/logService';
+import { handleGenderSwapActivation } from './mutators/identityMutator';
 
 
 const USE_DEFAULT_KEY_IDENTIFIER = '_USE_DEFAULT_KEY_';
@@ -58,14 +59,43 @@ export const applyStoryResponseToState = async ({
     try {
         const response: StoryResponse = JSON.parse(JSON.stringify(storyResponse)); 
 
+        // FIX: Robustly handle gender change signals from AI.
+        // The AI is instructed to use `activateGenderSwapIdentity`, but if it uses `updatedGender` instead,
+        // we intercept it here to trigger the correct Identity system logic. This makes the system more resilient.
+        if (response.updatedGender && !response.activateGenderSwapIdentity) {
+            log(applyDiffSource, "AI used 'updatedGender'. Intercepting to trigger gender-swap identity system.", 'INFO');
+            response.activateGenderSwapIdentity = true;
+            // Delete the original flag to prevent the base profile's gender from being changed directly.
+            // The Identity system will handle the apparent gender change.
+            delete response.updatedGender;
+        }
+
         startTimer('apply_preprocess', applyDiffSource, 'Tiền xử lý phản hồi AI');
         preprocessStoryResponse(response, characterProfile, npcs);
         endTimer('apply_preprocess', applyDiffSource);
 
         const notifications = generateAndMergeNotifications(response, storyResponse, characterProfile, npcs, preTurnNotifications);
 
-        startTimer('apply_identity_rels', applyDiffSource, 'Xử lý hảo cảm nhân dạng');
         let nextIdentities = [...identities];
+        let nextActiveIdentityId = activeIdentityId;
+
+        if (response.activateGenderSwapIdentity) {
+            startTimer('apply_gender_swap', applyDiffSource, 'Xử lý chuyển đổi giới tính');
+            const swapResult = await handleGenderSwapActivation({
+                profile: characterProfile,
+                identities: nextIdentities,
+                activeIdentityId: nextActiveIdentityId,
+                worldSettings,
+                api,
+                apiKey,
+                notifications,
+            });
+            nextIdentities = swapResult.nextIdentities;
+            nextActiveIdentityId = swapResult.nextActiveIdentityId;
+            endTimer('apply_gender_swap', applyDiffSource);
+        }
+
+        startTimer('apply_identity_rels', applyDiffSource, 'Xử lý hảo cảm nhân dạng');
         const identityUpdates: { npcId: string, change: number }[] = [];
 
         if (response.updatedNPCs && activeIdentityId) {
@@ -157,7 +187,6 @@ export const applyStoryResponseToState = async ({
             ...worldSettings,
             initialKnowledge: worldSettings.initialKnowledge.map(k => ({ ...k, isNew: false }))
         };
-        let nextActiveIdentityId = activeIdentityId;
 
         startTimer('apply_player', applyDiffSource, 'Áp dụng thay đổi cho người chơi');
         nextProfile = await applyPlayerMutations({
@@ -181,6 +210,7 @@ export const applyStoryResponseToState = async ({
             api,
             apiKey,
             activeIdentityId,
+            playerProfile: nextProfile,
         });
         endTimer('apply_npcs', applyDiffSource);
 

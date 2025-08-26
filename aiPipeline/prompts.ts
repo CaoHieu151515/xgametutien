@@ -1,5 +1,3 @@
-
-
 import { CharacterProfile, WorldSettings, NPC, Location, Skill, StoryResponse, Milestone, GameEvent, NewNPCFromAI, Identity } from '../types';
 import { buildContextForPrompt } from './promptUtils';
 import { GAME_CONFIG } from '../config/gameConfig';

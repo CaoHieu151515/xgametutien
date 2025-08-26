@@ -71,11 +71,12 @@ export const applyPlayerMutations = async ({
         } else {
             if (health !== undefined) {
                 let actualHealthChange = 0;
-                if (typeof health === 'string' && health.endsWith('%')) {
-                    const percentage = parseFloat(health) / 100;
+                const change = String(health); // Convert to string to handle both number and string inputs
+                if (change.endsWith('%')) {
+                    const percentage = parseFloat(change) / 100;
                     actualHealthChange = Math.round(maxStats.maxHealth * percentage);
-                } else if (typeof health === 'number') {
-                    actualHealthChange = health;
+                } else {
+                    actualHealthChange = parseInt(change, 10) || 0;
                 }
                 nextProfile.health += actualHealthChange;
                 if (actualHealthChange > 0) notifications.push(`💚 Bạn hồi phục <b>${actualHealthChange.toLocaleString()} Sinh Lực</b>.`);
@@ -84,11 +85,12 @@ export const applyPlayerMutations = async ({
 
             if (mana !== undefined) {
                 let actualManaChange = 0;
-                if (typeof mana === 'string' && mana.endsWith('%')) {
-                    const percentage = parseFloat(mana) / 100;
+                const change = String(mana); // Convert to string to handle both number and string inputs
+                if (change.endsWith('%')) {
+                    const percentage = parseFloat(change) / 100;
                     actualManaChange = Math.round(maxStats.maxMana * percentage);
-                } else if (typeof mana === 'number') {
-                    actualManaChange = mana;
+                } else {
+                    actualManaChange = parseInt(change, 10) || 0;
                 }
                 nextProfile.mana += actualManaChange;
                 if (actualManaChange > 0) notifications.push(`💧 Bạn hồi phục <b>${actualManaChange.toLocaleString()} Linh Lực</b>.`);

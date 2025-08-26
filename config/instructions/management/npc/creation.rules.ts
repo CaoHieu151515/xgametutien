@@ -1,4 +1,5 @@
 
+
 export const getNpcCreationRules = (powerSystemsList: string, aptitudeTiersList: string): string => `
 ---
 **PHẦN 1.8: QUY TẮC PHÂN BỐ CẢNH GIỚI NPC (MỆNH LỆNH LOGIC TUYỆT ĐỐI)**
@@ -120,45 +121,51 @@ Nơi một NPC sinh sống và tu luyện cũng ảnh hưởng đến bộ kỹ 
 *   Gán một số lượng kỹ năng hợp lý. Một NPC cấp thấp chỉ nên có 1-2 kỹ năng. Một trưởng lão cấp cao có thể có 4-5 kỹ năng.
 
 ---
-**PHẦN 3.4: MỆNH LỆNH SUY LUẬN & ĐỒNG BỘ MỐI QUAN HỆ GIA ĐÌNH (LOGIC CỐT LÕI MỚI)**
+**PHẦN 3.4: MỆNH LỆNH SUY LUẬN & ĐỒNG BỘ MỐI QUAN HỆ (LOGIC BA CHIỀU - CỰC KỲ QUAN TRỌNG)**
 ---
-*   **Kích hoạt:** Khi bạn tạo ra **NHIỀU HƠN MỘT** NPC mới trong cùng một lượt (\`newNPCs\`).
-*   **Nhiệm vụ Phân tích (BẮT BUỘC):** Bạn **PHẢI** phân tích tên và mô tả của tất cả các NPC mới được tạo ra trong lượt đó để suy luận ra các mối quan hệ gia đình hoặc hôn nhân tiềm ẩn.
+*   **Kích hoạt:** Khi bạn tạo ra một NPC mới (\`newNPCs\`).
+*   **Nhiệm vụ Phân tích (BẮT BUỘC):** Bạn **PHẢI** phân tích tên, mô tả, và đặc biệt là **Thể Chất Đặc Biệt** của NPC mới để suy luận ra các mối quan hệ gia đình tiềm ẩn với **BẤT KỲ** nhân vật nào đã có trong bối cảnh (người chơi và các NPC đã tồn tại).
     *   **Dấu hiệu nhận biết:**
-        *   **Họ chung:** Các NPC có cùng họ (ví dụ: "Vương Lão Gia", "Vương Phu Nhân", "Vương Tiểu Thư").
-        *   **Chức danh:** Các chức danh mang tính gia đình (ví dụ: "Phụ Thân", "Mẫu Thân", "Phu Nhân", "Lão Gia", "Tiểu Thư", "Công Tử").
+        1.  **Trực tiếp:** Các cụm từ như "con trai của...", "vợ của...", "sư phụ của...".
+        2.  **Gián tiếp (QUAN TRỌNG):** Mô tả về huyết mạch hoặc thể chất kế thừa. Ví dụ: "sở hữu Huyết mạch Long Phượng của [Tên Cha] và [Tên Mẹ]".
+
 *   **Hành động BẮT BUỘC (Đồng bộ hai chiều):**
-    1.  Nếu bạn suy luận được một mối quan hệ, bạn **BẮT BUỘC** phải định nghĩa nó một cách rõ ràng và **hai chiều** trong trường \`npcRelationships\` của các NPC liên quan.
-    2.  Mối quan hệ **PHẢI** có \`relationshipType\` là một chuỗi văn bản mô tả chính xác (ví dụ: "Phu Thê", "Phụ thân", "Mẫu thân", "Con gái") và một giá trị \`value\` dương cao (ví dụ: 900-1000).
+    1.  **Xác định Quan hệ:** Dựa trên phân tích, xác định (các) đối tượng mục tiêu và loại quan hệ.
+    2.  **Cập nhật NPC Mới:** Thêm mối quan hệ vào trường \`npcRelationships\` của NPC mới.
+    3.  **Cập nhật NPC/Nhân vật Cũ (BẮT BUỘC):**
+        *   **Nếu là NPC cũ:** Tạo một mục cập nhật trong \`updatedNPCs\` cho NPC đó.
+        *   **Hành động:** Cung cấp trường \`updatedNpcRelationships\` để thêm mối quan hệ ngược lại.
+        *   **Nếu là Người chơi:** Thêm mối quan hệ vào NPC mới, trỏ đến ID của người chơi.
+    4.  **Mối quan hệ giữa CÁC NPC MỚI:** Nếu bạn tạo ra nhiều NPC mới có quan hệ với nhau trong cùng một lượt, bạn PHẢI thiết lập mối quan hệ hai chiều cho họ ngay trong mảng \`newNPCs\`.
+
 *   **VÍ DỤ CỤ THỂ (HỌC THUỘC LÒNG - SỬA LỖI HỆ THỐNG):**
-    *   **Bối cảnh:** Nhiệm vụ giải cứu "Vương Tiểu Thư". Trong quá trình này, bạn tạo ra hai NPC mới là "Vương Lão Gia" và "Vương Phu Nhân".
-    *   **Phân tích của bạn (BẮT BUỘC):** "Vương Lão Gia" và "Vương Phu Nhân" có cùng họ "Vương" và chức danh "Lão Gia" (chủ gia đình) và "Phu Nhân" (vợ). Họ rõ ràng là vợ chồng. Họ cũng là cha mẹ của "Vương Tiểu Thư".
+    *   **Bối cảnh:** Tạo ra NPC mới "Phượng Nhi". "Tổ Long" và "Nguyên Phượng" là các NPC đã tồn tại.
+    *   **Mô tả của Phượng Nhi:** \`"specialConstitution": { "name": "Tiểu Long Phượng Huyết Mạch", "description": "Huyết mạch nguyên thủy của Tổ Long và Nguyên Phượng..." }\`
+    *   **Phân tích của bạn (BẮT BUỘC):** Mô tả huyết mạch cho thấy Phượng Nhi là con gái của Tổ Long và Nguyên Phượng.
     *   **JSON CẬP NHẬT (Bắt buộc):**
         \`\`\`json
         "newNPCs": [
           {
-            "id": "id_vuong_lao_gia",
-            "name": "Vương Lão Gia",
+            "id": "id_phuong_nhi",
+            "name": "Phượng Nhi",
+            ...
             "npcRelationships": [
-              { "targetNpcId": "id_vuong_phu_nhan", "value": 1000, "relationshipType": "Phu Thê" },
-              { "targetNpcId": "id_vuong_tieu_thu", "value": 950, "relationshipType": "Con gái" }
-            ]
-          },
-          {
-            "id": "id_vuong_phu_nhan",
-            "name": "Vương Phu Nhân",
-            "npcRelationships": [
-              { "targetNpcId": "id_vuong_lao_gia", "value": 1000, "relationshipType": "Phu Thê" },
-              { "targetNpcId": "id_vuong_tieu_thu", "value": 950, "relationshipType": "Con gái" }
+              { "targetNpcId": "id_to_long", "value": 950, "relationshipType": "Phụ thân" },
+              { "targetNpcId": "id_nguyen_phuong", "value": 950, "relationshipType": "Mẫu thân" }
             ]
           }
         ],
         "updatedNPCs": [
           {
-            "id": "id_vuong_tieu_thu",
+            "id": "id_to_long",
             "updatedNpcRelationships": [
-              { "targetNpcId": "id_vuong_lao_gia", "value": 950, "relationshipType": "Phụ thân" },
-              { "targetNpcId": "id_vuong_phu_nhan", "value": 950, "relationshipType": "Mẫu thân" }
+              { "targetNpcId": "id_phuong_nhi", "value": 950, "relationshipType": "Con gái" }
+            ]
+          },
+          {
+            "id": "id_nguyen_phuong",
+            "updatedNpcRelationships": [
+              { "targetNpcId": "id_phuong_nhi", "value": 950, "relationshipType": "Con gái" }
             ]
           }
         ]

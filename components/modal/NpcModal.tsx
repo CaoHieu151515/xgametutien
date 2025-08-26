@@ -114,6 +114,16 @@ const statusStyles: Record<StatusEffectType, { border: string; bg: string; text:
 
 type NpcModalTab = 'info' | 'skills';
 
+type RelationshipDisplay = {
+    targetId: string;
+    targetName: string;
+    value: number | undefined;
+    relationshipType?: string;
+    isPlayer: boolean;
+    avatarUrl?: string;
+    gender: CharacterGender;
+};
+
 export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpdateNpc, worldSettings, characterProfile, fullGameState }) => {
     const [selectedNpcId, setSelectedNpcId] = useState<string | null>(null);
     const [raceFilter, setRaceFilter] = useState('all');
@@ -154,65 +164,70 @@ export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpd
     const allRelationships = useMemo(() => {
         if (!selectedNpc || !characterProfile || !fullGameState) return [];
         
-        type RelationshipDisplay = {
-            targetId: string;
-            targetName: string;
-            value: number | undefined;
-            relationshipType?: string;
-            isPlayer: boolean;
-            avatarUrl?: string;
-            gender: CharacterGender;
-        };
-        
-        const relationships: RelationshipDisplay[] = [];
+        const relationshipMap = new Map<string, RelationshipDisplay>();
 
-        // 1. Relationship with Player's True Self
-        relationships.push({
+        // Find the explicit relationship entry for the player's true self
+        const playerRel = selectedNpc.npcRelationships?.find(r => r.targetNpcId === characterProfile.id);
+
+        // 1. Player's True Self
+        relationshipMap.set('player_true_self', {
             targetId: 'player_true_self',
             targetName: `${characterProfile.name} (Bản Thể Thật)`,
             value: selectedNpc.relationship,
-            relationshipType: selectedNpc.isDaoLu ? 'Đạo lữ' : undefined,
+            relationshipType: playerRel?.relationshipType || (selectedNpc.isDaoLu ? 'Đạo lữ' : undefined),
             isPlayer: true,
             avatarUrl: characterProfile.avatarUrl,
             gender: characterProfile.gender
         });
 
-        // 2. Relationships with Player's Identities
+        // 2. Player's Identities
         fullGameState.identities.forEach(identity => {
             const rel = identity.npcRelationships.find(r => r.targetNpcId === selectedNpc.id);
-            // Only display if a relationship exists
             if (rel && rel.value !== 0) {
-                relationships.push({
+                 relationshipMap.set(identity.id, {
                     targetId: identity.id,
                     targetName: `${identity.name} (Nhân Dạng)`,
                     value: rel.value,
-                    relationshipType: undefined, // Identities can't be Dao Lu
                     isPlayer: true,
                     avatarUrl: identity.imageUrl,
-                    gender: characterProfile.gender // Identities share player's gender
+                    gender: characterProfile.gender
                 });
             }
         });
-
-        // 3. Relationships with other NPCs
-        if (selectedNpc.npcRelationships) {
-            selectedNpc.npcRelationships.forEach(rel => {
-                const targetNpc = npcs.find(n => n.id === rel.targetNpcId);
-                if (targetNpc) {
-                    relationships.push({
-                        targetId: targetNpc.id,
-                        targetName: targetNpc.name,
-                        value: rel.value,
-                        relationshipType: rel.relationshipType,
-                        isPlayer: false,
-                        avatarUrl: targetNpc.avatarUrl,
-                        gender: targetNpc.gender
-                    });
+        
+        // 3. NPC relationships (Outgoing and Incoming)
+        npcs.forEach(sourceNpc => {
+            (sourceNpc.npcRelationships || []).forEach(rel => {
+                // Outgoing from selectedNpc
+                if (sourceNpc.id === selectedNpc.id) {
+                    const targetNpc = npcs.find(n => n.id === rel.targetNpcId);
+                    if (targetNpc && !relationshipMap.has(targetNpc.id)) {
+                        relationshipMap.set(targetNpc.id, {
+                            targetId: targetNpc.id, targetName: targetNpc.name,
+                            value: rel.value, relationshipType: rel.relationshipType,
+                            isPlayer: false, avatarUrl: targetNpc.avatarUrl, gender: targetNpc.gender
+                        });
+                    }
+                }
+                // Incoming to selectedNpc
+                else if (rel.targetNpcId === selectedNpc.id) {
+                    if (!relationshipMap.has(sourceNpc.id)) {
+                        // The reciprocal relationship must exist on the selectedNpc for this to work
+                        const reciprocalRel = selectedNpc.npcRelationships?.find(r => r.targetNpcId === sourceNpc.id);
+                        if(reciprocalRel) {
+                            relationshipMap.set(sourceNpc.id, {
+                                targetId: sourceNpc.id, targetName: sourceNpc.name,
+                                value: reciprocalRel.value, relationshipType: reciprocalRel.relationshipType,
+                                isPlayer: false, avatarUrl: sourceNpc.avatarUrl, gender: sourceNpc.gender
+                            });
+                        }
+                    }
                 }
             });
-        }
+        });
         
-        const filteredRelationships = relationships.filter(r => r.value !== undefined || r.relationshipType === 'Đạo lữ');
+        const filteredRelationships = Array.from(relationshipMap.values())
+            .filter(r => r.value !== undefined || r.relationshipType === 'Đạo lữ');
 
         return filteredRelationships.sort((a, b) => (b.value ?? -Infinity) - (a.value ?? -Infinity));
 

@@ -1,6 +1,5 @@
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { log } from '../services/logService';
-import { GAME_CONFIG } from "../config/gameConfig";
 
 const USE_DEFAULT_KEY_IDENTIFIER = '_USE_DEFAULT_KEY_';
 
@@ -29,16 +28,25 @@ export const callGeminiApi = async ({ systemInstruction, prompt, apiKey, schema,
         const ai = new GoogleGenAI({ apiKey: finalApiKey });
         const model = 'gemini-2.5-flash';
 
+        const config: any = {
+            ...(systemInstruction && { systemInstruction }),
+            responseMimeType: "application/json",
+            responseSchema: schema,
+        };
+
+        // Conditionally add token limits. Regular story calls will omit these, using more stable API defaults.
+        // The demanding world generation call explicitly passes these values and will continue to use them.
+        if (maxOutputTokens) {
+            config.maxOutputTokens = maxOutputTokens;
+        }
+        if (thinkingBudget) {
+            config.thinkingConfig = { thinkingBudget: thinkingBudget };
+        }
+
         const response: GenerateContentResponse = await ai.models.generateContent({
             model,
             contents: prompt,
-            config: {
-                ...(systemInstruction && { systemInstruction }),
-                responseMimeType: "application/json",
-                responseSchema: schema,
-                maxOutputTokens: maxOutputTokens ?? GAME_CONFIG.ai.maxOutputTokens,
-                thinkingConfig: { thinkingBudget: thinkingBudget ?? GAME_CONFIG.ai.thinkingBudget },
-            },
+            config,
         });
         
         log('callGemini.ts', 'Gemini API call successful.', 'API');

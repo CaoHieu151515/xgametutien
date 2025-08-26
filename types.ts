@@ -1,9 +1,4 @@
 
-
-
-
-
-
 export interface GameEventLogEntry {
   turnNumber: number;
   entry: string;
@@ -246,6 +241,8 @@ export interface StoryResponse {
   newEvent?: Omit<GameEvent, 'log' | 'status' | 'id'> & { initialLog: string };
   updateEventLog?: { eventId: string; logEntry: string; };
   completeEvent?: { eventId: string; finalLog: string; };
+  // Identity System
+  activateGenderSwapIdentity?: boolean;
 }
 
 export enum GameState {
@@ -373,12 +370,14 @@ export interface Reputation {
 export interface Identity {
   id: string;
   name: string;
+  gender: CharacterGender;
   goal: string;
   backstory: string;
   personality: string;
   appearance: string;
   imageUrl?: string;
   npcRelationships: NpcRelationship[];
+  isGenderSwap?: boolean;
 }
 
 export interface CharacterProfile {

@@ -3,12 +3,22 @@ import { StoryResponse, CharacterProfile, NPC, WorldSettings } from '../types';
 import { getLevelFromRealmName } from '../services/progressionService';
 
 export const parseAndValidateJson = <T>(jsonText: string): T => {
+    let cleanJsonText = jsonText.trim();
+    if (cleanJsonText.startsWith('```json')) {
+        cleanJsonText = cleanJsonText.substring(7); 
+    }
+    if (cleanJsonText.endsWith('```')) {
+        cleanJsonText = cleanJsonText.substring(0, cleanJsonText.length - 3);
+    }
+    cleanJsonText = cleanJsonText.trim();
+
     let result: T;
     try {
-        result = JSON.parse(jsonText);
+        result = JSON.parse(cleanJsonText);
     } catch (e) {
         log('validate.ts', `Failed to parse JSON: ${(e as Error).message}`, 'ERROR');
-        console.error("Invalid JSON from AI:", jsonText);
+        console.error("Invalid JSON from AI (after cleaning):", cleanJsonText);
+        console.error("Original text from AI:", jsonText);
         throw new Error("Phản hồi từ AI không phải là JSON hợp lệ.");
     }
 
