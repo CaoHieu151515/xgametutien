@@ -370,6 +370,16 @@ export interface Reputation {
   summary: string;
 }
 
+export interface Identity {
+  id: string;
+  name: string;
+  backstory: string;
+  personality: string;
+  appearance: string;
+  imageUrl?: string;
+  npcRelationships: NpcRelationship[];
+}
+
 export interface CharacterProfile {
   id: string; // ID duy nhất cho nhân vật
   name: string;
@@ -482,6 +492,8 @@ export interface GameSnapshot {
       npcs: NPC[];
       history: StoryPart[]; // full history BEFORE this turn
       choices: Choice[];
+      identities: Identity[];
+      activeIdentityId: string | null;
   };
   // The content of this turn (for display in log)
   turnContent: {
@@ -500,6 +512,8 @@ export interface FullGameState {
   history: StoryPart[];
   choices: Choice[];
   gameLog: GameSnapshot[];
+  identities: Identity[];
+  activeIdentityId: string | null;
 }
 
 export interface SaveMetadata {

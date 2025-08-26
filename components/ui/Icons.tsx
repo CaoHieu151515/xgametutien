@@ -30,6 +30,14 @@ export const SecretsIcon = () => (
     </svg>
 );
 
+export const IdentityIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+        <path d="M9 4.5a2.5 2.5 0 105 0 2.5 2.5 0 00-5 0z" />
+        <path fillRule="evenodd" d="M11 8.5a4.5 4.5 0 10-6.736-3.86l-1.385-1.385A.75.75 0 002 4.14v2.25a.75.75 0 00.75.75h2.25a.75.75 0 00.53-1.28L6.145 4.51a6 6 0 118.02 8.02l-1.385 1.385a.75.75 0 001.28.53l1.385-1.385a8 8 0 10-11.314-11.314L.879 2.879a.75.75 0 00-1.06 1.06L4.14 8.264a.75.75 0 001.06 0l.293-.293a6.002 6.002 0 017.037-7.037.293.293a.75.75 0 000-1.06L8.264.879a.75.75 0 00-1.06 0L4.32 3.764a8 8 0 006.68 12.565A4.5 4.5 0 0011 8.5z" clipRule="evenodd" />
+    </svg>
+);
+
+
 export const WorldIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.75 7.25a.75.75 0 000 1.5h10.5a.75.75 0 000-1.5H4.75zM4.75 11.25a.75.75 0 000 1.5h10.5a.75.75 0 000-1.5H4.75z" clipRule="evenodd" />

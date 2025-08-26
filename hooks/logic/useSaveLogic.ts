@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { GameState, CharacterProfile, WorldSettings, NPC, StoryPart, Choice, GameSnapshot, FullGameState, ToastMessage } from '../../types';
+import { GameState, CharacterProfile, WorldSettings, NPC, StoryPart, Choice, GameSnapshot, FullGameState, ToastMessage, Identity } from '../../types';
 import * as saveService from '../../services/saveService';
 import { log } from '../../services/logService';
 
@@ -11,6 +11,8 @@ interface UseSaveLogicProps {
     npcs: NPC[];
     history: StoryPart[];
     choices: Choice[];
+    identities: Identity[];
+    activeIdentityId: string | null;
     setCharacterProfile: React.Dispatch<React.SetStateAction<CharacterProfile | null>>;
     setWorldSettings: React.Dispatch<React.SetStateAction<WorldSettings | null>>;
     setNpcs: React.Dispatch<React.SetStateAction<NPC[]>>;
@@ -18,12 +20,15 @@ interface UseSaveLogicProps {
     setChoices: React.Dispatch<React.SetStateAction<Choice[]>>;
     setLastFailedCustomAction: React.Dispatch<React.SetStateAction<string | null>>;
     setToast: React.Dispatch<React.SetStateAction<ToastMessage | null>>;
+    setIdentities: React.Dispatch<React.SetStateAction<Identity[]>>;
+    setActiveIdentityId: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 export const useSaveLogic = (props: UseSaveLogicProps) => {
     const {
-        gameState, setGameState, characterProfile, worldSettings, npcs, history, choices,
-        setCharacterProfile, setWorldSettings, setNpcs, setHistory, setChoices, setLastFailedCustomAction, setToast
+        gameState, setGameState, characterProfile, worldSettings, npcs, history, choices, identities, activeIdentityId,
+        setCharacterProfile, setWorldSettings, setNpcs, setHistory, setChoices, setLastFailedCustomAction,
+        setToast, setIdentities, setActiveIdentityId
     } = props;
 
     const [hasSaves, setHasSaves] = useState<boolean>(false);
@@ -52,13 +57,13 @@ export const useSaveLogic = (props: UseSaveLogicProps) => {
         }
         log('useSaveLogic.ts', 'Saving game...', 'FUNCTION');
         try {
-            await saveService.saveGame(characterProfile, worldSettings, npcs, history, choices, gameLog);
+            await saveService.saveGame(characterProfile, worldSettings, npcs, history, choices, gameLog, identities, activeIdentityId);
             log('useSaveLogic.ts', 'Game saved successfully.', 'INFO');
             setToast({ message: 'Đã lưu game thành công!', type: 'success' });
         } catch(e) {
             setToast({ message: `Lỗi khi lưu game: ${(e as Error).message}`, type: 'error' });
         }
-    }, [characterProfile, worldSettings, npcs, history, choices, gameLog, setToast]);
+    }, [characterProfile, worldSettings, npcs, history, choices, gameLog, identities, activeIdentityId, setToast]);
     
     const loadState = useCallback((state: FullGameState) => {
         if (!state.characterProfile.events) {
@@ -70,9 +75,11 @@ export const useSaveLogic = (props: UseSaveLogicProps) => {
         setNpcs(state.npcs);
         setHistory(state.history);
         setChoices(state.choices);
-        setGameLog(state.gameLog);
+        setGameLog(state.gameLog || []);
+        setIdentities(state.identities || []);
+        setActiveIdentityId(state.activeIdentityId || null);
         setLastFailedCustomAction(null);
-    }, [setCharacterProfile, setWorldSettings, setNpcs, setHistory, setChoices, setGameLog, setLastFailedCustomAction]);
+    }, [setCharacterProfile, setWorldSettings, setNpcs, setHistory, setChoices, setGameLog, setIdentities, setActiveIdentityId, setLastFailedCustomAction]);
     
     const handleRewind = useCallback((turnNumber: number) => {
         log('useSaveLogic.ts', `Rewinding to turn ${turnNumber}`, 'FUNCTION');
@@ -83,7 +90,9 @@ export const useSaveLogic = (props: UseSaveLogicProps) => {
                 id: snapshot.preActionState.characterProfile.id,
                 name: snapshot.preActionState.characterProfile.name,
                 lastSaved: Date.now(),
-                gameLog: gameLog.filter(s => s.turnNumber < turnNumber)
+                gameLog: gameLog.filter(s => s.turnNumber < turnNumber),
+                identities: snapshot.preActionState.identities || [],
+                activeIdentityId: snapshot.preActionState.activeIdentityId || null,
             };
             loadState(stateToLoad);
             setIsRewindAndSavePending(true);
@@ -98,7 +107,7 @@ export const useSaveLogic = (props: UseSaveLogicProps) => {
             const performAutoSave = async () => {
                 log('useSaveLogic.ts', 'Performing auto-save after rewind...', 'FUNCTION');
                 try {
-                    await saveService.saveGame(characterProfile, worldSettings, npcs, history, choices, gameLog);
+                    await saveService.saveGame(characterProfile, worldSettings, npcs, history, choices, gameLog, identities, activeIdentityId);
                     setToast({ message: 'Đã quay lại lượt và tự động lưu game!', type: 'success' });
                 } catch (e) {
                     setToast({ message: `Lỗi khi tự động lưu game: ${(e as Error).message}`, type: 'error' });
@@ -108,7 +117,7 @@ export const useSaveLogic = (props: UseSaveLogicProps) => {
             };
             performAutoSave();
         }
-    }, [isRewindAndSavePending, characterProfile, worldSettings, npcs, history, choices, gameLog, setToast]);
+    }, [isRewindAndSavePending, characterProfile, worldSettings, npcs, history, choices, gameLog, identities, activeIdentityId, setToast]);
 
     const handleLoadGame = useCallback((saveData: FullGameState) => {
         log('useSaveLogic.ts', `Loading game: ${saveData.name}`, 'FUNCTION');

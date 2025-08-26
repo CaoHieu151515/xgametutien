@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useMemo, useState } from 'react';
-import { StoryPart, CharacterProfile, WorldSettings, NPC, CharacterGender } from '../types';
+import { StoryPart, CharacterProfile, WorldSettings, NPC, CharacterGender, Identity } from '../types';
 import { ChatBubble } from './ChatBubble';
 
 const NewBadge = () => <span className="ml-2 px-1.5 py-0.5 text-[10px] font-bold text-slate-900 bg-yellow-300 rounded-full">NEW</span>;
@@ -151,6 +151,7 @@ interface StoryDisplayProps {
   worldSettings: WorldSettings | null;
   npcs: NPC[];
   onUpdateBackgroundAvatars: (urls: string[]) => void;
+  activeIdentity: Identity | null;
 }
 
 const formatLongNarration = (text: string): string => {
@@ -174,7 +175,7 @@ const escapeRegExp = (string: string) => {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 };
 
-export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterProfile, worldSettings, npcs, onUpdateBackgroundAvatars }) => {
+export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterProfile, worldSettings, npcs, onUpdateBackgroundAvatars, activeIdentity }) => {
     const storyContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -202,8 +203,9 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
             return;
         }
         
+        const playerName = activeIdentity ? activeIdentity.name : characterProfile.name;
         const speakerNames = new Set(matches.map(match => match[1].trim()));
-        speakerNames.delete(characterProfile.name);
+        speakerNames.delete(playerName);
         
         const avatarUrls = Array.from(speakerNames)
           .map(name => {
@@ -216,15 +218,20 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
         const uniqueUrls = [...new Set(avatarUrls)];
         onUpdateBackgroundAvatars(uniqueUrls.slice(0, 3));
 
-    }, [history, npcs, characterProfile, onUpdateBackgroundAvatars]);
+    }, [history, npcs, characterProfile, onUpdateBackgroundAvatars, activeIdentity]);
 
     const keywords = useMemo((): Keyword[] => {
         if (!characterProfile || !worldSettings) return [];
         
         const allKeywords: Keyword[] = [];
 
-        // Player name
-        allKeywords.push({ keyword: characterProfile.name, description: `[Nhân vật chính] ${characterProfile.backstory || 'Đây là bạn.'}` });
+        // Player name (dynamic)
+        const playerName = activeIdentity ? activeIdentity.name : characterProfile.name;
+        const playerDescription = activeIdentity
+            ? `[Nhân Dạng] ${activeIdentity.backstory || 'Đây là bạn dưới một vỏ bọc khác.'}`
+            : `[Nhân vật chính] ${characterProfile.backstory || 'Đây là bạn.'}`;
+        allKeywords.push({ keyword: playerName, description: playerDescription });
+
 
         // Player special abilities
         if (characterProfile.specialConstitution.name) {
@@ -279,7 +286,7 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
         });
 
         return allKeywords;
-    }, [characterProfile, worldSettings, npcs]);
+    }, [characterProfile, worldSettings, npcs, activeIdentity]);
 
     const renderedNewKeywordsThisTurn = useRef(new Set<string>());
     
@@ -367,12 +374,13 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
                         const speakerName = speakerNameWithTags.replace(newTagRegex, '').trim();
                         const speakerDisplayName = <>{speakerName}{hasNewTag && <NewBadge />}</>;
                         
-                        if (speakerName.toLowerCase() === characterProfile.name.toLowerCase()) {
+                        const playerName = activeIdentity ? activeIdentity.name : characterProfile.name;
+                        if (speakerName.toLowerCase() === playerName.toLowerCase()) {
                             return (
                                 <ChatBubble 
                                     key={`${part.id}-${segmentIndex}`} 
                                     speakerName={speakerDisplayName}
-                                    speakerAvatar={characterProfile.avatarUrl}
+                                    speakerAvatar={activeIdentity?.imageUrl || characterProfile.avatarUrl}
                                     message={linkifyStory(message)} 
                                     isPlayer={true}
                                     gender={characterProfile.gender}

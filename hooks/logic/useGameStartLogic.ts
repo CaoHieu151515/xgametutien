@@ -1,6 +1,5 @@
-
 import { useCallback } from 'react';
-import { CharacterProfile, WorldSettings, GameState, AppSettings, NPC, StoryPart, NewNPCFromAI, GameSnapshot, Choice, ToastMessage, Skill, CharacterGender } from '../../types';
+import { CharacterProfile, WorldSettings, GameState, AppSettings, NPC, StoryPart, NewNPCFromAI, GameSnapshot, Choice, ToastMessage, Skill, CharacterGender, Identity } from '../../types';
 import * as saveService from '../../services/saveService';
 import { log } from '../../services/logService';
 import { processLevelUps, calculateBaseStatsForLevel, getRealmDisplayName, calculateManaCost } from '../../services/progressionService';
@@ -17,6 +16,8 @@ interface UseGameStartLogicProps {
     setHistory: React.Dispatch<React.SetStateAction<StoryPart[]>>;
     setChoices: React.Dispatch<React.SetStateAction<Choice[]>>;
     setGameLog: React.Dispatch<React.SetStateAction<GameSnapshot[]>>;
+    setIdentities: React.Dispatch<React.SetStateAction<Identity[]>>;
+    setActiveIdentityId: React.Dispatch<React.SetStateAction<string | null>>;
     setGameState: (state: GameState) => void;
     setIsLoading: (loading: boolean) => void;
     setError: (error: string | null) => void;
@@ -26,7 +27,8 @@ interface UseGameStartLogicProps {
 export const useGameStartLogic = (props: UseGameStartLogicProps) => {
     const {
         api, apiKeyForService, settings, setCharacterProfile, setWorldSettings, setNpcs,
-        setHistory, setChoices, setGameLog, setGameState, setIsLoading, setError, setToast
+        setHistory, setChoices, setGameLog, setIdentities, setActiveIdentityId,
+        setGameState, setIsLoading, setError, setToast
     } = props;
 
     const handleStartGame = useCallback(async (profile: CharacterProfile, worldSettings: WorldSettings) => {
@@ -85,6 +87,8 @@ export const useGameStartLogic = (props: UseGameStartLogicProps) => {
         setCharacterProfile(finalProfile);
         setWorldSettings(newWorldSettings);
         setNpcs(initialNpcs);
+        setIdentities([]);
+        setActiveIdentityId(null);
     
         try {
             const { storyResponse, usageMetadata } = await api.getInitialStory(finalProfile, newWorldSettings, settings, apiKeyForService);
@@ -116,6 +120,9 @@ export const useGameStartLogic = (props: UseGameStartLogicProps) => {
                 api,
                 apiKey: apiKeyForService,
                 preTurnNotifications: [],
+                // FIX: Pass initial (empty) identity state to the function
+                identities: [],
+                activeIdentityId: null,
             });
             
             const initialStoryPart: StoryPart = { 
@@ -131,6 +138,8 @@ export const useGameStartLogic = (props: UseGameStartLogicProps) => {
                 npcs: initialNpcs,
                 history: [],
                 choices: [],
+                identities: [],
+                activeIdentityId: null,
             };
 
             const firstSnapshot: GameSnapshot = {
@@ -142,6 +151,9 @@ export const useGameStartLogic = (props: UseGameStartLogicProps) => {
             const initialHistory = [initialStoryPart];
             const initialChoices = storyResponse.choices;
             const initialGameLog: GameSnapshot[] = [firstSnapshot];
+            const initialIdentities: Identity[] = [];
+            const initialActiveIdentityId = null;
+
 
             setCharacterProfile(nextProfile);
             setNpcs(nextNpcs);
@@ -149,8 +161,10 @@ export const useGameStartLogic = (props: UseGameStartLogicProps) => {
             setHistory(initialHistory);
             setChoices(initialChoices);
             setGameLog(initialGameLog);
+            setIdentities(initialIdentities);
+            setActiveIdentityId(initialActiveIdentityId);
             
-            await saveService.saveGame(nextProfile, finalWorldSettings, nextNpcs, initialHistory, initialChoices, initialGameLog);
+            await saveService.saveGame(nextProfile, finalWorldSettings, nextNpcs, initialHistory, initialChoices, initialGameLog, initialIdentities, initialActiveIdentityId);
     
             setGameState(GameState.PLAYING);
         } catch (e: any) {
@@ -159,7 +173,7 @@ export const useGameStartLogic = (props: UseGameStartLogicProps) => {
         } finally {
             setIsLoading(false);
         }
-    }, [api, apiKeyForService, settings, setCharacterProfile, setWorldSettings, setNpcs, setHistory, setChoices, setGameLog, setGameState, setIsLoading, setError, setToast]);
+    }, [api, apiKeyForService, settings, setCharacterProfile, setWorldSettings, setNpcs, setHistory, setChoices, setGameLog, setIdentities, setActiveIdentityId, setGameState, setIsLoading, setError, setToast]);
 
     return { handleStartGame };
 };

@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useEffect } from 'react';
 import { SettingsModal } from './components/modal/SettingsModal';
 import { PlayerInfoModal } from './components/modal/PlayerInfoModal';
@@ -12,6 +9,7 @@ import { InventoryModal } from './components/modal/InventoryModal';
 import { TimeSkipModal } from './components/modal/TimeSkipModal';
 import { EventModal } from './components/modal/EventModal';
 import { SecretsModal } from './components/modal/SecretsModal';
+import { IdentityModal } from './components/modal/IdentityModal';
 import { log } from './services/logService';
 import { DebugLogPanel } from './components/DebugLogPanel';
 import { useComponentLog } from './hooks/useComponentLog';
@@ -25,7 +23,8 @@ const App: React.FC = () => {
     
     const {
         gameState, setGameState, hasSaves, characterProfile, setCharacterProfile, worldSettings, displayHistory, npcs, setNpcs, choices, gameLog, isLoading, error, settings, apiKeyForService, toast, clearToast, lastFailedCustomAction,
-        handleAction, handleContinue, handleGoHome, handleLoadGame, handleRestart, saveSettings, handleStartGame, handleUpdateLocation, handleUpdateWorldSettings, handleRewind, handleSave, handleUseItem, handleTimeSkip
+        handleAction, handleContinue, handleGoHome, handleLoadGame, handleRestart, saveSettings, handleStartGame, handleUpdateLocation, handleUpdateWorldSettings, handleRewind, handleSave, handleUseItem, handleTimeSkip,
+        fullGameState, handleUpdateFullGameState, api
     } = useGameLogic();
     
     const { modals, openModal, closeModal } = useModalManager();
@@ -74,6 +73,7 @@ const App: React.FC = () => {
         settings,
         apiKey: apiKeyForService,
         lastFailedCustomAction,
+        fullGameState,
         handleAction,
         handleContinue,
         handleGoHome,
@@ -91,6 +91,7 @@ const App: React.FC = () => {
         openTimeSkipModal: () => openModal('timeSkip'),
         openEventModal: () => openModal('event'),
         openSecretsModal: () => openModal('secrets'),
+        openIdentityModal: () => openModal('identity'),
     };
 
     return (
@@ -107,7 +108,7 @@ const App: React.FC = () => {
                     initialSettings={settings}
                 />
             )}
-            {characterProfile && modals.playerInfo && worldSettings && (
+            {characterProfile && modals.playerInfo && worldSettings && fullGameState && (
                  <PlayerInfoModal
                     isOpen={modals.playerInfo}
                     onClose={() => closeModal('playerInfo')}
@@ -117,6 +118,7 @@ const App: React.FC = () => {
                     worldSettings={worldSettings}
                     onAction={handleAction}
                     onUpdateLocation={handleUpdateLocation}
+                    fullGameState={fullGameState}
                 />
             )}
             {characterProfile && worldSettings && modals.worldInfo && (
@@ -143,7 +145,7 @@ const App: React.FC = () => {
                     worldSettings={worldSettings}
                 />
             )}
-            {worldSettings && characterProfile && modals.npc && (
+            {worldSettings && characterProfile && fullGameState && modals.npc && (
                 <NpcModal
                     isOpen={modals.npc}
                     onClose={() => closeModal('npc')}
@@ -151,6 +153,7 @@ const App: React.FC = () => {
                     onUpdateNpc={(npc) => setNpcs(prev => prev.map(n => n.id === npc.id ? npc : n))}
                     worldSettings={worldSettings}
                     characterProfile={characterProfile}
+                    fullGameState={fullGameState}
                 />
             )}
             {modals.gameLog && (
@@ -195,6 +198,17 @@ const App: React.FC = () => {
                     profile={characterProfile}
                     npcs={npcs}
                     onUpdateProfile={setCharacterProfile}
+                />
+            )}
+             {fullGameState && modals.identity && (
+                <IdentityModal
+                    isOpen={modals.identity}
+                    onClose={() => closeModal('identity')}
+                    fullGameState={fullGameState}
+                    onUpdateGameState={handleUpdateFullGameState}
+                    npcs={npcs}
+                    api={api}
+                    apiKeyForService={apiKeyForService}
                 />
             )}
             {isDebugLogVisible && <DebugLogPanel onClose={() => setIsDebugLogVisible(false)} />}

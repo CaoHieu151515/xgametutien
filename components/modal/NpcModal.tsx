@@ -1,9 +1,5 @@
-
-
-
-
 import React, { useState, useMemo, useEffect } from 'react';
-import { NPC, CharacterGender, StatusEffect, WorldSettings, CharacterProfile, SkillType, Skill } from '../../types';
+import { NPC, CharacterGender, StatusEffect, WorldSettings, CharacterProfile, SkillType, Skill, FullGameState } from '../../types';
 import { calculateBaseStatsForLevel } from '../../services/progressionService';
 import { ImageLibraryModal } from './ImageLibraryModal';
 import { getRelationshipDisplay, getDefaultAvatar } from '../../utils/uiHelpers';
@@ -16,6 +12,7 @@ interface NpcModalProps {
     onUpdateNpc: (updatedNpc: NPC) => void;
     worldSettings: WorldSettings;
     characterProfile: CharacterProfile;
+    fullGameState: FullGameState;
 }
 
 const NewBadge = () => <span className="ml-2 px-1.5 py-0.5 text-[10px] font-bold text-slate-900 bg-yellow-300 rounded-full">NEW</span>;
@@ -117,7 +114,7 @@ const statusStyles: Record<StatusEffectType, { border: string; bg: string; text:
 
 type NpcModalTab = 'info' | 'skills';
 
-export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpdateNpc, worldSettings, characterProfile }) => {
+export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpdateNpc, worldSettings, characterProfile, fullGameState }) => {
     const [selectedNpcId, setSelectedNpcId] = useState<string | null>(null);
     const [raceFilter, setRaceFilter] = useState('all');
     const [genderFilter, setGenderFilter] = useState('all');
@@ -155,13 +152,24 @@ export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpd
     const selectedNpc = useMemo(() => npcs.find(n => n.id === selectedNpcId), [npcs, selectedNpcId]);
 
     const allRelationships = useMemo(() => {
-        if (!selectedNpc || !characterProfile) return [];
+        if (!selectedNpc || !characterProfile || !fullGameState) return [];
         
-        const relationships: { targetId: string; targetName: string; value: number | undefined; relationshipType?: string; isPlayer: boolean; avatarUrl?: string; gender: CharacterGender; }[] = [];
+        type RelationshipDisplay = {
+            targetId: string;
+            targetName: string;
+            value: number | undefined;
+            relationshipType?: string;
+            isPlayer: boolean;
+            avatarUrl?: string;
+            gender: CharacterGender;
+        };
+        
+        const relationships: RelationshipDisplay[] = [];
 
+        // 1. Relationship with Player's True Self
         relationships.push({
-            targetId: 'player', 
-            targetName: characterProfile.name,
+            targetId: 'player_true_self',
+            targetName: `${characterProfile.name} (Bản Thể Thật)`,
             value: selectedNpc.relationship,
             relationshipType: selectedNpc.isDaoLu ? 'Đạo lữ' : undefined,
             isPlayer: true,
@@ -169,6 +177,24 @@ export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpd
             gender: characterProfile.gender
         });
 
+        // 2. Relationships with Player's Identities
+        fullGameState.identities.forEach(identity => {
+            const rel = identity.npcRelationships.find(r => r.targetNpcId === selectedNpc.id);
+            // Only display if a relationship exists
+            if (rel && rel.value !== 0) {
+                relationships.push({
+                    targetId: identity.id,
+                    targetName: `${identity.name} (Nhân Dạng)`,
+                    value: rel.value,
+                    relationshipType: undefined, // Identities can't be Dao Lu
+                    isPlayer: true,
+                    avatarUrl: identity.imageUrl,
+                    gender: characterProfile.gender // Identities share player's gender
+                });
+            }
+        });
+
+        // 3. Relationships with other NPCs
         if (selectedNpc.npcRelationships) {
             selectedNpc.npcRelationships.forEach(rel => {
                 const targetNpc = npcs.find(n => n.id === rel.targetNpcId);
@@ -185,8 +211,12 @@ export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpd
                 }
             });
         }
-        return relationships.sort((a, b) => (b.value ?? -Infinity) - (a.value ?? -Infinity));
-    }, [selectedNpc, npcs, characterProfile]);
+        
+        const filteredRelationships = relationships.filter(r => r.value !== undefined || r.relationshipType === 'Đạo lữ');
+
+        return filteredRelationships.sort((a, b) => (b.value ?? -Infinity) - (a.value ?? -Infinity));
+
+    }, [selectedNpc, npcs, characterProfile, fullGameState]);
 
     const handleAvatarUrlUpdate = (url: string) => {
         if (selectedNpc) {
@@ -374,9 +404,9 @@ export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpd
                                                 {allRelationships.length > 0 ? (
                                                     <div className="space-y-2">
                                                         {allRelationships.map((rel, index) => {
-                                                            const score = rel.isPlayer && selectedNpc.isDaoLu ? 1000 : rel.value;
+                                                            const score = rel.isPlayer && rel.relationshipType === 'Đạo lữ' ? 1000 : rel.value;
                                                             const relationship = getRelationshipDisplay(score);
-                                                            const valueText = rel.isPlayer && selectedNpc.isDaoLu ? '1000' : (rel.value !== undefined ? rel.value : '???');
+                                                            const valueText = rel.isPlayer && rel.relationshipType === 'Đạo lữ' ? '1000' : (rel.value !== undefined ? rel.value : '???');
                                                             const defaultAvatarForRel = getDefaultAvatar(rel.gender);
                                                             const isDaoLuRel = rel.relationshipType === 'Đạo lữ';
 

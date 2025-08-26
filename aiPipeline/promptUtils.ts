@@ -1,4 +1,4 @@
-import { CharacterProfile, WorldSettings, NPC, Location, Item, Achievement, Monster, LocationType, Milestone, GameEvent, ItemType, Skill, Secret, Reputation } from '../types';
+import { CharacterProfile, WorldSettings, NPC, Location, Item, Achievement, Monster, LocationType, Milestone, GameEvent, ItemType, Skill, Secret, Reputation, Identity } from '../types';
 
 interface ContextualPromptData {
     contextualNpcs: Partial<NPC>[];
@@ -43,31 +43,42 @@ const getLocationAncestors = (locationId: string | null, locationMap: Map<string
  * @param worldSettings Cài đặt thế giới đầy đủ.
  * @param npcs Danh sách NPC đầy đủ.
  * @param historyText Lịch sử các lượt đi gần nhất.
+ * @param activeIdentity Nhân dạng đang hoạt động của người chơi.
  * @returns Một đối tượng chứa dữ liệu đã được lọc và tóm tắt.
  */
 export const buildContextForPrompt = (
     characterProfile: CharacterProfile,
     worldSettings: WorldSettings,
     npcs: NPC[],
-    historyText: string
+    historyText: string,
+    activeIdentity: Identity | null
 ): ContextualPromptData => {
     const locationMap = new Map(characterProfile.discoveredLocations.map(loc => [loc.id, loc]));
     const currentLocation = characterProfile.currentLocationId ? locationMap.get(characterProfile.currentLocationId) : null;
 
-    // 1. Lọc NPC theo ngữ cảnh: chỉ những NPC có mặt hoặc được nhắc đến gần đây.
+    // 1. Lọc NPC theo ngữ cảnh và áp dụng hảo cảm của nhân dạng
+    const identityRelMap = new Map(activeIdentity?.npcRelationships.map(r => [r.targetNpcId, r.value]));
+
     const contextualNpcs = npcs.filter(npc => {
         const isPresent = npc.locationId === characterProfile.currentLocationId;
         const isMentioned = historyText.includes(npc.name) || (npc.aliases && npc.aliases.split(',').some(alias => historyText.includes(alias.trim())));
         return !npc.isDead && (isPresent || isMentioned);
-    }).map(({ id, name, aliases, gender, race, personality, description, level, realm, relationship, isDaoLu, specialConstitution, innateTalent, memories, skills }) => ({
-        id, name, aliases, gender, race, personality, 
-        description: description.substring(0, 150) + (description.length > 150 ? '...' : ''),
-        level, realm, relationship, isDaoLu,
-        specialConstitution,
-        innateTalent,
-        memories,
-        skills: skills.map(({ id, name, type, quality, level, experience, description, effect, manaCost }) => ({ id, name, type, quality, level, experience, description, effect, manaCost })),
-    }));
+    }).map(({ id, name, aliases, gender, race, personality, description, level, realm, relationship, isDaoLu, specialConstitution, innateTalent, memories, skills }) => {
+        const effectiveRelationship = activeIdentity ? identityRelMap.get(id) : relationship;
+        const effectiveIsDaoLu = activeIdentity ? false : isDaoLu;
+
+        return {
+            id, name, aliases, gender, race, personality, 
+            description: description.substring(0, 150) + (description.length > 150 ? '...' : ''),
+            level, realm, 
+            relationship: effectiveRelationship,
+            isDaoLu: effectiveIsDaoLu,
+            specialConstitution,
+            innateTalent,
+            memories,
+            skills: skills.map(({ id, name, type, quality, level, experience, description, effect, manaCost }) => ({ id, name, type, quality, level, experience, description, effect, manaCost })),
+        };
+    });
     const contextualNpcIds = new Set(contextualNpcs.map(n => n.id));
 
     // 2. Lọc Địa điểm theo ngữ cảnh: địa phương và toàn cục.
@@ -158,7 +169,18 @@ ${characterProfile.reputations.map(r => `- ${r.summary}`).join('\n')}
     } = characterProfile;
     
     const minimalCharacterProfile: any = { ...rest };
-    minimalCharacterProfile.skills = skills.map(({ name, type, quality, level, manaCost }) => ({ name, type, quality, level, manaCost }));
+
+    if (activeIdentity) {
+        minimalCharacterProfile.name = activeIdentity.name;
+        minimalCharacterProfile.personality = activeIdentity.personality;
+        minimalCharacterProfile.backstory = activeIdentity.backstory;
+        minimalCharacterProfile.goal = `(Dưới nhân dạng này) ${activeIdentity.backstory}`; 
+        minimalCharacterProfile.specialConstitution = { name: 'Bí mật', description: 'Che giấu dưới nhân dạng giả.' };
+        minimalCharacterProfile.talent = { name: 'Bí mật', description: 'Che giấu dưới nhân dạng giả.' };
+        minimalCharacterProfile.skills = []; // Hide true self skills
+    } else {
+        minimalCharacterProfile.skills = skills.map(({ name, type, quality, level, manaCost }) => ({ name, type, quality, level, manaCost }));
+    }
 
 
     return {
@@ -170,8 +192,8 @@ ${characterProfile.reputations.map(r => `- ${r.summary}`).join('\n')}
         equippedItems,
         summarizedBagItems,
         optimizedWorldSettings,
-        specialConstitution,
-        talent,
+        specialConstitution: activeIdentity ? { name: 'Bí mật', description: 'Che giấu dưới nhân dạng giả.' } : specialConstitution,
+        talent: activeIdentity ? { name: 'Bí mật', description: 'Che giấu dưới nhân dạng giả.' } : talent,
         achievements: achievements || [],
         milestones: milestones || [],
         discoveredMonsters: discoveredMonsters || [],

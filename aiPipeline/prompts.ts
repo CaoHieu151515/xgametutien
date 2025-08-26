@@ -1,4 +1,4 @@
-import { CharacterProfile, WorldSettings, NPC, Location, Skill, StoryResponse, Milestone, GameEvent, NewNPCFromAI } from '../types';
+import { CharacterProfile, WorldSettings, NPC, Location, Skill, StoryResponse, Milestone, GameEvent, NewNPCFromAI, Identity } from '../types';
 import { buildContextForPrompt } from './promptUtils';
 import { GAME_CONFIG } from '../config/gameConfig';
 
@@ -119,7 +119,8 @@ export const buildUnifiedPrompt = (
     actionText: string,
     characterProfile: CharacterProfile,
     worldSettings: WorldSettings,
-    npcs: NPC[]
+    npcs: NPC[],
+    activeIdentity: Identity | null
 ): string => {
     const {
         contextualNpcs,
@@ -138,7 +139,7 @@ export const buildUnifiedPrompt = (
         activeEvents,
         secretsContext,
         reputationContext,
-    } = buildContextForPrompt(characterProfile, worldSettings, npcs, historyText);
+    } = buildContextForPrompt(characterProfile, worldSettings, npcs, historyText, activeIdentity);
 
     const locationMap = new Map(characterProfile.discoveredLocations.map(loc => [loc.id, loc]));
     const currentLocation = characterProfile.currentLocationId ? locationMap.get(characterProfile.currentLocationId) : null;
@@ -192,7 +193,39 @@ ${JSON.stringify(activeEvents, null, 2)}
 \`\`\`
 ` : '';
 
+    const identityContext = activeIdentity ? `
+**MỆNH LỆNH TỐI CAO: BẠN ĐANG HÀNH ĐỘNG DƯỚI NHÂN DẠNG GIẢ (CỰC KỲ QUAN TRỌNG)**
+- **Nhân dạng hiện tại:** ${activeIdentity.name} (ID: ${activeIdentity.id})
+- **Ngoại hình & Tính cách:** Bạn đang đóng vai một người có ngoại hình "${activeIdentity.appearance}" và tính cách "${activeIdentity.personality}". Mọi hành động và lời thoại của bạn phải phù hợp với vai diễn này.
+- **QUY TẮC VỀ MỐI QUAN HỆ (LỖI LOGIC NGHIÊM TRỌNG NẾU VI PHẠM):**
+    - **A. NPC KHÔNG BIẾT BẠN LÀ AI:** Mọi NPC (trừ khi có bí mật đặc biệt) đều không biết danh tính thật của bạn. Họ sẽ tương tác với bạn như một người hoàn toàn mới tên là "${activeIdentity.name}".
+    - **B. HẢO CẢM VỚI NHÂN DẠNG:** Mọi thay đổi về hảo cảm từ NPC (tăng hoặc giảm) **TUYỆT ĐỐI BẮT BUỘC** phải được áp dụng cho **nhân dạng giả**, không phải bản thể thật.
+    - **C. CẬP NHẬT JSON BẮT BUỘC:** Khi hảo cảm thay đổi, bạn **PHẢI** sử dụng mảng \`updatedNPCs\`. Trong đó, đối với NPC có hảo cảm thay đổi, bạn phải cung cấp trường \`updatedNpcRelationships\`.
+    - **Cấu trúc \`updatedNpcRelationships\` BẮT BUỘC:**
+        - \`targetNpcId\`: Đặt thành ID của **nhân dạng giả** (\`${activeIdentity.id}\`).
+        - \`value\`: Sự thay đổi hảo cảm (+/-).
+    - **VÍ DỤ CỤ THỂ (HỌC THUỘC LÒNG):**
+        - NPC "Lý Hàn" tăng 50 điểm hảo cảm với bạn.
+        - **JSON ĐÚNG (BẮT BUỘC):**
+          \`\`\`json
+          "updatedNPCs": [
+            {
+              "id": "id_cua_ly_han",
+              "updatedNpcRelationships": [
+                { "targetNpcId": "${activeIdentity.id}", "value": 50 }
+              ]
+            }
+          ]
+          \`\`\`
+        - **JSON SAI (LỖI LOGIC - CẤM):** \`"updatedNPCs": [{ "id": "id_cua_ly_han", "relationship": 50 }]\`. Trường \`relationship\` chỉ dành cho bản thể thật.
+- **QUY TẮC VỀ KÝ ỨC (LOGIC CỐT LÕI):** Khi tạo ký ức mới ('newMemories') cho một NPC sau khi tương tác với nhân dạng, nội dung ký ức **BẮT BUỘC** phải sử dụng tên của nhân dạng ('${activeIdentity.name}'), TUYỆT ĐỐI KHÔNG được sử dụng tên thật của người chơi ('${characterProfile.name}').
+    - **VÍ DỤ:** Ký ức đúng: "Đã trò chuyện với ${activeIdentity.name} về thanh kiếm." Ký ức sai: "Đã trò chuyện với ${characterProfile.name} về thanh kiếm."
+- **Kết luận:** Hãy hành động như một diễn viên. NPC tương tác với MẶT NẠ, không phải người đằng sau nó. Mọi hệ quả xã hội (hảo cảm, thù địch, ký ức) đều gắn liền với MẶT NẠ.
+` : '';
+
     return `
+${identityContext}
+
 **Bối cảnh nhân vật (Tối ưu hóa):**
 \`\`\`json
 ${JSON.stringify(minimalCharacterProfile, null, 2)}
@@ -281,7 +314,7 @@ export const buildInitialStoryPrompt = (
         optimizedWorldSettings,
         specialConstitution,
         talent,
-    } = buildContextForPrompt(characterProfile, worldSettings, npcs, "");
+    } = buildContextForPrompt(characterProfile, worldSettings, npcs, "", null);
 
     const innateAbilitiesContext = `
 **Năng Lực Bẩm Sinh (Thể chất & Thiên phú):**
@@ -383,5 +416,33 @@ Dựa trên thông tin chi tiết về một NPC, hãy tạo ra một bộ kỹ 
 4.  **PHẢI CÓ KỸ NĂNG TU LUYỆN:** Mọi NPC là tu tiên giả PHẢI có một kỹ năng loại 'Tu Luyện'.
 5.  **TIÊU HAO LINH LỰC (\`manaCost\`):** Đối với mỗi kỹ năng được tạo ra, bạn PHẢI cung cấp một giá trị \`manaCost\`. Phẩm chất càng cao, cấp độ càng cao thì \`manaCost\` càng lớn. Kỹ năng 'Công Kích' và 'Đặc Biệt' thường tốn nhiều linh lực nhất.
 6.  **ĐỊNH DẠNG ĐẦU RA:** Trả về một MẢNG (ARRAY) JSON duy nhất chứa các đối tượng kỹ năng, tuân thủ nghiêm ngặt schema đã cung cấp.
+`;
+};
+
+export const buildIdentityGenPrompt = (identityName: string, identityIdea: string, characterProfile: CharacterProfile): string => {
+    const ideaPrompt = identityIdea.trim() ? `
+**Ý tưởng/Gợi ý từ người chơi (Ưu tiên hàng đầu):**
+${identityIdea}
+` : '';
+
+    return `
+Người chơi muốn tạo một nhân dạng mới. Hãy tạo ra một vỏ bọc hợp lý dựa trên các thông tin sau.
+
+Bản Thể Thật của Người Chơi:
+- Tên: ${characterProfile.name}
+- Chủng tộc: ${characterProfile.race}
+- Cảnh giới: ${characterProfile.realm}
+- Tiểu sử: ${characterProfile.backstory}
+
+Tên Nhân Dạng Mới: "${identityName}"
+${ideaPrompt}
+Nhiệm vụ:
+Dựa vào **Ý tưởng/Gợi ý** của người chơi làm kim chỉ nam, hãy tạo ra một vỏ bọc chi tiết và nhất quán cho nhân dạng mới. Vỏ bọc này phải đáng tin cậy như một lớp ngụy trang cho bản thể thật của người chơi trong thế giới game. Cung cấp chi tiết cho các trường sau. Giữ mô tả ngắn gọn nhưng gợi hình, khoảng 2-3 câu mỗi trường.
+
+- appearance: Mô tả ngoại hình chi tiết.
+- personality: Các đặc điểm tính cách chính.
+- backstory: Một tiểu sử đáng tin cậy phù hợp với tên và ý tưởng nhân dạng.
+
+Bạn PHẢI trả về một đối tượng JSON hợp lệ duy nhất tuân thủ schema.
 `;
 };

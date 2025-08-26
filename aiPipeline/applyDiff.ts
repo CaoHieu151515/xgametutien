@@ -1,13 +1,13 @@
 import {
-    StoryResponse, CharacterProfile, NPC, WorldSettings, AppSettings, Choice
-} from '../types';
+    StoryResponse, CharacterProfile, NPC, WorldSettings, AppSettings, Choice, Identity
+} from '../../types';
 import { preprocessStoryResponse } from './mutators/preprocessor';
 import { generateAndMergeNotifications } from './mutators/notificationMutator';
 import { applyPlayerMutations } from './mutators/playerMutators';
 import { applyNpcMutations } from './mutators/npcMutators';
 import { applyWorldMutations } from './mutators/worldMutators';
 import { applyEventMutations } from './mutators/eventMutator';
-import { startTimer, endTimer } from '../services/logService';
+import { startTimer, endTimer } from '../../services/logService';
 
 
 const USE_DEFAULT_KEY_IDENTIFIER = '_USE_DEFAULT_KEY_';
@@ -24,6 +24,8 @@ interface ApplyDiffParams {
     api: any;
     apiKey: string;
     preTurnNotifications: string[];
+    identities: Identity[];
+    activeIdentityId: string | null;
 }
 
 interface ApplyDiffResult {
@@ -31,6 +33,8 @@ interface ApplyDiffResult {
     nextNpcs: NPC[];
     finalWorldSettings: WorldSettings;
     notifications: string[];
+    nextIdentities: Identity[];
+    nextActiveIdentityId: string | null;
 }
 
 export const applyStoryResponseToState = async ({
@@ -45,26 +49,98 @@ export const applyStoryResponseToState = async ({
     api,
     apiKey,
     preTurnNotifications,
+    identities,
+    activeIdentityId,
 }: ApplyDiffParams): Promise<ApplyDiffResult> => {
     const applyDiffSource = 'applyDiff.ts';
     startTimer('total_apply_diff', applyDiffSource, 'Bắt đầu áp dụng các thay đổi trạng thái');
 
     try {
-        // Make a mutable copy of the response to correct inconsistencies before applying
         const response: StoryResponse = JSON.parse(JSON.stringify(storyResponse)); 
 
-        // --- STEP 0: PRE-PROCESSING ---
         startTimer('apply_preprocess', applyDiffSource, 'Tiền xử lý phản hồi AI');
         preprocessStoryResponse(response, characterProfile, npcs);
         endTimer('apply_preprocess', applyDiffSource);
 
-        // --- STEP 1: NOTIFICATION GENERATION ---
-        startTimer('apply_notifications', applyDiffSource, 'Tạo thông báo');
         const notifications = generateAndMergeNotifications(response, storyResponse, characterProfile, npcs, preTurnNotifications);
-        endTimer('apply_notifications', applyDiffSource);
 
-        // --- STEP 2: STATE MUTATION ---
-        // Create clean, mutable bases for our state changes, resetting 'isNew' flags.
+        startTimer('apply_identity_rels', applyDiffSource, 'Xử lý hảo cảm nhân dạng');
+        let nextIdentities = [...identities];
+        const identityUpdates: { npcId: string, change: number }[] = [];
+
+        if (response.updatedNPCs && activeIdentityId) {
+            response.updatedNPCs = response.updatedNPCs.map(update => {
+                if (!update.updatedNpcRelationships) return update;
+
+                const identityRelChanges = update.updatedNpcRelationships.filter(rel => rel.targetNpcId === activeIdentityId);
+                const npcRelChanges = update.updatedNpcRelationships.filter(rel => rel.targetNpcId !== activeIdentityId);
+
+                identityRelChanges.forEach(change => {
+                    identityUpdates.push({ npcId: update.id, change: change.value || 0 });
+                });
+                
+                return { ...update, updatedNpcRelationships: npcRelChanges.length > 0 ? npcRelChanges : undefined };
+            }).filter(Boolean); // Remove null/undefined entries if any
+        }
+
+        if (identityUpdates.length > 0 && activeIdentityId) {
+            const activeIdentityIndex = nextIdentities.findIndex(i => i.id === activeIdentityId);
+            if (activeIdentityIndex > -1) {
+                let activeIdentity = { ...nextIdentities[activeIdentityIndex] };
+                let currentRelationships = [...(activeIdentity.npcRelationships || [])];
+                const originalIdentityRels = new Map((identities[activeIdentityIndex]?.npcRelationships || []).map(r => [r.targetNpcId, r]));
+
+                identityUpdates.forEach(({ npcId, change }) => {
+                    // Logic tạo ký ức "Lần đầu gặp gỡ"
+                    if (!originalIdentityRels.has(npcId)) {
+                        const firstMeetingMemory = `Lần đầu gặp gỡ và làm quen với một người có tên là ${activeIdentity.name}.`;
+                        const updateIndex = response.updatedNPCs?.findIndex(u => u.id === npcId);
+                        if (updateIndex !== undefined && updateIndex > -1 && response.updatedNPCs) {
+                             response.updatedNPCs[updateIndex].newMemories = [firstMeetingMemory, ...(response.updatedNPCs[updateIndex].newMemories || [])];
+                        } else {
+                            if (!response.updatedNPCs) response.updatedNPCs = [];
+                            response.updatedNPCs.push({ id: npcId, newMemories: [firstMeetingMemory] });
+                        }
+                    }
+
+                    const existingRelIndex = currentRelationships.findIndex(r => r.targetNpcId === npcId);
+                    
+                    if (existingRelIndex > -1) {
+                        const oldVal = currentRelationships[existingRelIndex].value;
+                        const newVal = Math.max(-1000, Math.min(1000, oldVal + change));
+                        currentRelationships[existingRelIndex].value = newVal;
+                    } else {
+                        currentRelationships.push({
+                            targetNpcId: npcId,
+                            value: Math.max(-1000, Math.min(1000, change)),
+                        });
+                    }
+                    
+                    const npc = npcs.find(n => n.id === npcId);
+                    if (npc) {
+                        notifications.push(`🎭 Hảo cảm của <b>${npc.name}</b> với nhân dạng <b>${activeIdentity.name}</b> đã thay đổi ${change} điểm.`);
+                    }
+                });
+                activeIdentity.npcRelationships = currentRelationships;
+                nextIdentities[activeIdentityIndex] = activeIdentity;
+            }
+        }
+        endTimer('apply_identity_rels', applyDiffSource);
+
+        // Logic "dọn dẹp" ký ức để đảm bảo tên nhân dạng được sử dụng
+        const activeIdentityForCleanup = identities.find(i => i.id === activeIdentityId);
+        if (activeIdentityForCleanup && response.updatedNPCs) {
+            const trueNameRegex = new RegExp(`\\b${characterProfile.name}\\b`, 'g');
+            response.updatedNPCs.forEach(update => {
+                if (update.newMemories) {
+                    update.newMemories = update.newMemories.map(memory => 
+                        memory.replace(trueNameRegex, activeIdentityForCleanup.name)
+                    );
+                }
+            });
+        }
+
+
         let nextProfile: CharacterProfile = {
             ...characterProfile,
             items: characterProfile.items.map(i => ({ ...i, isNew: false })),
@@ -81,17 +157,16 @@ export const applyStoryResponseToState = async ({
             ...worldSettings,
             initialKnowledge: worldSettings.initialKnowledge.map(k => ({ ...k, isNew: false }))
         };
+        let nextActiveIdentityId = activeIdentityId;
 
-        // Apply mutations in a logical sequence. Each function takes the current state and returns the updated part.
-        
         startTimer('apply_player', applyDiffSource, 'Áp dụng thay đổi cho người chơi');
         nextProfile = await applyPlayerMutations({
             response,
             profile: nextProfile,
-            originalProfile: characterProfile, // Pass original for comparison
+            originalProfile: characterProfile,
             worldSettings: finalWorldSettings,
             settings,
-            notifications, // Pass to push new notifications like level-ups
+            notifications,
             turnNumber,
             choice,
         });
@@ -129,7 +204,7 @@ export const applyStoryResponseToState = async ({
         });
         endTimer('apply_events', applyDiffSource);
 
-        return { nextProfile, nextNpcs, finalWorldSettings, notifications };
+        return { nextProfile, nextNpcs, finalWorldSettings, notifications, nextIdentities, nextActiveIdentityId };
     } finally {
         endTimer('total_apply_diff', applyDiffSource);
     }

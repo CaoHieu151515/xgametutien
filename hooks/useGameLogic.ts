@@ -1,6 +1,7 @@
 
+
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { GameState, StoryPart, CharacterProfile, WorldSettings, NPC, Choice, FullGameState, Location } from '../types';
+import { GameState, StoryPart, CharacterProfile, WorldSettings, NPC, Choice, FullGameState, Location, Identity } from '../types';
 import { log } from '../services/logService';
 
 import { useSettingsLogic } from './logic/useSettingsLogic';
@@ -18,6 +19,8 @@ export const useGameLogic = () => {
     const [displayHistory, setDisplayHistory] = useState<StoryPart[]>([]);
     const [choices, setChoices] = useState<Choice[]>([]);
     const [npcs, setNpcs] = useState<NPC[]>([]);
+    const [identities, setIdentities] = useState<Identity[]>([]);
+    const [activeIdentityId, setActiveIdentityId] = useState<string | null>(null);
 
     // === UI / Interaction State ===
     const [isLoading, setIsLoading] = useState(false);
@@ -32,24 +35,53 @@ export const useGameLogic = () => {
         hasSaves, gameLog, setGameLog, handleSave, handleRewind, handleContinue,
         handleLoadGame
     } = useSaveLogic({
-        gameState, setGameState, characterProfile, worldSettings, npcs, history, choices,
+        gameState, setGameState, characterProfile, worldSettings, npcs, history, choices, identities, activeIdentityId,
         setCharacterProfile, setWorldSettings, setNpcs, setHistory, setChoices, setLastFailedCustomAction,
-        setToast
+        setToast, setIdentities, setActiveIdentityId
     });
 
     const {
         handleAction, handleUseItem, handleTimeSkip
     } = useActionLogic({
-        characterProfile, worldSettings, npcs, history, choices, gameLog, settings, api, apiKeyForService,
-        setChoices, setHistory, setCharacterProfile, setNpcs, setWorldSettings, setGameLog,
+        characterProfile, worldSettings, npcs, history, choices, gameLog, settings, api, apiKeyForService, identities, activeIdentityId,
+        setChoices, setHistory, setCharacterProfile, setNpcs, setWorldSettings, setGameLog, setIdentities, setActiveIdentityId,
         setToast, setIsLoading, setError, setLastFailedCustomAction
     });
     
     const { handleStartGame } = useGameStartLogic({
         api, apiKeyForService, settings,
-        setCharacterProfile, setWorldSettings, setNpcs, setHistory, setChoices, setGameLog,
+        setCharacterProfile, setWorldSettings, setNpcs, setHistory, setChoices, setGameLog, setIdentities, setActiveIdentityId,
         setGameState, setIsLoading, setError, setToast
     });
+    
+    const fullGameState: FullGameState | null = useMemo(() => {
+        if (!characterProfile || !worldSettings) return null;
+        return {
+            id: characterProfile.id,
+            name: characterProfile.name,
+            lastSaved: 0, // This is temporary, real value is in save file
+            characterProfile,
+            worldSettings,
+            npcs,
+            history,
+            choices,
+            gameLog,
+            identities,
+            activeIdentityId,
+        };
+    }, [characterProfile, worldSettings, npcs, history, choices, gameLog, identities, activeIdentityId]);
+
+    const handleUpdateFullGameState = useCallback((newGameState: FullGameState) => {
+        setCharacterProfile(newGameState.characterProfile);
+        setWorldSettings(newGameState.worldSettings);
+        setNpcs(newGameState.npcs);
+        setHistory(newGameState.history);
+        setChoices(newGameState.choices);
+        setGameLog(newGameState.gameLog);
+        setIdentities(newGameState.identities);
+        setActiveIdentityId(newGameState.activeIdentityId);
+        log('useGameLogic.ts', 'Full game state updated by a child component.', 'STATE');
+    }, []);
 
     // === High-Level Orchestration Logic ===
     useEffect(() => {
@@ -72,6 +104,8 @@ export const useGameLogic = () => {
         setError(null);
         setToast(null);
         setLastFailedCustomAction(null);
+        setIdentities([]);
+        setActiveIdentityId(null);
         setGameState(GameState.HOME);
     }, [setGameLog, setToast, setLastFailedCustomAction]);
 
@@ -102,6 +136,7 @@ export const useGameLogic = () => {
 
     return {
         gameState, setGameState, hasSaves, characterProfile, setCharacterProfile, worldSettings, setWorldSettings, history, displayHistory, npcs, setNpcs, choices, gameLog, isLoading, error, settings, apiKeyForService, toast, clearToast, lastFailedCustomAction,
-        handleAction, handleContinue, handleGoHome, handleLoadGame, handleRestart, saveSettings, handleStartGame, handleUpdateLocation, handleUpdateWorldSettings, handleRewind, handleSave, handleUseItem, handleTimeSkip
+        handleAction, handleContinue, handleGoHome, handleLoadGame, handleRestart, saveSettings, handleStartGame, handleUpdateLocation, handleUpdateWorldSettings, handleRewind, handleSave, handleUseItem, handleTimeSkip,
+        fullGameState, handleUpdateFullGameState, api
     };
 };

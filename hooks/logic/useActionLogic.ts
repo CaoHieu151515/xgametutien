@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { StoryPart, StoryResponse, CharacterProfile, WorldSettings, NPC, Choice, AppSettings, GameSnapshot, Item, StoryApiResponse, ToastMessage, StatusEffect } from '../../types';
+import { StoryPart, StoryResponse, CharacterProfile, WorldSettings, NPC, Choice, AppSettings, GameSnapshot, Item, StoryApiResponse, ToastMessage, StatusEffect, Identity } from '../../types';
 import { log, startTimer, endTimer } from '../../services/logService';
 import { applyStoryResponseToState } from '../../aiPipeline/applyDiff';
 import { verifyStoryResponse } from '../../aiPipeline/validate';
@@ -167,12 +167,16 @@ interface UseActionLogicProps {
     settings: AppSettings;
     api: any;
     apiKeyForService: string;
+    identities: Identity[];
+    activeIdentityId: string | null;
     setChoices: React.Dispatch<React.SetStateAction<Choice[]>>;
     setHistory: React.Dispatch<React.SetStateAction<StoryPart[]>>;
     setCharacterProfile: React.Dispatch<React.SetStateAction<CharacterProfile | null>>;
     setNpcs: React.Dispatch<React.SetStateAction<NPC[]>>;
     setWorldSettings: React.Dispatch<React.SetStateAction<WorldSettings | null>>;
     setGameLog: React.Dispatch<React.SetStateAction<GameSnapshot[]>>;
+    setIdentities: React.Dispatch<React.SetStateAction<Identity[]>>;
+    setActiveIdentityId: React.Dispatch<React.SetStateAction<string | null>>;
     setToast: React.Dispatch<React.SetStateAction<ToastMessage | null>>;
     setIsLoading: (loading: boolean) => void;
     setError: (error: string | null) => void;
@@ -181,8 +185,8 @@ interface UseActionLogicProps {
 
 export const useActionLogic = (props: UseActionLogicProps) => {
     const {
-        characterProfile, worldSettings, npcs, history, choices, gameLog, settings, api, apiKeyForService,
-        setChoices, setHistory, setCharacterProfile, setNpcs, setWorldSettings, setGameLog, setToast,
+        characterProfile, worldSettings, npcs, history, choices, gameLog, settings, api, apiKeyForService, identities, activeIdentityId,
+        setChoices, setHistory, setCharacterProfile, setNpcs, setWorldSettings, setGameLog, setIdentities, setActiveIdentityId, setToast,
         setIsLoading, setError, setLastFailedCustomAction
     } = props;
 
@@ -191,6 +195,8 @@ export const useActionLogic = (props: UseActionLogicProps) => {
         
         const actionLogicSource = 'useActionLogic.ts';
         startTimer('total_action_logic', actionLogicSource, 'Xử lý hành động của người chơi');
+
+        const activeIdentity = identities.find(id => id.id === activeIdentityId) || null;
 
         // --- STEP 1: Process turn-based effects BEFORE doing anything else ---
         startTimer('process_turn_effects', actionLogicSource, 'Xử lý hiệu ứng theo lượt');
@@ -202,7 +208,7 @@ export const useActionLogic = (props: UseActionLogicProps) => {
 
         try {
             startTimer('autosave', actionLogicSource, 'Tự động lưu đầu lượt');
-            await saveService.saveGame(currentProfile, worldSettings, currentNpcs, history, choices, gameLog);
+            await saveService.saveGame(currentProfile, worldSettings, currentNpcs, history, choices, gameLog, identities, activeIdentityId);
             endTimer('autosave', actionLogicSource);
         } catch(e) {
             endTimer('autosave', actionLogicSource, 'Thất bại');
@@ -242,7 +248,7 @@ export const useActionLogic = (props: UseActionLogicProps) => {
             }
         }
 
-        const preActionState = { characterProfile: currentProfile, worldSettings, npcs: currentNpcs, history, choices };
+        const preActionState = { characterProfile: currentProfile, worldSettings, npcs: currentNpcs, history, choices, identities, activeIdentityId };
         const newActionPart: StoryPart = { id: Date.now(), type: 'action', text: choice.title };
 
         setChoices([]);
@@ -298,7 +304,7 @@ export const useActionLogic = (props: UseActionLogicProps) => {
                 }
                 
                 startTimer('ai_call', actionLogicSource, `Gọi API AI (lần thử ${attempt})`);
-                const apiResponse = await api.getNextStoryStep(historyText, currentActionText, settings, currentProfile, worldSettings, currentNpcs, apiKeyForService);
+                const apiResponse = await api.getNextStoryStep(historyText, currentActionText, settings, currentProfile, worldSettings, currentNpcs, apiKeyForService, activeIdentity);
                 endTimer('ai_call', actionLogicSource);
                 
                 log('useActionLogic.ts', `[Attempt ${attempt}] Received story response from API.`, 'API');
@@ -377,9 +383,9 @@ export const useActionLogic = (props: UseActionLogicProps) => {
         
         try {
             startTimer('apply_state', actionLogicSource, 'Áp dụng các thay đổi trạng thái');
-            let { nextProfile, nextNpcs, finalWorldSettings, notifications } = await applyStoryResponseToState({
+            const { nextProfile, nextNpcs, finalWorldSettings, notifications, nextIdentities, nextActiveIdentityId } = await applyStoryResponseToState({
                 storyResponse, characterProfile: currentProfile, npcs: currentNpcs, worldSettings, settings, choice, turnNumber: newTurnNumber, isSuccess,
-                api, apiKey: apiKeyForService, preTurnNotifications,
+                api, apiKey: apiKeyForService, preTurnNotifications, identities, activeIdentityId
             });
             endTimer('apply_state', actionLogicSource);
 
@@ -409,6 +415,8 @@ export const useActionLogic = (props: UseActionLogicProps) => {
             setCharacterProfile(nextProfile);
             setNpcs(nextNpcs);
             setWorldSettings(finalWorldSettings);
+            setIdentities(nextIdentities);
+            setActiveIdentityId(nextActiveIdentityId);
 
         } catch (e: any) {
             const errorMessage = `Lỗi khi áp dụng trạng thái: ${e.message}`;
@@ -421,7 +429,7 @@ export const useActionLogic = (props: UseActionLogicProps) => {
             setIsLoading(false);
             endTimer('total_action_logic', actionLogicSource);
         }
-    }, [characterProfile, worldSettings, npcs, history, choices, gameLog, settings, api, apiKeyForService, setChoices, setHistory, setCharacterProfile, setNpcs, setWorldSettings, setGameLog, setToast, setIsLoading, setError, setLastFailedCustomAction]);
+    }, [characterProfile, worldSettings, npcs, history, choices, gameLog, settings, api, apiKeyForService, identities, activeIdentityId, setChoices, setHistory, setCharacterProfile, setNpcs, setWorldSettings, setGameLog, setIdentities, setActiveIdentityId, setToast, setIsLoading, setError, setLastFailedCustomAction]);
     
     const handleUseItem = useCallback((item: Item) => {
         log('useActionLogic.ts', `Player uses item: "${item.name}"`, 'FUNCTION');

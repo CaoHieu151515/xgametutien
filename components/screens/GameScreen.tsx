@@ -1,8 +1,11 @@
 
 
 
+
+
+
 import React, { useMemo, useState, useCallback } from 'react';
-import { GameState, CharacterProfile, WorldSettings, StoryPart, NPC, Choice, AppSettings } from '../../types';
+import { GameState, CharacterProfile, WorldSettings, StoryPart, NPC, Choice, AppSettings, FullGameState } from '../../types';
 import { Loader } from '../Loader';
 import { StoryDisplay } from '../StoryDisplay';
 import { CustomInput } from '../CustomInput';
@@ -10,7 +13,7 @@ import { AdventureCard } from '../AdventureCard';
 import { 
     HomeIcon, PlayerIcon, NpcsIcon, WorldIcon, MapIcon, 
     GameLogIcon, BagIcon, LocationIcon, SettingsIcon, SaveIcon, TimeIcon, EventIcon,
-    ChevronDownIcon, ChevronUpIcon, SecretsIcon
+    ChevronDownIcon, ChevronUpIcon, SecretsIcon, IdentityIcon
 } from '../ui/Icons';
 import { useComponentLog } from '../../hooks/useComponentLog';
 import { GAME_CONFIG } from '../../config/gameConfig';
@@ -27,6 +30,7 @@ interface GameScreenProps {
     choices: Choice[];
     lastFailedCustomAction: string | null;
     settings: AppSettings;
+    fullGameState: FullGameState;
     handleAction: (choice: Choice) => void;
     handleGoHome: () => void;
     handleSave: () => void;
@@ -40,6 +44,7 @@ interface GameScreenProps {
     openTimeSkipModal: () => void;
     openEventModal: () => void;
     openSecretsModal: () => void;
+    openIdentityModal: () => void;
 }
 
 const getFormattedGameTime = (isoString: string | null): string => {
@@ -92,6 +97,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     choices,
     lastFailedCustomAction,
     settings,
+    fullGameState,
     handleAction,
     handleGoHome,
     handleSave,
@@ -105,6 +111,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     openTimeSkipModal,
     openEventModal,
     openSecretsModal,
+    openIdentityModal,
 }) => {
     useComponentLog('GameScreen.tsx');
     const [backgroundAvatars, setBackgroundAvatars] = useState<string[]>([]);
@@ -119,6 +126,10 @@ export const GameScreen: React.FC<GameScreenProps> = ({
         });
     }, []);
     
+    const activeIdentity = useMemo(() => {
+        return fullGameState.identities.find(id => id.id === fullGameState.activeIdentityId) || null;
+    }, [fullGameState.identities, fullGameState.activeIdentityId]);
+
     const currentLocation = useMemo(() => {
         if (!characterProfile.currentLocationId) return null;
         return characterProfile.discoveredLocations.find(loc => loc.id === characterProfile.currentLocationId);
@@ -168,8 +179,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                         <HeaderButton label="Túi Đồ" onClick={openInventoryModal} disabled={isLoading}>
                             <BagIcon />
                         </HeaderButton>
-                        <HeaderButton label="Nhiệm Vụ" onClick={openEventModal} disabled={isLoading}>
-                            <EventIcon />
+                        <HeaderButton label="Nhân Dạng" onClick={openIdentityModal} disabled={isLoading}>
+                            <IdentityIcon />
                         </HeaderButton>
                         <HeaderButton label="NPC" onClick={openNpcModal} disabled={isLoading}>
                             <NpcsIcon />
@@ -201,6 +212,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({
 
                     {/* Right Icons */}
                     <div className="flex items-center gap-1 flex-wrap justify-end">
+                        <HeaderButton label="Nhiệm Vụ" onClick={openEventModal} disabled={isLoading}>
+                            <EventIcon />
+                        </HeaderButton>
                          <HeaderButton label="Thời Gian" onClick={openTimeSkipModal} disabled={isLoading}>
                             <TimeIcon />
                         </HeaderButton>
@@ -230,7 +244,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                 <div className={`relative z-30 overflow-hidden transition-all duration-500 ease-in-out ${isSidebarOpen ? 'max-h-[13rem]' : 'max-h-0'}`}>
                     <div className="p-4 bg-black/20 border-b border-slate-800">
                         <div className="flex items-start gap-4 overflow-x-auto custom-scrollbar pb-3">
-                            <PlayerHUD profile={characterProfile} />
+                            <PlayerHUD profile={characterProfile} activeIdentity={activeIdentity} />
                             {nearbyNpcs.map(npc => (
                                 <NpcHUDCard key={npc.id} npc={npc} />
                             ))}
@@ -252,6 +266,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                         worldSettings={worldSettings}
                         npcs={npcs}
                         onUpdateBackgroundAvatars={handleUpdateBackgroundAvatars}
+                        activeIdentity={activeIdentity}
                     />
                 </div>
                 <div className="flex-shrink-0 p-4 border-t border-slate-800 bg-slate-900/50">

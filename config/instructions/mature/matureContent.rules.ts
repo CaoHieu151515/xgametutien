@@ -137,7 +137,7 @@ Bạn nên cấu trúc các cảnh nóng theo trình tự sau để đảm bảo
           {
             "name": "Mang Thai (Hoàn cảnh)",
             "description": "Mang trong mình giọt máu của [Tên người cha]. Cần thời gian để thai nhi phát triển và chào đời.",
-            "duration": "270 lượt",
+            "duration": "1080 lượt",
             "isPregnancyEffect": true
           }
         ]
@@ -164,7 +164,7 @@ Bạn nên cấu trúc các cảnh nóng theo trình tự sau để đảm bảo
 *   Bạn PHẢI phân tích bối cảnh của việc thụ thai để tạo ra một trạng thái phù hợp.
 *   **Cấu trúc Tên Trạng thái:** \`Mang Thai ([Tính từ Mô tả Hoàn cảnh])\`
 *   **Cập nhật Mô tả:** Mô tả PHẢI bao gồm tên của người cha và hoàn cảnh.
-*   **Thời hạn (\`duration\`):** Phải là "270 lượt".
+*   **Thời hạn (\`duration\`):** Phải là "1080 lượt".
 *   **Cờ Logic (\`isPregnancyEffect\`):** **BẮT BUỘC** phải đặt thành \`true\`.
 *   **Ví dụ 1 (Tình yêu):**
     *   **Bối cảnh:** Thụ thai với Đạo Lữ.

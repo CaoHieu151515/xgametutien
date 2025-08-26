@@ -20,6 +20,7 @@ interface AppContentProps {
     settings: AppSettings;
     apiKey: string;
     lastFailedCustomAction: string | null;
+    fullGameState: FullGameState | null;
     handleAction: (choice: Choice) => void;
     handleContinue: () => void;
     handleGoHome: () => void;
@@ -37,6 +38,7 @@ interface AppContentProps {
     openTimeSkipModal: () => void;
     openEventModal: () => void;
     openSecretsModal: () => void;
+    openIdentityModal: () => void;
 }
 
 export const AppContent: React.FC<AppContentProps> = (props) => {
@@ -56,7 +58,7 @@ export const AppContent: React.FC<AppContentProps> = (props) => {
                         apiKey={props.apiKey}
                     />;
         case GameState.PLAYING:
-            if (props.characterProfile && props.worldSettings) {
+            if (props.characterProfile && props.worldSettings && props.fullGameState) {
                 return <GameScreen
                             isLoading={props.isLoading}
                             characterProfile={props.characterProfile}
@@ -66,6 +68,7 @@ export const AppContent: React.FC<AppContentProps> = (props) => {
                             choices={props.choices}
                             lastFailedCustomAction={props.lastFailedCustomAction}
                             settings={props.settings}
+                            fullGameState={props.fullGameState}
                             handleAction={props.handleAction}
                             handleGoHome={props.handleGoHome}
                             handleSave={props.handleSave}
@@ -79,6 +82,7 @@ export const AppContent: React.FC<AppContentProps> = (props) => {
                             openTimeSkipModal={props.openTimeSkipModal}
                             openEventModal={props.openEventModal}
                             openSecretsModal={props.openSecretsModal}
+                            openIdentityModal={props.openIdentityModal}
                         />;
             }
             return <ErrorScreen error="Lỗi trạng thái game: Dữ liệu nhân vật hoặc thế giới không tồn tại." onRestart={props.handleRestart} />;

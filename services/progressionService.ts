@@ -1,4 +1,5 @@
 
+
 import { CharacterProfile, WorldSettings, Skill, NPC, Item, StatusEffect } from '../types';
 import { log } from './logService';
 import { GAME_CONFIG } from '../config/gameConfig';
@@ -192,7 +193,8 @@ export const processLevelUps = <T extends CharacterProfile>(
     addedExperience: number,
     worldSettings: WorldSettings | null
 ): T => {
-    log('progressionService.ts', `Processing level up for ${profile.name} with ${addedExperience} EXP.`, 'FUNCTION');
+    const oldLevel = profile.level;
+    log('progressionService.ts', `Processing level up for ${profile.name} (Lvl ${oldLevel}) with ${addedExperience} EXP.`, 'FUNCTION');
     
     let updatedProfile = { ...profile };
     let currentExperience = profile.experience + addedExperience;
@@ -225,6 +227,10 @@ export const processLevelUps = <T extends CharacterProfile>(
     }
 
     updatedProfile.realm = getRealmDisplayName(updatedProfile.level, updatedProfile.powerSystem, worldSettings);
+    
+    if (updatedProfile.level > oldLevel) {
+         log('progressionService.ts', `Level up complete for ${profile.name}. New level: ${updatedProfile.level}.`, 'INFO');
+    }
 
     return updatedProfile;
 };
@@ -289,10 +295,11 @@ export const processNpcLevelUps = <T extends NPC>(
     addedExperience: number,
     worldSettings: WorldSettings | null
 ): T => {
+    const oldLevel = npc.level;
     let updatedNpc = { ...npc };
     if (!worldSettings) return updatedNpc;
     
-    log('progressionService.ts', `Processing level up for NPC ${npc.name} with ${addedExperience} EXP.`, 'FUNCTION');
+    log('progressionService.ts', `Processing level up for NPC ${npc.name} (Lvl ${oldLevel}) with ${addedExperience} EXP.`, 'FUNCTION');
     
     const powerSystem = worldSettings.powerSystems.find(ps => ps && ps.name === npc.powerSystem);
     if (!powerSystem) return updatedNpc;
@@ -339,6 +346,10 @@ export const processNpcLevelUps = <T extends NPC>(
 
     updatedNpc.realm = getRealmDisplayName(updatedNpc.level, updatedNpc.powerSystem, worldSettings);
 
+    if (updatedNpc.level > oldLevel) {
+        log('progressionService.ts', `Level up complete for NPC ${npc.name}. New level: ${updatedNpc.level}.`, 'INFO');
+    }
+
     return updatedNpc;
 };
 
@@ -362,7 +373,8 @@ export const calculateExperienceForBreakthrough = (
     for (let level = currentLevel + 1; level < targetLevel; level++) {
         totalExperienceNeeded += getExperienceForNextLevel(level);
     }
-
-    log('progressionService.ts', `Calculated ${totalExperienceNeeded} EXP needed to go from Lvl ${currentLevel} to ${targetLevel}.`, 'FUNCTION');
-    return totalExperienceNeeded > 0 ? Math.ceil(totalExperienceNeeded) : 0; // Ensure non-negative and integer
+    
+    const finalExp = totalExperienceNeeded > 0 ? Math.ceil(totalExperienceNeeded) : 0;
+    log('progressionService.ts', `Calculated ${finalExp} EXP needed to go from Lvl ${currentLevel} (current exp: ${currentExperience}) to Lvl ${targetLevel}.`, 'FUNCTION');
+    return finalExp;
 };

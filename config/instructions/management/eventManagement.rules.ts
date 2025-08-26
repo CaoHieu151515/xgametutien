@@ -54,9 +54,15 @@ export const eventManagementInstruction = `
         *   **Nhiệm vụ trung bình (Ví dụ: tiêu diệt một nhóm cướp, điều tra một bí mật nhỏ):** Phần thưởng khá. (ví dụ: 500-2000 EXP, vài trăm đơn vị tiền tệ, một vật phẩm phẩm chất Hiếm).
         *   **Nhiệm vụ lớn (Ví dụ: cứu một thành trì, đánh bại một trưởng lão phe địch):** Phần thưởng lớn. (ví dụ: 5,000-20,000 EXP, hàng nghìn đơn vị tiền tệ, một công pháp hoặc trang bị phẩm chất Sử Thi).
         *   **Nhiệm vụ Sử thi (Ví dụ: giải cứu cả một thế giới, đánh bại một Ma Đầu cổ xưa, thay đổi cục diện thế giới):** Phần thưởng **KHỔNG LỒ**. Bạn **PHẢI** trao một lượng lớn kinh nghiệm (hàng trăm nghìn đến hàng triệu EXP), một khoản tiền kếch xù, và ít nhất một vật phẩm phẩm chất Truyền Thuyết hoặc Thần Thoại.
-    *   **Sáng tạo Vật phẩm Phần thưởng (KHUYẾN KHÍCH MẠNH MẼ):** Bạn được phép và được khuyến khích **tự tạo ra các vật phẩm hoặc đan dược hoàn toàn mới** (\`newItems\`) để làm phần thưởng, miễn là chúng phù hợp với bối cảnh.
-        *   **Ví dụ:** Hoàn thành nhiệm vụ giúp một Luyện Đan Sư có thể được thưởng một viên đan dược độc nhất mà ông ta vừa nghiên cứu ra. Hoàn thành nhiệm vụ cho một tông môn kiếm tu có thể được thưởng một thanh phi kiếm đặc chế của tông môn đó.
     *   **LỖI LOGIC NGHIÊM TRỌNG:** Hoàn thành một nhiệm vụ mà không trao bất kỳ phần thưởng nào (EXP, tiền, hoặc vật phẩm) là một lỗi logic nghiêm trọng và bị cấm tuyệt đối, trừ khi bối cảnh câu chuyện giải thích rõ ràng lý do tại sao không có phần thưởng (ví dụ: bị lừa gạt).
+    *   **Sáng tạo Phần thưởng Độc đáo (MỆNH LỆNH SÁNG TẠO):** Ngoài EXP, tiền, và vật phẩm, bạn **BẮT BUỘC** phải xem xét trao thưởng những thứ độc đáo và có giá trị lâu dài hơn khi người chơi hoàn thành các nhiệm vụ Lớn hoặc Sử thi:
+        - **Trạng thái Vĩnh viễn (Status Effects):** Đây là phần thưởng quý giá nhất. Hãy tạo ra các trạng thái có \`duration: "Vĩnh viễn"\` mang lại lợi ích đặc biệt. Ví dụ:
+            - "Thức tỉnh Huyết Mạch [Tên]": Tăng vĩnh viễn một chỉ số hoặc mở khóa khả năng mới.
+            - "Danh hiệu [Tên]": Được công nhận bởi một thế lực, mang lại lợi ích xã hội hoặc giảm giá khi giao dịch.
+            - "Khế Ước Thần Thú": Có được một đồng minh mới.
+            - "Linh Hồn Cường Hóa": Tăng tốc độ hồi phục linh lực.
+        - **Vật phẩm có Hiệu ứng Đặc biệt:** Khi tạo vật phẩm phần thưởng, ưu tiên tạo ra các trang bị có trường \`effect\` độc đáo trong \`equipmentDetails\`. Ví dụ: một chiếc nhẫn cho phép tàng hình, một thanh kiếm có khả năng hút máu.
+        - **Tri Thức Mới:** Tiết lộ một bí mật lớn của thế giới thông qua \`newWorldKnowledge\`.
 
 ---
 **QUY TẮC CẤM (LỖI HỆ THỐNG):**

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NPC } from '../../../types';
 import { NewBadge } from './shared/Common';
@@ -6,11 +5,13 @@ import { getRelationshipDisplay, getDefaultAvatar } from '../../../utils/uiHelpe
 
 interface RelationshipsTabProps {
     npcs: NPC[];
+    displayName: string;
 }
 
-export const RelationshipsTab: React.FC<RelationshipsTabProps> = ({ npcs }) => {
+export const RelationshipsTab: React.FC<RelationshipsTabProps> = ({ npcs, displayName }) => {
     return (
         <div className="space-y-3">
+             <h3 className="text-xl font-bold text-amber-300 border-b border-slate-700 pb-2 mb-4">Mối quan hệ của: <span className="text-white">{displayName}</span></h3>
              {npcs.length === 0 ? (
                 <div className="text-center py-10">
                     <p className="text-slate-500">Chưa gặp gỡ nhân vật nào.</p>

@@ -1,6 +1,6 @@
 import {
     StoryResponse, AppSettings, CharacterProfile,
-    WorldSettings, NPC, Skill, StoryApiResponse, NewNPCFromAI
+    WorldSettings, NPC, Skill, StoryApiResponse, NewNPCFromAI, Identity
 } from '../types';
 import { getSystemInstruction } from '../config/instructions';
 import { log } from './logService';
@@ -32,10 +32,11 @@ export const getNextStoryStep = async (
     worldSettings: WorldSettings,
     npcs: NPC[],
     apiKey: string,
+    activeIdentity: Identity | null
 ): Promise<StoryApiResponse> => {
     log('openaiService.ts', `Generating next story step...`, 'API');
     const systemInstruction = getSystemInstruction(settings, characterProfile.gender, characterProfile.race, characterProfile.powerSystem, worldSettings);
-    const prompt = buildUnifiedPrompt(historyText, actionText, characterProfile, worldSettings, npcs);
+    const prompt = buildUnifiedPrompt(historyText, actionText, characterProfile, worldSettings, npcs, activeIdentity);
     try {
         const data = await callOpenAiApi({ systemInstruction, prompt, apiKey });
         return getApiResponse(data);

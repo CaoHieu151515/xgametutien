@@ -536,3 +536,13 @@ export const newSkillDescriptionSchema = {
     },
     required: ["description", "effect"]
 };
+
+export const identityGenerationSchema = {
+    type: Type.OBJECT,
+    properties: {
+        appearance: { type: Type.STRING, description: "Mô tả ngoại hình chi tiết cho nhân dạng mới." },
+        personality: { type: Type.STRING, description: "Các đặc điểm tính cách của nhân dạng mới này." },
+        backstory: { type: Type.STRING, description: "Một tiểu sử hợp lý cho nhân dạng này, phù hợp với thế giới game." }
+    },
+    required: ["appearance", "personality", "backstory"]
+};

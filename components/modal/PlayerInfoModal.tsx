@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
-import { CharacterProfile, NPC, WorldSettings, CharacterGender, Location, Choice } from '../../types';
+import { CharacterProfile, NPC, WorldSettings, CharacterGender, Location, Choice, FullGameState } from '../../types';
 import { ImageLibraryModal } from './ImageLibraryModal';
 import { HaremTab } from './tabs/HaremTab';
 import { StatsTab } from './tabs/StatsTab';
@@ -23,6 +22,7 @@ interface PlayerInfoModalProps {
     worldSettings: WorldSettings; 
     onAction: (choice: Choice) => void;
     onUpdateLocation: (location: Location) => void;
+    fullGameState: FullGameState;
 }
 
 type PlayerInfoTab = 'stats' | 'skills' | 'relationships' | 'milestones' | 'ownedLocations' | 'harem' | 'creation' | 'info';
@@ -40,13 +40,40 @@ const TabButton = ({ isActive, onClick, children }: { isActive: boolean, onClick
     </button>
 );
 
-export const PlayerInfoModal: React.FC<PlayerInfoModalProps> = ({ isOpen, onClose, profile, npcs, onUpdateProfile, worldSettings, onAction, onUpdateLocation }) => {
+export const PlayerInfoModal: React.FC<PlayerInfoModalProps> = ({ isOpen, onClose, profile, npcs, onUpdateProfile, worldSettings, onAction, onUpdateLocation, fullGameState }) => {
     const [activeTab, setActiveTab] = useState<PlayerInfoTab>('stats');
     const [localAvatarUrl, setLocalAvatarUrl] = useState(profile.avatarUrl || '');
     const [isImageLibraryOpen, setIsImageLibraryOpen] = useState(false);
 
     const defaultAvatar = useMemo(() => getDefaultAvatar(profile.gender), [profile.gender]);
     const canCreate = useMemo(() => profile.skills.some(skill => skill.name === 'Sáng Thế Tuyệt Đối'), [profile.skills]);
+    
+    const activeIdentity = useMemo(() => {
+        if (!fullGameState.activeIdentityId) return null;
+        return fullGameState.identities.find(id => id.id === fullGameState.activeIdentityId);
+    }, [fullGameState.activeIdentityId, fullGameState.identities]);
+
+    const relationshipsDisplayName = activeIdentity ? activeIdentity.name : profile.name;
+
+    const npcsForDisplay = useMemo(() => {
+        if (!activeIdentity) {
+            // Bản thể thật đang hoạt động, sử dụng npc.relationship mặc định
+            return npcs;
+        }
+    
+        // Một nhân dạng đang hoạt động. Chúng ta cần tạo một danh sách NPC tạm thời
+        // với giá trị quan hệ được ghi đè từ bản đồ của nhân dạng.
+        const identityRelMap = new Map(activeIdentity.npcRelationships.map(r => [r.targetNpcId, r.value]));
+        
+        return npcs.map(npc => ({
+            ...npc,
+            // Ghi đè giá trị quan hệ.
+            // isDaoLu là trạng thái giữa BẢN THỂ THẬT và NPC, vì vậy chúng ta bỏ qua nó đối với các nhân dạng.
+            isDaoLu: false, 
+            relationship: identityRelMap.get(npc.id),
+        }));
+    }, [npcs, activeIdentity]);
+
 
     useEffect(() => {
         if (isOpen) {
@@ -164,7 +191,7 @@ export const PlayerInfoModal: React.FC<PlayerInfoModalProps> = ({ isOpen, onClos
                             <div className="flex-grow p-6 overflow-y-auto custom-scrollbar">
                                 {activeTab === 'stats' && <StatsTab profile={profile} />}
                                 {activeTab === 'skills' && <SkillsTab profile={profile} worldSettings={worldSettings} />}
-                                {activeTab === 'relationships' && <RelationshipsTab npcs={npcs} />}
+                                {activeTab === 'relationships' && <RelationshipsTab npcs={npcsForDisplay} displayName={relationshipsDisplayName} />}
                                 {activeTab === 'milestones' && <MilestonesTab profile={profile} />}
                                 {activeTab === 'ownedLocations' && <OwnedLocationsTab profile={profile} onUpdateLocation={handleUpdateOwnedLocation} />}
                                 {activeTab === 'harem' && <HaremTab profile={profile} npcs={npcs} onUpdateLocation={onUpdateLocation} onAction={onAction} onClose={onClose} />}

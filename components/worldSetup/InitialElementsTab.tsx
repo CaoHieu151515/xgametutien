@@ -1,7 +1,4 @@
 
-
-
-
 import React, { useState } from 'react';
 import { CharacterProfile, WorldSettings, NewNPCFromAI, Location, Item, Skill } from '../../types';
 import { CollapsibleSection } from '../CollapsibleSection';

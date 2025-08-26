@@ -1,5 +1,4 @@
-
-import { StoryResponse, NPC, WorldSettings, NewNPCFromAI, Skill, SkillUpdate, CharacterGender } from '../../types';
+import { StoryResponse, NPC, WorldSettings, NewNPCFromAI, Skill, SkillUpdate, CharacterGender, NpcRelationship } from '../../types';
 import { processNpcLevelUps, getLevelFromRealmName, calculateBaseStatsForLevel, getRealmDisplayName, processSkillLevelUps } from '../../services/progressionService';
 import { findBestAvatar } from '../../services/avatarService';
 import { log } from '../../services/logService';
@@ -306,6 +305,25 @@ export const applyNpcMutations = async ({
                         modifiedNpc.relationship = newRel;
                         if(newRel !== oldRel) notifications.push(`😊 Hảo cảm của <b>${modifiedNpc.name}</b> đã thay đổi ${newRel - oldRel} điểm (hiện tại: ${newRel}).`);
                     }
+                    
+                    if (update.updatedNpcRelationships) {
+                        let currentRelationships = [...(modifiedNpc.npcRelationships || [])];
+                        update.updatedNpcRelationships.forEach(relUpdate => {
+                            const existingRelIndex = currentRelationships.findIndex(r => r.targetNpcId === relUpdate.targetNpcId);
+                            if (existingRelIndex > -1) {
+                                const oldVal = currentRelationships[existingRelIndex].value;
+                                const newVal = Math.max(-1000, Math.min(1000, oldVal + (relUpdate.value || 0)));
+                                currentRelationships[existingRelIndex].value = newVal;
+                            } else {
+                                currentRelationships.push({ 
+                                    targetNpcId: relUpdate.targetNpcId, 
+                                    value: Math.max(-1000, Math.min(1000, relUpdate.value || 0)),
+                                    relationshipType: relUpdate.relationshipType,
+                                });
+                            }
+                        });
+                        modifiedNpc.npcRelationships = currentRelationships;
+                    }
 
                     if (update.newMemories?.length) modifiedNpc.memories = Array.from(new Set([...(modifiedNpc.memories || []), ...update.newMemories]));
                     
@@ -385,7 +403,6 @@ export const applyNpcMutations = async ({
                         description: update.description ?? modifiedNpc.description,
                         ngoaiHinh: update.ngoaiHinh ?? modifiedNpc.ngoaiHinh,
                         aptitude: update.aptitude ?? modifiedNpc.aptitude,
-                        npcRelationships: update.updatedNpcRelationships ?? modifiedNpc.npcRelationships,
                         specialConstitution: update.specialConstitution ?? modifiedNpc.specialConstitution,
                         innateTalent: update.innateTalent ?? modifiedNpc.innateTalent,
                     });

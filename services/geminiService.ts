@@ -1,13 +1,13 @@
 import {
-    StoryResponse, AppSettings, CharacterProfile, WorldSettings, Skill, StoryApiResponse, NPC, NewNPCFromAI
+    StoryResponse, AppSettings, CharacterProfile, WorldSettings, Skill, StoryApiResponse, NPC, NewNPCFromAI, Identity
 } from '../types';
 import { getSystemInstruction } from '../config/instructions';
 import { log } from './logService';
 import {
-    buildUnifiedPrompt, buildInitialStoryPrompt, buildWorldGenPrompt, buildNewSkillDescriptionPrompt, buildNpcSkillsGenPrompt
+    buildUnifiedPrompt, buildInitialStoryPrompt, buildWorldGenPrompt, buildNewSkillDescriptionPrompt, buildNpcSkillsGenPrompt, buildIdentityGenPrompt
 } from '../aiPipeline/prompts';
 import {
-    responseSchema, worldCreationSchema, newSkillDescriptionSchema, newSkillsArraySchema
+    responseSchema, worldCreationSchema, newSkillDescriptionSchema, newSkillsArraySchema, identityGenerationSchema
 } from '../aiPipeline/schema';
 import { callGeminiApi } from '../aiPipeline/callGemini';
 import { parseAndValidateJson, validateWorldGenResponse } from '../aiPipeline/validate';
@@ -46,11 +46,12 @@ export const getNextStoryStep = async (
     worldSettings: WorldSettings,
     npcs: NPC[],
     apiKey: string,
+    activeIdentity: Identity | null
 ): Promise<StoryApiResponse> => {
     log('geminiService.ts', `Generating next story step...`, 'API');
     
     const systemInstruction = getSystemInstruction(settings, characterProfile.gender, characterProfile.race, characterProfile.powerSystem, worldSettings);
-    const prompt = buildUnifiedPrompt(historyText, actionText, characterProfile, worldSettings, npcs);
+    const prompt = buildUnifiedPrompt(historyText, actionText, characterProfile, worldSettings, npcs, activeIdentity);
 
     try {
         const response = await callGeminiApi({ systemInstruction, prompt, apiKey, schema: responseSchema });
@@ -58,6 +59,7 @@ export const getNextStoryStep = async (
         
         return {
             storyResponse,
+            // FIX: Correctly access usageMetadata from the Gemini response object.
             usageMetadata: response.usageMetadata ? {
                 totalTokenCount: response.usageMetadata.totalTokenCount,
                 promptTokenCount: response.usageMetadata.promptTokenCount,
@@ -84,6 +86,7 @@ export const getInitialStory = async (
 
         return {
             storyResponse,
+            // FIX: Correctly access usageMetadata from the Gemini response object.
             usageMetadata: response.usageMetadata ? {
                 totalTokenCount: response.usageMetadata.totalTokenCount,
                 promptTokenCount: response.usageMetadata.promptTokenCount,
@@ -137,6 +140,30 @@ export const generateNpcSkills = async (
         return result;
     } catch (err) {
         log('geminiService.ts', `NPC skills generation failed: ${(err as Error).message}`, 'ERROR');
+        throw err;
+    }
+};
+
+export const generateIdentityDetails = async (
+    identityName: string,
+    identityIdea: string,
+    characterProfile: CharacterProfile,
+    apiKey: string
+): Promise<Omit<Identity, 'id' | 'npcRelationships' | 'imageUrl'>> => {
+    log('geminiService.ts', `Generating details for identity: ${identityName}`, 'API');
+    try {
+        const prompt = buildIdentityGenPrompt(identityName, identityIdea, characterProfile);
+        const response = await callGeminiApi({
+            prompt,
+            apiKey,
+            schema: identityGenerationSchema,
+            systemInstruction: "Bạn là một nhà văn sáng tạo cho một game RPG giả tưởng. Nhiệm vụ của bạn là tạo ra một nhân dạng hợp lý cho một nhân vật. Hãy trả lời bằng một đối tượng JSON hợp lệ duy nhất bằng tiếng Việt."
+        });
+        const result = parseAndValidateJson<Omit<Identity, 'id' | 'npcRelationships' | 'imageUrl'>>((response?.text ?? '').trim());
+        log('geminiService.ts', 'Identity details generation successful.', 'API');
+        return result;
+    } catch (err) {
+        log('geminiService.ts', `Identity details generation failed: ${(err as Error).message}`, 'ERROR');
         throw err;
     }
 };

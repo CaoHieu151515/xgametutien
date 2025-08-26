@@ -1,5 +1,5 @@
 
-import { FullGameState, SaveMetadata, CharacterProfile, WorldSettings, NPC, StoryPart, Choice, GameSnapshot } from '../types';
+import { FullGameState, SaveMetadata, CharacterProfile, WorldSettings, NPC, StoryPart, Choice, GameSnapshot, Identity } from '../types';
 import { log } from './logService';
 
 const DB_NAME = 'TuTienTruyenDB';
@@ -93,7 +93,9 @@ export const saveGame = async (
     npcs: NPC[],
     history: StoryPart[],
     choices: Choice[],
-    gameLog: GameSnapshot[]
+    gameLog: GameSnapshot[],
+    identities: Identity[],
+    activeIdentityId: string | null,
 ): Promise<void> => {
     log('saveService.ts', `Saving game for character: ${characterProfile.name}`, 'FUNCTION');
     const db = await openDB();
@@ -111,6 +113,8 @@ export const saveGame = async (
         history,
         choices,
         gameLog,
+        identities,
+        activeIdentityId,
     };
 
     return new Promise((resolve, reject) => {
