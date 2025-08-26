@@ -1,4 +1,5 @@
 
+
 import { Type } from '@google/genai';
 import { GAME_CONFIG } from '../config/gameConfig';
 
@@ -241,6 +242,7 @@ export const characterProfileSchema = {
         name: { type: Type.STRING },
         gender: { type: Type.STRING },
         race: { type: Type.STRING },
+        appearance: { type: Type.STRING },
         powerSystem: { type: Type.STRING },
         level: { type: Type.NUMBER },
         currencyName: { type: Type.STRING },
@@ -256,7 +258,7 @@ export const characterProfileSchema = {
         initialLocations: { type: Type.ARRAY, items: newLocationSchema },
         initialMonsters: { type: Type.ARRAY, items: monsterSchema },
     },
-    required: ["name", "gender", "race", "powerSystem", "level", "currencyName", "currencyAmount", "personality", "backstory", "goal", "specialConstitution", "talent", "skills", "initialItems", "initialNpcs", "initialLocations", "initialMonsters"]
+    required: ["name", "gender", "race", "appearance", "powerSystem", "level", "currencyName", "currencyAmount", "personality", "backstory", "goal", "specialConstitution", "talent", "skills", "initialItems", "initialNpcs", "initialLocations", "initialMonsters"]
 };
 
 export const powerSystemDefinitionSchema = {
@@ -542,7 +544,8 @@ export const identityGenerationSchema = {
     properties: {
         appearance: { type: Type.STRING, description: "Mô tả ngoại hình chi tiết cho nhân dạng mới." },
         personality: { type: Type.STRING, description: "Các đặc điểm tính cách của nhân dạng mới này." },
-        backstory: { type: Type.STRING, description: "Một tiểu sử hợp lý cho nhân dạng này, phù hợp với thế giới game." }
+        backstory: { type: Type.STRING, description: "Một tiểu sử hợp lý cho nhân dạng này, phù hợp với thế giới game." },
+        goal: { type: Type.STRING, description: "Mục tiêu hoặc nhiệm vụ chính của nhân dạng này." }
     },
-    required: ["appearance", "personality", "backstory"]
+    required: ["appearance", "personality", "backstory", "goal"]
 };

@@ -373,6 +373,7 @@ export interface Reputation {
 export interface Identity {
   id: string;
   name: string;
+  goal: string;
   backstory: string;
   personality: string;
   appearance: string;
@@ -385,6 +386,7 @@ export interface CharacterProfile {
   name: string;
   gender: CharacterGender;
   race: string;
+  appearance: string;
   powerSystem: string;
   realm: string;
   currencyName: string;

@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useRef } from 'react';
 import { CharacterProfile, CharacterGender, WorldSettings, PowerSystemDefinition, Skill, NewNPCFromAI, Location, Item, ApiProvider, SkillType, LocationType, ItemType } from '../../types';
 import { Loader } from '../Loader';
@@ -46,6 +47,7 @@ const initialProfile: CharacterProfile = {
     name: '',
     gender: CharacterGender.MALE,
     race: 'Nhân Tộc',
+    appearance: '',
     powerSystem: defaultPowerSystems[0]?.name ?? '',
     realm: '',
     currencyName: 'Linh Thạch',
@@ -212,6 +214,7 @@ export const WorldSetup: React.FC<WorldSetupProps> = ({ onStartGame, onBackToMen
             name: profile.name,
             gender: profile.gender,
             race: profile.race,
+            appearance: profile.appearance,
             powerSystem: profile.powerSystem,
             level: profile.level,
             currencyName: profile.currencyName,

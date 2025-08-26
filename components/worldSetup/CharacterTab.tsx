@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { CharacterProfile, CharacterGender, WorldSettings } from '../../types';
 import { FormInput, FormSelect, FormTextArea, FormLabel } from './common';
@@ -39,6 +40,10 @@ export const CharacterTab: React.FC<CharacterTabProps> = ({ profile, worldSettin
                     ))}
                 </FormSelect>
             </div>
+        </div>
+         <div>
+            <FormLabel htmlFor="appearance">Ngoại Hình</FormLabel>
+            <FormTextArea id="appearance" name="appearance" value={profile.appearance} onChange={handleProfileChange} />
         </div>
          <div>
             <FormLabel htmlFor="startingLevelOrRealm">Cảnh Giới Khởi Đầu (Tùy chọn)</FormLabel>

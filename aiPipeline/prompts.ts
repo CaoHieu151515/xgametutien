@@ -1,3 +1,5 @@
+
+
 import { CharacterProfile, WorldSettings, NPC, Location, Skill, StoryResponse, Milestone, GameEvent, NewNPCFromAI, Identity } from '../types';
 import { buildContextForPrompt } from './promptUtils';
 import { GAME_CONFIG } from '../config/gameConfig';
@@ -53,6 +55,7 @@ Bạn PHẢI trả về một đối tượng JSON duy nhất tuân thủ nghiê
 
 5.  **Nhân vật chính (\`characterProfile\`):**
     *   Tạo ra một nhân vật chính có tiểu sử, tính cách và mục tiêu phù hợp.
+    *   **Ngoại hình (\`appearance\` - QUAN TRỌNG):** Mô tả ngoại hình của nhân vật một cách chi tiết và hấp dẫn, phù hợp với giới tính và chủng tộc của họ.
     *   **Chủng tộc (\`race\`):** Tên Chủng tộc phải ngắn gọn và mang tính thần thoại phương Đông (ví dụ: Nhân Tộc, Long Tộc, Ma Tộc).
     *   **Cấp độ khởi đầu (\`level\`):** Gán cho nhân vật một cấp độ khởi đầu từ ${minStartLevel} đến ${maxStartLevel}.
     *   **Kỹ năng khởi đầu (\`skills\`):** Nhân vật chính PHẢI bắt đầu với ít nhất ${skills} kỹ năng đa dạng. Mỗi kỹ năng PHẢI có một giá trị \`manaCost\` hợp lý.
@@ -442,6 +445,7 @@ Dựa vào **Ý tưởng/Gợi ý** của người chơi làm kim chỉ nam, hã
 - appearance: Mô tả ngoại hình chi tiết.
 - personality: Các đặc điểm tính cách chính.
 - backstory: Một tiểu sử đáng tin cậy phù hợp với tên và ý tưởng nhân dạng.
+- goal: Mục tiêu hoặc nhiệm vụ chính của nhân dạng này.
 
 Bạn PHẢI trả về một đối tượng JSON hợp lệ duy nhất tuân thủ schema.
 `;

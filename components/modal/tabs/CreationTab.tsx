@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { CharacterProfile, Choice, ItemType } from '../../../types';
 

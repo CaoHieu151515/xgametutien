@@ -23,6 +23,7 @@ interface PlayerInfoModalProps {
     onAction: (choice: Choice) => void;
     onUpdateLocation: (location: Location) => void;
     fullGameState: FullGameState;
+    onUpdateFullGameState: (newGameState: FullGameState) => void;
 }
 
 type PlayerInfoTab = 'stats' | 'skills' | 'relationships' | 'milestones' | 'ownedLocations' | 'harem' | 'creation' | 'info';
@@ -40,9 +41,9 @@ const TabButton = ({ isActive, onClick, children }: { isActive: boolean, onClick
     </button>
 );
 
-export const PlayerInfoModal: React.FC<PlayerInfoModalProps> = ({ isOpen, onClose, profile, npcs, onUpdateProfile, worldSettings, onAction, onUpdateLocation, fullGameState }) => {
+export const PlayerInfoModal: React.FC<PlayerInfoModalProps> = ({ isOpen, onClose, profile, npcs, onUpdateProfile, worldSettings, onAction, onUpdateLocation, fullGameState, onUpdateFullGameState }) => {
     const [activeTab, setActiveTab] = useState<PlayerInfoTab>('stats');
-    const [localAvatarUrl, setLocalAvatarUrl] = useState(profile.avatarUrl || '');
+    const [localAvatarUrl, setLocalAvatarUrl] = useState('');
     const [isImageLibraryOpen, setIsImageLibraryOpen] = useState(false);
 
     const defaultAvatar = useMemo(() => getDefaultAvatar(profile.gender), [profile.gender]);
@@ -53,52 +54,78 @@ export const PlayerInfoModal: React.FC<PlayerInfoModalProps> = ({ isOpen, onClos
         return fullGameState.identities.find(id => id.id === fullGameState.activeIdentityId);
     }, [fullGameState.activeIdentityId, fullGameState.identities]);
 
+    const displayInfo = useMemo(() => {
+        if (activeIdentity) {
+            return {
+                name: activeIdentity.name,
+                avatarUrl: activeIdentity.imageUrl,
+            };
+        }
+        return {
+            name: profile.name,
+            avatarUrl: profile.avatarUrl,
+        };
+    }, [activeIdentity, profile]);
+
+    const displayProfileForTabs = useMemo(() => {
+        if (activeIdentity) {
+            return {
+                ...profile,
+                name: activeIdentity.name,
+                personality: activeIdentity.personality,
+                backstory: activeIdentity.backstory,
+                goal: activeIdentity.goal,
+            };
+        }
+        return profile;
+    }, [profile, activeIdentity]);
+
     const relationshipsDisplayName = activeIdentity ? activeIdentity.name : profile.name;
 
     const npcsForDisplay = useMemo(() => {
         if (!activeIdentity) {
-            // Bản thể thật đang hoạt động, sử dụng npc.relationship mặc định
             return npcs;
         }
-    
-        // Một nhân dạng đang hoạt động. Chúng ta cần tạo một danh sách NPC tạm thời
-        // với giá trị quan hệ được ghi đè từ bản đồ của nhân dạng.
         const identityRelMap = new Map(activeIdentity.npcRelationships.map(r => [r.targetNpcId, r.value]));
-        
         return npcs.map(npc => ({
             ...npc,
-            // Ghi đè giá trị quan hệ.
-            // isDaoLu là trạng thái giữa BẢN THỂ THẬT và NPC, vì vậy chúng ta bỏ qua nó đối với các nhân dạng.
             isDaoLu: false, 
             relationship: identityRelMap.get(npc.id),
         }));
     }, [npcs, activeIdentity]);
 
-
     useEffect(() => {
         if (isOpen) {
             setActiveTab('stats');
+            setLocalAvatarUrl(displayInfo.avatarUrl || '');
         }
-    }, [isOpen]);
+    }, [isOpen, displayInfo.avatarUrl]);
     
-    useEffect(() => {
-        if (isOpen) {
-            setLocalAvatarUrl(profile.avatarUrl || '');
-        }
-    }, [isOpen, profile.avatarUrl]);
-    
-    if (!isOpen) return null;
-
     const handleAvatarUrlUpdate = (url: string) => {
         setLocalAvatarUrl(url);
-        onUpdateProfile({ ...profile, avatarUrl: url });
+        if (activeIdentity) {
+            const updatedIdentities = fullGameState.identities.map(id => 
+                id.id === activeIdentity.id ? { ...id, imageUrl: url } : id
+            );
+            onUpdateFullGameState({ ...fullGameState, identities: updatedIdentities });
+        } else {
+            onUpdateProfile({ ...profile, avatarUrl: url });
+        }
     };
 
     const handleAvatarBlur = () => {
-        if (localAvatarUrl !== (profile.avatarUrl || '')) {
-            handleAvatarUrlUpdate(localAvatarUrl);
+        if (activeIdentity) {
+            if (localAvatarUrl !== (activeIdentity.imageUrl || '')) {
+                handleAvatarUrlUpdate(localAvatarUrl);
+            }
+        } else {
+            if (localAvatarUrl !== (profile.avatarUrl || '')) {
+                handleAvatarUrlUpdate(localAvatarUrl);
+            }
         }
     };
+    
+    if (!isOpen) return null;
     
     const handleUpdateOwnedLocation = (updatedLocation: Location) => {
         onUpdateProfile({
@@ -121,7 +148,7 @@ export const PlayerInfoModal: React.FC<PlayerInfoModalProps> = ({ isOpen, onClos
                 >
                     {/* Header */}
                     <div className="flex-shrink-0 px-6 py-4 flex justify-between items-center border-b border-slate-700">
-                        <h2 id="player-info-title" className="text-2xl font-bold text-slate-100">{profile.name}</h2>
+                        <h2 id="player-info-title" className="text-2xl font-bold text-slate-100">{displayInfo.name}</h2>
                          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors" aria-label="Đóng">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -195,8 +222,8 @@ export const PlayerInfoModal: React.FC<PlayerInfoModalProps> = ({ isOpen, onClos
                                 {activeTab === 'milestones' && <MilestonesTab profile={profile} />}
                                 {activeTab === 'ownedLocations' && <OwnedLocationsTab profile={profile} onUpdateLocation={handleUpdateOwnedLocation} />}
                                 {activeTab === 'harem' && <HaremTab profile={profile} npcs={npcs} onUpdateLocation={onUpdateLocation} onAction={onAction} onClose={onClose} />}
-                                {activeTab === 'creation' && canCreate && <CreationTab profile={profile} onAction={onAction} onClose={onClose} />}
-                                {activeTab === 'info' && <InfoTab profile={profile} />}
+                                {activeTab === 'creation' && canCreate && <CreationTab profile={displayProfileForTabs} onAction={onAction} onClose={onClose} />}
+                                {activeTab === 'info' && <InfoTab profile={displayProfileForTabs} />}
                             </div>
                         </div>
                     </div>

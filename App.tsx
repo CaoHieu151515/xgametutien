@@ -119,6 +119,7 @@ const App: React.FC = () => {
                     onAction={handleAction}
                     onUpdateLocation={handleUpdateLocation}
                     fullGameState={fullGameState}
+                    onUpdateFullGameState={handleUpdateFullGameState}
                 />
             )}
             {characterProfile && worldSettings && modals.worldInfo && (

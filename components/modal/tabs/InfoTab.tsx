@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { CharacterProfile } from '../../../types';
 
@@ -11,6 +12,12 @@ export const InfoTab: React.FC<InfoTabProps> = ({ profile }) => (
         <div>
             <h3 className="text-lg font-bold text-amber-300 border-b border-slate-700 pb-2 mb-4">Thông Tin Chung</h3>
             <div className="space-y-4">
+                {profile.appearance && (
+                    <div>
+                        <p className="font-semibold text-amber-300">Ngoại Hình:</p>
+                        <p className="text-slate-300 whitespace-pre-wrap">{profile.appearance}</p>
+                    </div>
+                )}
                 {profile.personality && (
                     <div>
                         <p className="font-semibold text-amber-300">Tính cách:</p>

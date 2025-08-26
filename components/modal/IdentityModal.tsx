@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { FullGameState, Identity, NPC, NewNPCFromAI } from '../../types';
+import { FullGameState, Identity, NPC, NewNPCFromAI, CharacterProfile } from '../../types';
 import { FormInput, FormTextArea, FormLabel, WandIcon } from '../worldSetup/common';
 import { ImageLibraryModal } from './ImageLibraryModal';
 import { findBestAvatar } from '../../services/avatarService';
@@ -17,6 +17,7 @@ interface IdentityModalProps {
 
 const defaultIdentity: Omit<Identity, 'id'> = {
     name: '',
+    goal: '',
     backstory: '',
     personality: '',
     appearance: '',
@@ -27,9 +28,16 @@ const defaultIdentity: Omit<Identity, 'id'> = {
 export const IdentityModal: React.FC<IdentityModalProps> = ({ isOpen, onClose, fullGameState, onUpdateGameState, npcs, api, apiKeyForService }) => {
     const [selectedId, setSelectedId] = useState<string | 'true_self' | null>(null);
     const [formData, setFormData] = useState<Omit<Identity, 'id' | 'npcRelationships'>>(defaultIdentity);
+    const [trueSelfFormData, setTrueSelfFormData] = useState({
+        appearance: fullGameState.characterProfile.appearance,
+        personality: fullGameState.characterProfile.personality,
+        backstory: fullGameState.characterProfile.backstory,
+        goal: fullGameState.characterProfile.goal,
+    });
     const [identityIdea, setIdentityIdea] = useState('');
     const [isImageLibraryOpen, setIsImageLibraryOpen] = useState(false);
     const [isLoadingAI, setIsLoadingAI] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
 
     const identities = useMemo(() => fullGameState.identities || [], [fullGameState.identities]);
 
@@ -44,6 +52,7 @@ export const IdentityModal: React.FC<IdentityModalProps> = ({ isOpen, onClose, f
     }, [isOpen, fullGameState.activeIdentityId]);
 
     useEffect(() => {
+        setIsEditing(false); // Reset edit mode when selection changes
         if (typeof selectedId === 'string') {
             const identity = identities.find(i => i.id === selectedId);
             if (identity) {
@@ -61,6 +70,10 @@ export const IdentityModal: React.FC<IdentityModalProps> = ({ isOpen, onClose, f
     const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
+    
+    const handleTrueSelfFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setTrueSelfFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    };
 
     const handleAddIdentity = () => {
         const newIdentity: Identity = {
@@ -71,6 +84,7 @@ export const IdentityModal: React.FC<IdentityModalProps> = ({ isOpen, onClose, f
         const newGameState = { ...fullGameState, identities: [...identities, newIdentity] };
         onUpdateGameState(newGameState);
         setSelectedId(newIdentity.id);
+        setIsEditing(true); // Automatically enter edit mode for new identity
     };
     
     const handleSaveChanges = () => {
@@ -82,11 +96,22 @@ export const IdentityModal: React.FC<IdentityModalProps> = ({ isOpen, onClose, f
             return i;
         });
         onUpdateGameState({ ...fullGameState, identities: newIdentities });
+        setIsEditing(false);
         alert('Đã lưu thay đổi!');
+    };
+    
+    const handleSaveTrueSelf = () => {
+        const newProfile: CharacterProfile = {
+            ...fullGameState.characterProfile,
+            ...trueSelfFormData,
+        };
+        onUpdateGameState({ ...fullGameState, characterProfile: newProfile });
+        setIsEditing(false);
+        alert('Đã lưu thay đổi cho bản thể thật!');
     };
 
     const handleDelete = () => {
-        if (typeof selectedId !== 'string' || !window.confirm('Bạn có chắc chắn muốn xóa nhân dạng này không?')) return;
+        if (typeof selectedId !== 'string' || !window.confirm('Bạn có chắc chắn muốn xóa nhân dạng này không? Thao tác này không thể hoàn tác.')) return;
         
         const newIdentities = identities.filter(i => i.id !== selectedId);
         let newActiveId = fullGameState.activeIdentityId;
@@ -95,6 +120,7 @@ export const IdentityModal: React.FC<IdentityModalProps> = ({ isOpen, onClose, f
         }
         
         onUpdateGameState({ ...fullGameState, identities: newIdentities, activeIdentityId: newActiveId });
+        setSelectedId('true_self'); // Select true self after deletion
     };
 
     const handleActivate = () => {
@@ -104,6 +130,16 @@ export const IdentityModal: React.FC<IdentityModalProps> = ({ isOpen, onClose, f
     
     const handleDeactivate = () => {
         onUpdateGameState({ ...fullGameState, activeIdentityId: null });
+    };
+    
+    const handleStartEditTrueSelf = () => {
+        setTrueSelfFormData({
+            appearance: fullGameState.characterProfile.appearance,
+            personality: fullGameState.characterProfile.personality,
+            backstory: fullGameState.characterProfile.backstory,
+            goal: fullGameState.characterProfile.goal,
+        });
+        setIsEditing(true);
     };
 
     const handleAutoFill = async () => {
@@ -191,57 +227,103 @@ export const IdentityModal: React.FC<IdentityModalProps> = ({ isOpen, onClose, f
                         <div className="w-2/3 h-full p-6 overflow-y-auto custom-scrollbar">
                             {selectedIdentity ? (
                                 <div className="space-y-4">
+                                    {isEditing ? (
+                                        <div className="border-b border-slate-700 pb-4 flex flex-col sm:flex-row gap-2">
+                                            <button onClick={handleSaveChanges} className="w-full sm:w-auto flex-grow px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-500 transition-colors">Lưu Thay Đổi</button>
+                                            <button onClick={handleAutoFill} disabled={isLoadingAI} className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 text-white font-bold rounded-lg hover:bg-purple-500 transition-colors disabled:opacity-50">
+                                                <WandIcon />
+                                                Tự Động Điền
+                                            </button>
+                                             <button onClick={() => setIsEditing(false)} className="w-full sm:w-auto px-4 py-2 bg-slate-600 text-white font-bold rounded-lg hover:bg-slate-500 transition-colors">Hủy</button>
+                                        </div>
+                                    ) : (
+                                        <div className="border-b border-slate-700 pb-4 flex flex-col sm:flex-row gap-2">
+                                            <button onClick={handleActivate} disabled={isSelectedActive} className="w-full sm:w-auto flex-grow px-4 py-2 bg-green-600 text-white font-bold rounded-lg hover:bg-green-500 transition-colors disabled:opacity-50">
+                                                {isSelectedActive ? 'Đang Kích Hoạt' : 'Kích Hoạt'}
+                                            </button>
+                                            <button onClick={() => setIsEditing(true)} className="w-full sm:w-auto px-4 py-2 bg-yellow-600 text-white font-bold rounded-lg hover:bg-yellow-500 transition-colors">Chỉnh sửa</button>
+                                            <button onClick={handleDelete} className="w-full sm:w-auto px-4 py-2 bg-red-700 text-white font-bold rounded-lg hover:bg-red-600 transition-colors">Xóa</button>
+                                        </div>
+                                    )}
+
                                     <div>
                                         <FormLabel htmlFor="name">Tên Nhân Dạng</FormLabel>
-                                        <FormInput id="name" name="name" value={formData.name} onChange={handleFormChange} />
+                                        <FormInput id="name" name="name" value={formData.name} onChange={handleFormChange} disabled={!isEditing} />
                                     </div>
                                     <div>
                                         <FormLabel htmlFor="imageUrl">URL Ảnh Đại Diện</FormLabel>
                                         <div className="flex items-center gap-2">
-                                            <FormInput id="imageUrl" name="imageUrl" value={formData.imageUrl || ''} onChange={handleFormChange} />
-                                            <button onClick={() => setIsImageLibraryOpen(true)} className="p-2 bg-teal-600 hover:bg-teal-500 text-white font-semibold rounded-md transition-colors flex-shrink-0">Thư Viện</button>
+                                            <FormInput id="imageUrl" name="imageUrl" value={formData.imageUrl || ''} onChange={handleFormChange} disabled={!isEditing} />
+                                            <button onClick={() => setIsImageLibraryOpen(true)} className="p-2 bg-teal-600 hover:bg-teal-500 text-white font-semibold rounded-md transition-colors flex-shrink-0" disabled={!isEditing}>Thư Viện</button>
                                         </div>
                                     </div>
+                                    {isEditing && (
+                                        <div>
+                                            <FormLabel htmlFor="identityIdea">Ý Tưởng Nhân Dạng (AI sẽ dựa vào đây)</FormLabel>
+                                            <FormTextArea 
+                                                id="identityIdea" 
+                                                name="identityIdea" 
+                                                value={identityIdea} 
+                                                onChange={e => setIdentityIdea(e.target.value)} 
+                                                rows={3} 
+                                                placeholder="Ví dụ: Một thư sinh yếu đuối nhưng có kiến thức uyên bác về lịch sử cổ đại, đang tìm kiếm một cuốn sách bị thất lạc..."
+                                            />
+                                        </div>
+                                    )}
                                     <div>
-                                        <FormLabel htmlFor="identityIdea">Ý Tưởng Nhân Dạng (AI sẽ dựa vào đây)</FormLabel>
-                                        <FormTextArea 
-                                            id="identityIdea" 
-                                            name="identityIdea" 
-                                            value={identityIdea} 
-                                            onChange={e => setIdentityIdea(e.target.value)} 
-                                            rows={3} 
-                                            placeholder="Ví dụ: Một thư sinh yếu đuối nhưng có kiến thức uyên bác về lịch sử cổ đại, đang tìm kiếm một cuốn sách bị thất lạc..."
-                                        />
+                                        <FormLabel htmlFor="goal">Mục Tiêu</FormLabel>
+                                        <FormTextArea id="goal" name="goal" value={formData.goal} onChange={handleFormChange} rows={3} disabled={!isEditing} />
                                     </div>
                                     <div>
                                         <FormLabel htmlFor="appearance">Mô Tả Ngoại Hình</FormLabel>
-                                        <FormTextArea id="appearance" name="appearance" value={formData.appearance} onChange={handleFormChange} rows={4} />
+                                        <FormTextArea id="appearance" name="appearance" value={formData.appearance} onChange={handleFormChange} rows={4} disabled={!isEditing} />
                                     </div>
                                     <div>
                                         <FormLabel htmlFor="personality">Tính Cách</FormLabel>
-                                        <FormTextArea id="personality" name="personality" value={formData.personality} onChange={handleFormChange} rows={4} />
+                                        <FormTextArea id="personality" name="personality" value={formData.personality} onChange={handleFormChange} rows={4} disabled={!isEditing} />
                                     </div>
                                     <div>
                                         <FormLabel htmlFor="backstory">Tiểu Sử / Bối Cảnh Giả</FormLabel>
-                                        <FormTextArea id="backstory" name="backstory" value={formData.backstory} onChange={handleFormChange} rows={6} />
-                                    </div>
-                                    <div className="border-t border-slate-700 pt-4 flex flex-col sm:flex-row gap-2">
-                                        <button onClick={handleSaveChanges} className="w-full sm:w-auto flex-grow px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-500 transition-colors">Lưu Thay Đổi</button>
-                                        <button onClick={handleAutoFill} disabled={isLoadingAI} className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 text-white font-bold rounded-lg hover:bg-purple-500 transition-colors disabled:opacity-50">
-                                            <WandIcon />
-                                            Tự Động Điền
-                                        </button>
-                                    </div>
-                                    <div className="flex flex-col sm:flex-row gap-2">
-                                        <button onClick={handleActivate} disabled={isSelectedActive} className="w-full sm:w-auto flex-grow px-4 py-2 bg-green-600 text-white font-bold rounded-lg hover:bg-green-500 transition-colors disabled:opacity-50">Kích Hoạt</button>
-                                        <button onClick={handleDelete} className="w-full sm:w-auto px-4 py-2 bg-red-800 text-white font-bold rounded-lg hover:bg-red-700 transition-colors">Xóa</button>
+                                        <FormTextArea id="backstory" name="backstory" value={formData.backstory} onChange={handleFormChange} rows={6} disabled={!isEditing} />
                                     </div>
                                 </div>
                             ) : isTrueSelfSelected ? (
-                                <div className="h-full flex flex-col items-center justify-center text-slate-400 text-center p-8">
-                                    <h3 className="text-2xl font-bold text-slate-100 mb-2">{fullGameState.characterProfile.name}</h3>
-                                    <p className="mb-6">Đây là bản thể thật của bạn. Mọi sức mạnh và mối quan hệ gốc đều bắt nguồn từ đây.</p>
-                                    <button onClick={handleDeactivate} disabled={isSelectedActive} className="px-6 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-500 transition-colors disabled:opacity-50">Kích Hoạt Bản Thể Thật</button>
+                                <div className="space-y-4">
+                                    {isEditing ? (
+                                        <div className="border-b border-slate-700 pb-4 flex flex-col sm:flex-row gap-2">
+                                            <button onClick={handleSaveTrueSelf} className="w-full sm:w-auto flex-grow px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-500 transition-colors">Lưu Thay Đổi</button>
+                                            <button onClick={() => setIsEditing(false)} className="w-full sm:w-auto px-4 py-2 bg-slate-600 text-white font-bold rounded-lg hover:bg-slate-500 transition-colors">Hủy</button>
+                                        </div>
+                                    ) : (
+                                        <div className="border-b border-slate-700 pb-4 flex flex-col sm:flex-row gap-2">
+                                            <button onClick={handleDeactivate} disabled={isSelectedActive} className="w-full sm:w-auto flex-grow px-4 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-500 transition-colors disabled:opacity-50">
+                                                {isSelectedActive ? 'Đang Kích Hoạt' : 'Kích Hoạt Bản Thể Thật'}
+                                            </button>
+                                            <button onClick={handleStartEditTrueSelf} className="w-full sm:w-auto px-4 py-2 bg-yellow-600 text-white font-bold rounded-lg hover:bg-yellow-500 transition-colors">Chỉnh sửa</button>
+                                        </div>
+                                    )}
+                                    <div className="text-center p-4 bg-slate-900/50 rounded-lg">
+                                        <h3 className="text-2xl font-bold text-slate-100">{fullGameState.characterProfile.name}</h3>
+                                        <p className="text-sm text-slate-400 mt-1">Đây là bản thể thật của bạn. Mọi sức mạnh và mối quan hệ gốc đều bắt nguồn từ đây.</p>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <FormLabel htmlFor="true-appearance">Ngoại Hình</FormLabel>
+                                            <FormTextArea id="true-appearance" name="appearance" value={isEditing ? trueSelfFormData.appearance : fullGameState.characterProfile.appearance} onChange={handleTrueSelfFormChange} disabled={!isEditing} rows={4} />
+                                        </div>
+                                        <div>
+                                            <FormLabel htmlFor="true-personality">Tính Cách</FormLabel>
+                                            <FormTextArea id="true-personality" name="personality" value={isEditing ? trueSelfFormData.personality : fullGameState.characterProfile.personality} onChange={handleTrueSelfFormChange} disabled={!isEditing} rows={4} />
+                                        </div>
+                                        <div>
+                                            <FormLabel htmlFor="true-backstory">Tiểu Sử</FormLabel>
+                                            <FormTextArea id="true-backstory" name="backstory" value={isEditing ? trueSelfFormData.backstory : fullGameState.characterProfile.backstory} onChange={handleTrueSelfFormChange} disabled={!isEditing} rows={6} />
+                                        </div>
+                                         <div>
+                                            <FormLabel htmlFor="true-goal">Mục Tiêu</FormLabel>
+                                            <FormTextArea id="true-goal" name="goal" value={isEditing ? trueSelfFormData.goal : fullGameState.characterProfile.goal} onChange={handleTrueSelfFormChange} disabled={!isEditing} rows={3} />
+                                        </div>
+                                    </div>
                                 </div>
                             ) : (
                                 <div className="h-full flex items-center justify-center text-slate-500 text-center">
