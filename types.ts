@@ -143,11 +143,18 @@ export interface NewNPCFromAI {
   mienLuc: MienLuc;
   locationId: string;
   specialConstitution?: { name: string; description: string };
-  innateTalent?: { name:string; description: string };
+  innateTalent?: { name: string; description: string };
   statusEffects: StatusEffect[];
   npcRelationships?: NpcRelationship[];
   isDaoLu?: boolean; // Trạng thái bạn đời
   skills?: Skill[];
+}
+
+export interface PendingEvent {
+  type: 'BIRTH';
+  triggerOnLocationId: string;
+  priority: 'HIGH' | 'NORMAL' | 'LOW';
+  prompt: string;
 }
 
 export interface NPC extends NewNPCFromAI {
@@ -165,6 +172,7 @@ export interface NPC extends NewNPCFromAI {
   memories: string[]; 
   npcRelationships: NpcRelationship[];
   isDaoLu: boolean; // Trạng thái bạn đời
+  pendingEvent?: PendingEvent | null; // Cờ sự kiện chờ
   isDead?: boolean; // Trạng thái đã chết
   isNew?: boolean;
 }
@@ -190,6 +198,7 @@ export interface NPCUpdate {
     ngoaiHinh?: string;
     locationId?: string;
     aptitude?: string;
+    newPowerSystem?: string; // Tên hệ thống tu luyện mới
     specialConstitution?: { name: string; description: string };
     innateTalent?: { name: string; description: string };
     updatedNpcRelationships?: NpcRelationship[];

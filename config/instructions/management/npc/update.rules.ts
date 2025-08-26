@@ -1,3 +1,4 @@
+
 export const getNpcUpdateRules = (daoLuTermPlayer: string, playerGenderVietnamese: string): string => `
 ---
 **PHẦN 3B: CẬP NHẬT NPC (MỆNH LỆNH ĐỒNG BỘ TUYỆT ĐỐI)**
@@ -66,6 +67,39 @@ export const getNpcUpdateRules = (daoLuTermPlayer: string, playerGenderVietnames
     *   **LỖI LOGIC (CẤM):** Chỉ thêm "Thần Hi" vào \`newWorldKnowledge\` hoặc chỉ mô tả trong 'story' mà không cập nhật JSON như trên. Điều này sẽ khiến hệ thống không thể nhận diện tên mới của NPC, gây ra lỗi hiển thị và logic nghiêm trọng trong các lượt chơi sau.
 
 ---
+**PHẦN 6: MỆNH LỆNH HỆ THỐNG: HƯỚNG DẪN THAY ĐỔI HỆ THỐNG TU LUYỆN (LOGIC MỚI)**
+---
+
+*   **Kích hoạt:** Khi hành động của người chơi thể hiện ý định rõ ràng về việc **hướng dẫn, chỉ dạy, hoặc giúp đỡ** một NPC chuyển sang một hệ thống tu luyện khác.
+    *   **Từ khóa nhận dạng:** "hướng dẫn", "chỉ dạy", "giúp tu luyện theo", "truyền cho công pháp của hệ thống".
+    *   **Ví dụ hành động:** "(Hệ thống) Hướng dẫn Mộng Liên chuyển sang tu luyện theo hệ thống Tiên Đạo Tu Luyện."
+
+*   **Hành động BẮT BUỘC (LOGIC GAME - QUAN TRỌNG NHẤT):**
+    1.  Bạn **BẮT BUỘC** phải tạo một lệnh cập nhật JSON trong mảng \`updatedNPCs\` cho NPC mục tiêu.
+    2.  Đối tượng JSON **BẮT BUỘC** phải chứa:
+        *   \`"id"\`: ID của NPC được chỉ định.
+        *   \`"newPowerSystem"\`: Chuỗi tên của hệ thống tu luyện mới chính xác như trong lệnh của người chơi (ví dụ: "Tiên Đạo Tu Luyện").
+    3.  **QUY TẮC BẢO TOÀN CẤP ĐỘ:** Việc thay đổi hệ thống tu luyện chỉ là thay đổi con đường, không phải là đột phá. Cấp độ (\`level\`) của NPC sẽ được giữ nguyên. Hệ thống game sẽ tự động cập nhật lại tên cảnh giới (\`realm\`) cho phù hợp. Bạn không cần cập nhật \`level\` hay \`realm\`.
+
+*   **NHIỆM VỤ PHỤ (Tường thuật):**
+    *   Sau khi đã đảm bảo lệnh cập nhật JSON được tạo, bạn PHẢI tường thuật lại sự kiện này trong trường \`story\`.
+    *   Mô tả cảnh người chơi truyền đạt kiến thức, NPC tiếp thu và bắt đầu chuyển đổi công pháp. Khí tức của NPC có thể thay đổi để phản ánh hệ thống mới. Mô tả sự biết ơn hoặc kinh ngạc của NPC.
+
+*   **VÍ DỤ LOGIC TUYỆT ĐỐI (ĐỂ TRÁNH LỖI):**
+    *   **Hành động người chơi:** "(Hệ thống) Hướng dẫn A Ly chuyển sang tu luyện theo hệ thống Ma Đạo Tu Luyện."
+    *   **Kết quả JSON PHẢI chứa (KHÔNG NGOẠI LỆ):**
+        \`\`\`json
+        "updatedNPCs": [
+          {
+            "id": "id_cua_A_Ly",
+            "newPowerSystem": "Ma Đạo Tu Luyện"
+          }
+        ]
+        \`\`\`
+    *   **LỖI HỆ THỐNG:** Nếu bạn mô tả A Ly thay đổi công pháp trong 'story' mà không tạo ra đoạn JSON trên, đó là một lỗi hệ thống không thể chấp nhận.
+
+
+---
 **2. CÁC CẬP NHẬT CHỈ SỐ KHÁC**
 ---
 
@@ -91,7 +125,7 @@ export const getNpcUpdateRules = (daoLuTermPlayer: string, playerGenderVietnames
             - **Ví dụ:** \`"newMemories": ["Đã trò chuyện với [Tên người chơi] về các loại vật phẩm trong cửa hàng."]\`
     -   **Cái chết:** Nếu một NPC chết, hãy đặt trường 'isDead' thành \`true\`. Một NPC đã chết sẽ không còn xuất hiện hay tương tác trong game nữa, trừ khi có phép thuật hồi sinh.
 
-**3.3. Mệnh Lệnh Đồng Bộ Năng Lực và Tri Thức (LOGIC TỐI CAO - MỚI)**
+**3.3. Mệnh lệnh Đồng Bộ Năng Lực và Tri Thức (LOGIC TỐI CAO - MỚI)**
 - **Kích hoạt:** Khi bạn tạo ra một NPC mới (\`newNPCs\`) hoặc, quan trọng hơn, khi câu chuyện mô tả một NPC đã tồn tại **thức tỉnh hoặc nhận được** một **Thể Chất Đặc Biệt (\`specialConstitution\`)** hoặc **Thiên Phú (\`innateTalent\`)** MỚI, có tên riêng mà chưa từng xuất hiện trước đây.
 - **Hành động BẮT BUỘC (Đồng bộ hai chiều):**
     1.  **Cập nhật NPC (JSON):** Bạn PHẢI cập nhật đối tượng NPC đó trong mảng \`updatedNPCs\` (hoặc \`newNPCs\` nếu là NPC mới), thêm vào hoặc thay đổi trường \`specialConstitution\` hoặc \`innateTalent\` với dữ liệu mới.

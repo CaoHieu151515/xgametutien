@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { StoryPart, StoryResponse, CharacterProfile, WorldSettings, NPC, Choice, AppSettings, GameSnapshot, Item, StoryApiResponse, ToastMessage, StatusEffect, Identity } from '../../types';
 import { log, startTimer, endTimer } from '../../services/logService';
@@ -14,11 +15,9 @@ const processTurnBasedEffects = (
 ): {
     updatedProfile: CharacterProfile,
     updatedNpcs: NPC[],
-    notifications: string[],
-    systemEventPrompt: string | null
+    notifications: string[]
 } => {
     const notifications: string[] = [];
-    let systemEventPrompt: string | null = null;
     let updatedProfile = { ...profile, statusEffects: [...profile.statusEffects] };
     let updatedNpcs = npcs.map(npc => ({ ...npc, statusEffects: [...npc.statusEffects] }));
 
@@ -86,9 +85,15 @@ const processTurnBasedEffects = (
                 }
             }
 
-            // 3. Special Expiry Logic (e.g., Birth)
-            if (effectExpired && effect.isPregnancyEffect && !systemEventPrompt) {
-                 systemEventPrompt = `(Hệ thống) ${entity.name} bắt đầu chuyển dạ. Thời khắc sinh nở đã đến. Hãy mô tả sự kiện này một cách chi tiết và kết quả.`;
+            // 3. Special Expiry Logic (e.g., Birth) -> FLAG PENDING EVENT
+            if (effectExpired && effect.isPregnancyEffect && !isPlayer) {
+                 (entity as NPC).pendingEvent = {
+                    type: 'BIRTH',
+                    triggerOnLocationId: (entity as NPC).locationId,
+                    priority: 'HIGH',
+                    prompt: `(Hệ thống) Khi bạn vừa đến gần nơi ở của ${(entity as NPC).name}, bạn nghe thấy những tiếng la hét và sự hối hả. Có vẻ như ${(entity as NPC).name} đang chuyển dạ. Hãy mô tả sự kiện này một cách chi tiết và kết quả.`
+                 };
+                 notifications.push(`🔮 Bạn có cảm giác một sự kiện quan trọng sắp diễn ra liên quan đến <b>${(entity as NPC).name}</b>.`);
             }
 
             if (!effectExpired) {
@@ -102,13 +107,12 @@ const processTurnBasedEffects = (
     updatedProfile = processEntity(updatedProfile, true);
     updatedNpcs = updatedNpcs.map(npc => npc.isDead ? npc : processEntity(npc, false));
 
-    return { updatedProfile, updatedNpcs, notifications, systemEventPrompt };
+    return { updatedProfile, updatedNpcs, notifications };
 };
 
 const findInconsistentNewEntities = (response: StoryResponse, profile: CharacterProfile, npcs: NPC[], worldSettings: WorldSettings): string[] => {
     const { story, choices = [], newNPCs = [], newLocations = [], newItems = [], newSkills = [], newWorldKnowledge = [] } = response;
     
-    // Scan story and all text fields from choices
     const textToScan = [
         story,
         ...choices.map(c => c.title),
@@ -198,13 +202,40 @@ export const useActionLogic = (props: UseActionLogicProps) => {
 
         const activeIdentity = identities.find(id => id.id === activeIdentityId) || null;
 
-        // --- STEP 1: Process turn-based effects BEFORE doing anything else ---
         startTimer('process_turn_effects', actionLogicSource, 'Xử lý hiệu ứng theo lượt');
-        const { updatedProfile, updatedNpcs, notifications: preTurnNotifications, systemEventPrompt } = processTurnBasedEffects(characterProfile, npcs);
+        const { updatedProfile, updatedNpcs, notifications: preTurnNotifications } = processTurnBasedEffects(characterProfile, npcs);
         endTimer('process_turn_effects', actionLogicSource);
         
         const currentProfile = updatedProfile;
         const currentNpcs = updatedNpcs;
+        
+        let systemEventPrompt: string | null = null;
+        
+        // --- LOGIC KÍCH HOẠT SỰ KIỆN CHỜ ---
+        if (choice.title.startsWith('Di chuyển đến')) {
+            const destinationName = choice.title.replace('Di chuyển đến ', '').trim();
+            const destination = [...characterProfile.discoveredLocations, ...worldSettings.initialKnowledge].find(
+                loc => (loc as any).name === destinationName || (loc as any).title === destinationName
+            );
+            
+            if (destination) {
+                const destinationId = (destination as any).id;
+                const npcWithEvent = currentNpcs.find(npc => 
+                    npc.pendingEvent && npc.pendingEvent.triggerOnLocationId === destinationId
+                );
+    
+                if (npcWithEvent && npcWithEvent.pendingEvent) {
+                    log('useActionLogic.ts', `Pending event '${npcWithEvent.pendingEvent.type}' for NPC ${npcWithEvent.name} triggered.`, 'INFO');
+                    systemEventPrompt = npcWithEvent.pendingEvent.prompt;
+                    
+                    const npcIndex = currentNpcs.findIndex(n => n.id === npcWithEvent.id);
+                    if (npcIndex > -1) {
+                        currentNpcs[npcIndex] = { ...currentNpcs[npcIndex], pendingEvent: null };
+                    }
+                }
+            }
+        }
+        // --- KẾT THÚC LOGIC KÍCH HOẠT ---
 
         try {
             startTimer('autosave', actionLogicSource, 'Tự động lưu đầu lượt');
@@ -257,7 +288,7 @@ export const useActionLogic = (props: UseActionLogicProps) => {
         const historySize = settings.historyContextSize;
         if (historySize > 0 && gameLog.length > 0) {
             const relevantSnapshots = gameLog.slice(-historySize);
-            const numFullTurns = 5; // The number of most recent turns to show in full detail.
+            const numFullTurns = 5; 
 
             historyText = relevantSnapshots.map((snapshot, index) => {
                 const isFullTurn = index >= relevantSnapshots.length - numFullTurns;
@@ -268,17 +299,13 @@ export const useActionLogic = (props: UseActionLogicProps) => {
                 
                 let result;
                 if (isFullTurn) {
-                    // Full content for recent turns
                     result = `>> Kết quả: ${snapshot.turnContent.storyResult.text}`;
                 } else {
-                    // Summarized/filtered content for older turns
                     const notifications = snapshot.turnContent.storyResult.notifications;
                     if (notifications && notifications.length > 0) {
-                        // Strip HTML tags for the prompt
                         const cleanNotifications = notifications.map(n => n.replace(/<[^>]*>?/gm, ''));
                         result = `>> Diễn biến chính:\n- ${cleanNotifications.join('\n- ')}`;
                     } else {
-                        // If no notifications, provide a very short summary of the text
                         const storyText = snapshot.turnContent.storyResult.text;
                         const firstSentence = storyText.split(/[.!?]/)[0];
                         result = `>> Diễn biến chính: ${firstSentence}.`;
@@ -312,7 +339,6 @@ export const useActionLogic = (props: UseActionLogicProps) => {
                 storyResponse = apiResponse.storyResponse;
                 usageMetadata = apiResponse.usageMetadata;
                 
-                // FIX+: Trim recap/duplicate content from AI response
                 if (storyResponse?.story) {
                     let cleaned = storyResponse.story.trim();
                     const recapOpeners = [/^tóm\stắt/i, /^trước\sđó/i, /^như\sđã/i, /^ở\slượt\strước/i, /^sau\snhững\sgì/i, /^từ\snhững\sdiễn\sbiến\s*trước/i];
@@ -325,17 +351,15 @@ export const useActionLogic = (props: UseActionLogicProps) => {
                     storyResponse.story = cleaned;
                 }
 
-                // Structural and logical verification
                 verifyStoryResponse(storyResponse, currentProfile, currentNpcs, worldSettings);
 
-                // Self-correction verification for ghost entities
                 const ghostEntityNames = findInconsistentNewEntities(storyResponse, currentProfile, currentNpcs, worldSettings);
                 if (ghostEntityNames.length > 0) {
                     throw new Error(`AI mentioned new entities [[...]] but did not define them: ${ghostEntityNames.join(', ')}.`);
                 }
                 
                 log('useActionLogic.ts', `[Attempt ${attempt}] AI response passed all verifications.`, 'INFO');
-                break; // Success
+                break; 
 
             } catch (e) {
                 lastErrorReason = (e as Error).message;
@@ -390,7 +414,6 @@ export const useActionLogic = (props: UseActionLogicProps) => {
             endTimer('apply_state', actionLogicSource);
 
             if (!choice.isTimeSkip && !systemEventPrompt) {
-                // Duration countdowns were already handled at the start. No need to do it again.
             }
 
             const newStoryPart: StoryPart = { id: Date.now() + 1, type: 'story', text: storyResponse.story, notifications };

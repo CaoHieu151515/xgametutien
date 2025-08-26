@@ -1,6 +1,7 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
-import { NPC, CharacterGender, StatusEffect, WorldSettings, CharacterProfile, SkillType, Skill, FullGameState } from '../../types';
-import { calculateBaseStatsForLevel } from '../../services/progressionService';
+import { NPC, CharacterGender, StatusEffect, WorldSettings, CharacterProfile, SkillType, Skill, FullGameState, Choice } from '../../types';
+import { calculateBaseStatsForLevel, getRealmDisplayName } from '../../services/progressionService';
 import { ImageLibraryModal } from './ImageLibraryModal';
 import { getRelationshipDisplay, getDefaultAvatar } from '../../utils/uiHelpers';
 import { HealthBar, ManaBar, SkillExperienceBar } from './tabs/shared/Common';
@@ -13,6 +14,7 @@ interface NpcModalProps {
     worldSettings: WorldSettings;
     characterProfile: CharacterProfile;
     fullGameState: FullGameState;
+    onAction: (choice: Choice) => void;
 }
 
 const NewBadge = () => <span className="ml-2 px-1.5 py-0.5 text-[10px] font-bold text-slate-900 bg-yellow-300 rounded-full">NEW</span>;
@@ -124,17 +126,20 @@ type RelationshipDisplay = {
     gender: CharacterGender;
 };
 
-export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpdateNpc, worldSettings, characterProfile, fullGameState }) => {
+export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpdateNpc, worldSettings, characterProfile, fullGameState, onAction }) => {
     const [selectedNpcId, setSelectedNpcId] = useState<string | null>(null);
     const [raceFilter, setRaceFilter] = useState('all');
     const [genderFilter, setGenderFilter] = useState('all');
     const [isImageLibraryOpen, setIsImageLibraryOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<NpcModalTab>('info');
+    const [guideSystem, setGuideSystem] = useState('');
+
 
     useEffect(() => {
         const filtered = filterNpcs(npcs, raceFilter, genderFilter);
         if (isOpen) {
             setActiveTab('info');
+            setGuideSystem('');
             if(filtered.length > 0 && (!selectedNpcId || !filtered.some(n => n.id === selectedNpcId))) {
                 setSelectedNpcId(filtered[0].id);
             }
@@ -239,6 +244,20 @@ export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpd
         }
     };
     
+    const handleGuideSystem = () => {
+        if (!selectedNpc || !guideSystem) return;
+
+        const choice: Choice = {
+            title: `(Hệ thống) Hướng dẫn ${selectedNpc.name} chuyển sang tu luyện theo hệ thống ${guideSystem}.`,
+            benefit: `${selectedNpc.name} có thể thay đổi con đường tu luyện.`,
+            risk: "Có thể có những thay đổi không lường trước.",
+            successChance: 100,
+            durationInMinutes: 120,
+        };
+        onAction(choice);
+        onClose();
+    };
+
     const totalMienLuc = selectedNpc?.mienLuc 
         ? selectedNpc.mienLuc.body + selectedNpc.mienLuc.face + selectedNpc.mienLuc.aura + selectedNpc.mienLuc.power 
         : 0;
@@ -249,6 +268,11 @@ export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpd
     }, [selectedNpc]);
     
     const powerTier = useMemo(() => selectedNpc ? getPowerTier(selectedNpc.level) : null, [selectedNpc]);
+    
+    const availableSystemsToGuide = useMemo(() => {
+        if (!selectedNpc) return [];
+        return worldSettings.powerSystems.filter(ps => ps.name !== selectedNpc.powerSystem);
+    }, [selectedNpc, worldSettings.powerSystems]);
 
     if (!isOpen) return null;
 
@@ -378,6 +402,25 @@ export const NpcModal: React.FC<NpcModalProps> = ({ isOpen, onClose, npcs, onUpd
                                         
                                         {/* MERGED CONTENT */}
                                         <div className="border-t border-slate-700/50 pt-6 space-y-8">
+                                            <Section title="Hệ Thống Tu Luyện">
+                                                <p>Hiện đang tu luyện theo: <b className="text-cyan-300">{selectedNpc.powerSystem}</b></p>
+                                                {availableSystemsToGuide.length > 0 && !selectedNpc.isDead && (
+                                                    <div className="mt-4 p-3 bg-slate-900/30 border border-slate-700/50 rounded-lg space-y-2">
+                                                        <label className="text-sm font-medium text-slate-300 block">Hướng dẫn thay đổi hệ thống tu luyện:</label>
+                                                        <div className="flex items-center gap-2">
+                                                            <FormSelect value={guideSystem} onChange={e => setGuideSystem(e.target.value)} className="flex-grow">
+                                                                <option value="">-- Chọn hệ thống mới --</option>
+                                                                {availableSystemsToGuide.map(ps => <option key={ps.id} value={ps.name}>{ps.name}</option>)}
+                                                            </FormSelect>
+                                                            <button onClick={handleGuideSystem} disabled={!guideSystem} className="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-500 transition-colors disabled:opacity-50 text-sm">
+                                                                Hướng Dẫn
+                                                            </button>
+                                                        </div>
+                                                         <p className="text-xs text-slate-500 mt-1">Hành động này sẽ tạo ra một lựa chọn trong game để bạn thực hiện, không thay đổi ngay lập tức.</p>
+                                                    </div>
+                                                )}
+                                            </Section>
+                                            
                                             <Section title="Đánh giá sức mạnh">
                                                 <p>{powerTier.description}</p>
                                             </Section>

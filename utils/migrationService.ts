@@ -1,6 +1,6 @@
 
-
 import { FullGameState, Identity, NPC, GameSnapshot } from '../types';
+import { log } from '../services/logService';
 
 export const migrateGameState = (data: any): FullGameState => {
     // Tạo bản sao sâu để tránh thay đổi đối tượng gốc từ cache của IndexedDB
@@ -47,6 +47,30 @@ export const migrateGameState = (data: any): FullGameState => {
             if (npc.isDaoLu === undefined) npc.isDaoLu = false;
             if (npc.npcRelationships === undefined) npc.npcRelationships = [];
             if (npc.skills === undefined) npc.skills = [];
+            
+            // LOGIC DI TRÚ MỚI: Chuyển đổi trạng thái mang thai đã hết hạn thành sự kiện chờ
+            if (npc.pendingEvent === undefined) {
+                npc.pendingEvent = null;
+            }
+
+            if (npc.statusEffects && npc.statusEffects.length > 0) {
+                const pregnancyEffect = npc.statusEffects.find(e => e.isPregnancyEffect);
+                if (pregnancyEffect) {
+                    const durationMatch = pregnancyEffect.duration.match(/(\d+)\s*lượt/i);
+                    if (durationMatch && parseInt(durationMatch[1], 10) <= 0) {
+                        log('migrationService.ts', `Migrating expired pregnancy for ${npc.name} to a pending event.`, 'INFO');
+                        
+                        npc.pendingEvent = {
+                            type: 'BIRTH',
+                            triggerOnLocationId: npc.locationId,
+                            priority: 'HIGH',
+                            prompt: `(Hệ thống) Khi bạn vừa đến gần nơi ở của ${npc.name}, bạn nghe thấy những tiếng la hét và sự hối hả. Có vẻ như ${npc.name} đang chuyển dạ. Hãy mô tả sự kiện này.`
+                        };
+
+                        npc.statusEffects = npc.statusEffects.filter(e => e.name !== pregnancyEffect.name);
+                    }
+                }
+            }
         });
     }
     

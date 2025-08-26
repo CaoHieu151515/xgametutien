@@ -1,19 +1,27 @@
-import { StoryResponse, NPC, WorldSettings, NewNPCFromAI, Skill, NPCUpdate, CharacterGender, NpcRelationship, CharacterProfile } from '../../types';
+
+import { StoryResponse, NPC, WorldSettings, NewNPCFromAI, Skill, NPCUpdate, CharacterGender, NpcRelationship, CharacterProfile, Identity } from '../../types';
 import { processNpcLevelUps, getLevelFromRealmName, calculateBaseStatsForLevel, getRealmDisplayName, processSkillLevelUps } from '../../services/progressionService';
 import { log } from '../../services/logService';
 import { findBestAvatar } from '../../services/avatarService';
+
+interface IdentityUpdate {
+    identityId: string;
+    newRelationship: NpcRelationship;
+}
 
 const postProcessNewNpcs = async (
     newNpcs: NewNPCFromAI[],
     allExistingNpcs: NPC[],
     playerProfile: CharacterProfile,
+    activeIdentity: Identity | null,
     worldSettings: WorldSettings,
     api: any,
     apiKey: string,
     notifications: string[]
-): Promise<{ processedNpcs: NewNPCFromAI[], updatesForExisting: NPCUpdate[] }> => {
+): Promise<{ processedNpcs: NewNPCFromAI[], updatesForExisting: NPCUpdate[], identityUpdates: IdentityUpdate[] }> => {
     let updatesForExistingNpcs: NPCUpdate[] = [];
-    const processedNpcs = [...newNpcs]; // Shallow copy of array, objects are references
+    let identityUpdates: IdentityUpdate[] = [];
+    const processedNpcs = [...newNpcs];
 
     const playerEntity = {
         id: playerProfile.id,
@@ -21,11 +29,16 @@ const postProcessNewNpcs = async (
         gender: playerProfile.gender,
         isPlayer: true
     };
-    const allEntities = [...allExistingNpcs, playerEntity, ...processedNpcs];
+    
+    const allEntities: any[] = [...allExistingNpcs, playerEntity, ...processedNpcs];
+    if (activeIdentity) {
+        allEntities.push({ ...activeIdentity, isIdentity: true });
+    }
+    
     const allOtherNpcsForAvatar = [...allExistingNpcs, ...processedNpcs];
 
     for (let i = 0; i < processedNpcs.length; i++) {
-        let completedNpc = processedNpcs[i]; // This is a reference to the object in the array
+        let completedNpc = processedNpcs[i];
 
         if (!completedNpc.skills || completedNpc.skills.length === 0) {
             try {
@@ -50,6 +63,7 @@ const postProcessNewNpcs = async (
         
         const relationshipKeywords: { [key: string]: string } = {
             'con trai của': 'Phụ thân', 'con gái của': 'Mẫu thân',
+            'phụ thân là': 'Phụ thân', 'mẫu thân là': 'Mẫu thân',
             'phụ thân của': 'Con cái', 'mẫu thân của': 'Con cái',
             'vợ của': 'Phu quân', 'chồng của': 'Thê tử',
             'phu quân của': 'Thê tử', 'thê tử của': 'Phu quân',
@@ -59,14 +73,14 @@ const postProcessNewNpcs = async (
         allEntities.forEach(targetEntity => {
             if (targetEntity.id === npcWithRelationships.id) return;
 
-            const regex = new RegExp(`(con trai của|con gái của|phụ thân của|mẫu thân của|vợ của|chồng của|phu quân của|thê tử của|sư phụ của|đệ tử của)\\s+${targetEntity.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'iu');
+            const regex = new RegExp(`(con trai của|con gái của|phụ thân là|mẫu thân là|phụ thân của|mẫu thân của|vợ của|chồng của|phu quân của|thê tử của|sư phụ của|đệ tử của)\\s+${targetEntity.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'iu');
             const match = textToScan.match(regex);
 
             if (match) {
                 const role = match[1].toLowerCase();
                 const relationshipType = relationshipKeywords[role];
                 if (relationshipType) {
-                    addTwoWayRelationship(npcWithRelationships, targetEntity, relationshipType, processedNpcs, updatesForExistingNpcs);
+                    addTwoWayRelationship(npcWithRelationships, targetEntity, relationshipType, processedNpcs, updatesForExistingNpcs, identityUpdates);
                 }
             }
             
@@ -76,14 +90,14 @@ const postProcessNewNpcs = async (
                 const otherParentName = parentageMatch[1].trim();
                 const otherParentEntity = allEntities.find(e => e.name === otherParentName);
                 if (otherParentEntity) {
-                     addTwoWayRelationship(npcWithRelationships, targetEntity, targetEntity.gender === 'male' ? 'Phụ thân' : 'Mẫu thân', processedNpcs, updatesForExistingNpcs);
-                     addTwoWayRelationship(npcWithRelationships, otherParentEntity, otherParentEntity.gender === 'male' ? 'Phụ thân' : 'Mẫu thân', processedNpcs, updatesForExistingNpcs);
+                     addTwoWayRelationship(npcWithRelationships, targetEntity, targetEntity.gender === 'male' ? 'Phụ thân' : 'Mẫu thân', processedNpcs, updatesForExistingNpcs, identityUpdates);
+                     addTwoWayRelationship(npcWithRelationships, otherParentEntity, otherParentEntity.gender === 'male' ? 'Phụ thân' : 'Mẫu thân', processedNpcs, updatesForExistingNpcs, identityUpdates);
                 }
             }
         });
     }
 
-    return { processedNpcs, updatesForExisting: updatesForExistingNpcs };
+    return { processedNpcs, updatesForExisting: updatesForExistingNpcs, identityUpdates };
 };
 
 const addTwoWayRelationship = (
@@ -91,7 +105,8 @@ const addTwoWayRelationship = (
     targetEntity: any, 
     relationshipTypeForTarget: string, 
     processedNewNpcs: NewNPCFromAI[], 
-    updatesForExisting: NPCUpdate[]
+    updatesForExisting: NPCUpdate[],
+    identityUpdates: IdentityUpdate[]
 ) => {
     const reverseMap: Record<string, string> = {
         'Phụ thân': 'Con cái', 'Mẫu thân': 'Con cái',
@@ -107,8 +122,20 @@ const addTwoWayRelationship = (
         sourceNpc.npcRelationships.push({ targetNpcId: targetEntity.id, value: 950, relationshipType: relationshipTypeForTarget });
     }
 
-    if (targetEntity.isPlayer) {
-        (sourceNpc as any).relationship = 950;
+    if (targetEntity.isPlayer || targetEntity.isIdentity) {
+        if (targetEntity.isPlayer) {
+            (sourceNpc as any).relationship = 950;
+        }
+        
+        if (targetEntity.isIdentity) {
+            identityUpdates.push({
+                identityId: targetEntity.id,
+                newRelationship: { targetNpcId: sourceNpc.id, value: 950, relationshipType: reverseType }
+            });
+            // ALSO establish the base relationship with the player's true self
+            addTwoWayRelationship(sourceNpc, { ...targetEntity, isPlayer: true, isIdentity: false }, relationshipTypeForTarget, [], [], []);
+        }
+        
         if (!(sourceNpc as any).memories) (sourceNpc as any).memories = [];
         (sourceNpc as any).memories.push(`Có mối quan hệ gia đình (${relationshipTypeForTarget}) với ${targetEntity.name}.`);
         return;
@@ -141,22 +168,18 @@ const mergeNpcUpdates = (baseUpdates: NPCUpdate[], newUpdates: NPCUpdate[]): NPC
     for (const update of allUpdates) {
         const existing = updatesMap.get(update.id) || { id: update.id };
         
-        // Manual merge to prevent undefined properties from overwriting existing data
         const merged: NPCUpdate = { ...existing };
         (Object.keys(update) as Array<keyof NPCUpdate>).forEach(key => {
             if (update[key] !== undefined) {
-                // For non-array properties, the latest update wins
                 if (!Array.isArray(update[key])) {
                      (merged as any)[key] = update[key];
                 }
             }
         });
 
-        // Combine array properties without duplicates
         merged.newMemories = [...new Set([...(existing.newMemories || []), ...(update.newMemories || [])])];
         merged.removedStatusEffects = [...new Set([...(existing.removedStatusEffects || []), ...(update.removedStatusEffects || [])])];
 
-        // Combine and replace complex array properties based on a unique key
         const relsMap = new Map((existing.updatedNpcRelationships || []).map(r => [r.targetNpcId, r]));
         (update.updatedNpcRelationships || []).forEach(r => relsMap.set(r.targetNpcId, r));
         if (relsMap.size > 0) merged.updatedNpcRelationships = Array.from(relsMap.values());
@@ -187,7 +210,7 @@ interface ApplyNpcMutationsParams {
     notifications: string[];
     api: any;
     apiKey: string;
-    activeIdentityId: string | null;
+    activeIdentity: Identity | null;
     playerProfile: CharacterProfile; 
 }
 
@@ -198,21 +221,24 @@ export const applyNpcMutations = async ({
     notifications,
     api,
     apiKey,
-    activeIdentityId,
+    activeIdentity,
     playerProfile,
-}: ApplyNpcMutationsParams): Promise<NPC[]> => {
+}: ApplyNpcMutationsParams): Promise<{ nextNpcs: NPC[], identityUpdates: IdentityUpdate[] }> => {
     let nextNpcs = [...npcs];
+    let identityUpdates: IdentityUpdate[] = [];
 
     if (response.newNPCs?.length) {
-        const { processedNpcs, updatesForExisting } = await postProcessNewNpcs(
+        const { processedNpcs, updatesForExisting, identityUpdates: newIdentityUpdates } = await postProcessNewNpcs(
             response.newNPCs,
             nextNpcs,
             playerProfile,
+            activeIdentity,
             worldSettings,
             api,
             apiKey,
             notifications
         );
+        identityUpdates = newIdentityUpdates;
         
         if (updatesForExisting.length > 0) {
             response.updatedNPCs = mergeNpcUpdates(response.updatedNPCs || [], updatesForExisting);
@@ -281,6 +307,14 @@ export const applyNpcMutations = async ({
                 if (modifiedNpc.health <= 0) {
                     update.isDead = true;
                 }
+                
+                if (update.newPowerSystem && worldSettings.powerSystems.some(ps => ps.name === update.newPowerSystem)) {
+                    const oldSystem = modifiedNpc.powerSystem;
+                    modifiedNpc.powerSystem = update.newPowerSystem;
+                    // Recalculate realm name based on the new system
+                    modifiedNpc.realm = getRealmDisplayName(modifiedNpc.level, modifiedNpc.powerSystem, worldSettings);
+                    notifications.push(`🔄 Hệ thống tu luyện của <b>${modifiedNpc.name}</b> đã thay đổi từ <b>${oldSystem}</b> sang <b>${modifiedNpc.powerSystem}</b>.`);
+                }
 
                 if (update.isDead === true) {
                     modifiedNpc.isDead = true;
@@ -305,7 +339,7 @@ export const applyNpcMutations = async ({
                         if (modifiedNpc.level > oldLevel) notifications.push(`✨ <b>${modifiedNpc.name}</b> đã đạt đến <b>cấp độ ${modifiedNpc.level}</b>!`);
                     }
 
-                    if (update.relationship !== undefined && !activeIdentityId) {
+                    if (update.relationship !== undefined && !activeIdentity) {
                         const oldRel = modifiedNpc.relationship ?? 0;
                         const newRel = Math.max(-1000, Math.min(1000, oldRel + (update.relationship || 0)));
                         modifiedNpc.relationship = newRel;
@@ -344,5 +378,5 @@ export const applyNpcMutations = async ({
         }
     }
 
-    return nextNpcs;
+    return { nextNpcs, identityUpdates };
 };

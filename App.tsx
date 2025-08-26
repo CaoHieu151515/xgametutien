@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { SettingsModal } from './components/modal/SettingsModal';
 import { PlayerInfoModal } from './components/modal/PlayerInfoModal';
@@ -155,6 +156,7 @@ const App: React.FC = () => {
                     worldSettings={worldSettings}
                     characterProfile={characterProfile}
                     fullGameState={fullGameState}
+                    onAction={handleAction}
                 />
             )}
             {modals.gameLog && (

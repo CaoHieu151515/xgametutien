@@ -59,14 +59,9 @@ export const applyStoryResponseToState = async ({
     try {
         const response: StoryResponse = JSON.parse(JSON.stringify(storyResponse)); 
 
-        // FIX: Robustly handle gender change signals from AI.
-        // The AI is instructed to use `activateGenderSwapIdentity`, but if it uses `updatedGender` instead,
-        // we intercept it here to trigger the correct Identity system logic. This makes the system more resilient.
         if (response.updatedGender && !response.activateGenderSwapIdentity) {
             log(applyDiffSource, "AI used 'updatedGender'. Intercepting to trigger gender-swap identity system.", 'INFO');
             response.activateGenderSwapIdentity = true;
-            // Delete the original flag to prevent the base profile's gender from being changed directly.
-            // The Identity system will handle the apparent gender change.
             delete response.updatedGender;
         }
 
@@ -110,7 +105,7 @@ export const applyStoryResponseToState = async ({
                 });
                 
                 return { ...update, updatedNpcRelationships: npcRelChanges.length > 0 ? npcRelChanges : undefined };
-            }).filter(Boolean); // Remove null/undefined entries if any
+            }).filter(Boolean); 
         }
 
         if (identityUpdates.length > 0 && activeIdentityId) {
@@ -121,7 +116,6 @@ export const applyStoryResponseToState = async ({
                 const originalIdentityRels = new Map((identities[activeIdentityIndex]?.npcRelationships || []).map(r => [r.targetNpcId, r]));
 
                 identityUpdates.forEach(({ npcId, change }) => {
-                    // Logic tạo ký ức "Lần đầu gặp gỡ"
                     if (!originalIdentityRels.has(npcId)) {
                         const firstMeetingMemory = `Lần đầu gặp gỡ và làm quen với một người có tên là ${activeIdentity.name}.`;
                         const updateIndex = response.updatedNPCs?.findIndex(u => u.id === npcId);
@@ -157,7 +151,6 @@ export const applyStoryResponseToState = async ({
         }
         endTimer('apply_identity_rels', applyDiffSource);
 
-        // Logic "dọn dẹp" ký ức để đảm bảo tên nhân dạng được sử dụng
         const activeIdentityForCleanup = identities.find(i => i.id === activeIdentityId);
         if (activeIdentityForCleanup && response.updatedNPCs) {
             const trueNameRegex = new RegExp(`\\b${characterProfile.name}\\b`, 'g');
@@ -202,16 +195,36 @@ export const applyStoryResponseToState = async ({
         endTimer('apply_player', applyDiffSource);
         
         startTimer('apply_npcs', applyDiffSource, 'Áp dụng thay đổi cho NPC');
-        nextNpcs = await applyNpcMutations({
+        const activeIdentityObject = identities.find(id => id.id === activeIdentityId) || null;
+        const npcMutationResult = await applyNpcMutations({
             response,
             npcs: nextNpcs,
             worldSettings: finalWorldSettings,
             notifications,
             api,
             apiKey,
-            activeIdentityId,
+            activeIdentity: activeIdentityObject,
             playerProfile: nextProfile,
         });
+        nextNpcs = npcMutationResult.nextNpcs;
+        
+        if (npcMutationResult.identityUpdates.length > 0) {
+            npcMutationResult.identityUpdates.forEach(update => {
+                const identityIndex = nextIdentities.findIndex(i => i.id === update.identityId);
+                if (identityIndex > -1) {
+                    const identity = nextIdentities[identityIndex];
+                    if (!identity.npcRelationships) identity.npcRelationships = [];
+                    
+                    const existingRelIndex = identity.npcRelationships.findIndex(r => r.targetNpcId === update.newRelationship.targetNpcId);
+                    if (existingRelIndex > -1) {
+                        identity.npcRelationships[existingRelIndex] = update.newRelationship;
+                    } else {
+                        identity.npcRelationships.push(update.newRelationship);
+                    }
+                    notifications.push(`🎭 Nhân dạng <b>${identity.name}</b> đã thiết lập mối quan hệ mới.`);
+                }
+            });
+        }
         endTimer('apply_npcs', applyDiffSource);
 
         startTimer('apply_world', applyDiffSource, 'Áp dụng thay đổi cho thế giới');

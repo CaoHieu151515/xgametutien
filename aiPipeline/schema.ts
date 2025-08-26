@@ -1,3 +1,4 @@
+
 import { Type } from '@google/genai';
 import { GAME_CONFIG } from '../config/gameConfig';
 
@@ -321,6 +322,7 @@ export const updatedNpcSchema = {
         ngoaiHinh: { type: Type.STRING },
         locationId: { type: Type.STRING },
         aptitude: { type: Type.STRING },
+        newPowerSystem: { type: Type.STRING },
         specialConstitution: specialConstitutionSchema,
         innateTalent: talentSchema,
         updatedNpcRelationships: { type: Type.ARRAY, items: npcRelationshipSchema },
