@@ -1,9 +1,23 @@
 
 
+
 export const itemManagementInstruction = `
 **Quy tắc Quản lý Vật phẩm & Túi đồ:**
 - **Trao vật phẩm mới (QUAN TRỌNG):** Chỉ thêm một vật phẩm vào 'newItems' khi người chơi **thực sự nhận được nó vào túi đồ của mình**. Việc nhìn thấy hoặc nghe nói về một vật phẩm **KHÔNG** có nghĩa là người chơi sở hữu nó và không được thêm vào 'newItems'. Cung cấp đầy đủ thông tin cho vật phẩm, bao gồm 'id' duy nhất. Nếu đó là trang bị, phải có 'equipmentDetails'.
 - **QUY TẮC CHỈ SỐ TRANG BỊ (CỰC KỲ QUAN TRỌNG):** Khi tạo một vật phẩm trang bị mới (trong 'newItems'), các chỉ số trong \`equipmentDetails.stats.key\` CHỈ ĐƯỢỢC PHÉP là một trong ba giá trị sau: \`'attack'\`, \`'maxHealth'\`, hoặc \`'maxMana'\`. TUYỆT ĐỐI KHÔNG được thêm bất kỳ chỉ số nào khác không có trong danh sách này (ví dụ: critChance, defense, v.v.).
+- **MỆNH LỆNH VỀ PHÂN LOẠI TRANG BỊ (LOGIC CỐT LÕI):** Khi tạo một vật phẩm trang bị mới, trường \`equipmentDetails.type\` **BẮT BUỘC** phải là **MỘT TRONG CÁC** giá trị sau đây, dựa trên bản chất của vật phẩm: \`'Vũ Khí'\`, \`'Nón'\`, \`'Áo'\`, \`'Giày'\`, \`'Phụ Kiện'\`, \`'Đặc Thù'\`, \`'Thông Dụng'\`. Việc bịa đặt ra một loại trang bị mới (ví dụ: 'Đầu') là một lỗi hệ thống nghiêm trọng và bị cấm tuyệt đối.
+- **MỆNH LỆNH VỀ VIỆC TẠO THUỘC TÍNH (LOGIC SUY LUẬN):** Khi tạo một vật phẩm trang bị mới, bạn **PHẢI** phân tích mô tả ('description') của nó. Nếu mô tả ngụ ý bất kỳ sức mạnh, khả năng, hoặc hiệu ứng đặc biệt nào (ví dụ: "phát ra hàn khí", "tăng cường tốc độ", "bảo vệ tâm trí"), bạn **BẮT BUỘC** phải:
+    1.  Thêm ít nhất **MỘT** đối tượng chỉ số vào mảng \`equipmentDetails.stats\` (ví dụ: \`{ "key": "attack", "value": 15 }\`).
+    2.  Cung cấp một mô tả hiệu ứng ngắn gọn, phù hợp trong trường \`equipmentDetails.effect\` (ví dụ: "Tăng nhẹ khả năng kháng hỏa công.").
+    -   Các trường \`stats\` và \`effect\` **TUYỆT ĐỐI KHÔNG** được để trống nếu vật phẩm có sức mạnh.
+
+**MỆNH LỆNH TUYỆT ĐỐI: LOGIC GIAO DỊCH TRONG CỬA HÀNG (CỰC KỲ QUAN TRỌNG)**
+- **Kích hoạt:** Khi người chơi đang ở một địa điểm có \`type: 'CỬA HÀNG'\` (SHOP).
+- **CẤM TUYỆT ĐỐI:** Khi một NPC (chủ tiệm, tiểu nhị) đưa cho người chơi một vật phẩm để xem, giới thiệu, hoặc thử, bạn **TUYỆT ĐỐI BỊ CẤM** tự động thêm vật phẩm đó vào mảng \`newItems\`. Hành động này là một **LỖI LOGIC NGHIÊM TRỌNG**, vì việc xem hàng không đồng nghĩa với việc sở hữu.
+- **HÀNH ĐỘNG BẮT BUỘC:**
+    1.  **Tạo Lựa chọn Mua bán:** Thay vì trao vật phẩm, bạn **PHẢI** tạo ra các lựa chọn ('choices') liên quan đến việc mua bán.
+    2.  **Ví dụ về Lựa chọn:** "Mua vật phẩm này", "Hỏi giá của nó", "Mặc cả với chủ tiệm", "Trả lại vật phẩm và không mua".
+    3.  **Logic Giao dịch:** Việc trao vật phẩm (\`newItems\`) và trừ tiền (\`updatedStats.currencyAmount\`) **CHỈ** được xảy ra ở lượt tiếp theo, **SAU KHI** người chơi đã chọn một hành động mua hàng rõ ràng.
 
 **MỆNH LỆNH TUYỆT ĐỐI: LOGIC TẶNG BÍ KÍP CÔNG PHÁP**
 
