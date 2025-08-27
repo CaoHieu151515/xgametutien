@@ -1,4 +1,5 @@
 
+
 import { useState, useCallback } from 'react';
 import { StoryPart, StoryResponse, CharacterProfile, WorldSettings, NPC, Choice, AppSettings, GameSnapshot, Item, StoryApiResponse, ToastMessage, StatusEffect, Identity } from '../../types';
 import { log, startTimer, endTimer } from '../../services/logService';
@@ -256,7 +257,22 @@ export const useActionLogic = (props: UseActionLogicProps) => {
         
         const isSuccess = Math.random() * 100 < choice.successChance;
         const successText = isSuccess ? '(Thành công)' : '(Thất bại)';
-        let actionPromptText = systemEventPrompt || `${successText} Người chơi đã chọn hành động: "${choice.title}" (Thời gian thực hiện ước tính: ${choice.durationInMinutes} phút). Ghi chú đặc biệt của hành động này là: "${choice.specialNote || 'Không có'}".`;
+        
+        let actionPromptText = '';
+        
+        if (choice.isTimeSkip && choice.turnsToSkip) {
+            const skillExpPerTurn = GAME_CONFIG.progression.npcSkillExpPerTurn;
+            actionPromptText = `(Hệ thống) Người chơi quyết định bỏ qua thời gian. Hãy tua nhanh ${choice.turnsToSkip} lượt.
+MỆNH LỆNH TUYỆT ĐỐI:
+1. TÓM TẮT: KHÔNG viết chi tiết từng lượt. Viết một đoạn tóm tắt ngắn gọn trong 'story' về những sự kiện chính đã xảy ra.
+2. TÍNH TOÁN LOGIC CHO NPC (BẮT BUỘC): Đối với MỖI NPC đang sống, bạn PHẢI:
+   a. Cập nhật Kỹ năng: Trao cho MỖI kỹ năng của họ ${choice.turnsToSkip * skillExpPerTurn} EXP. Ghi lại trong 'updatedNPCs[...].updatedSkills'.
+   b. Cập nhật Cấp độ: Trao cho họ một lượng 'gainedExperience' hợp lý tương ứng với ${choice.turnsToSkip} lượt tu luyện.
+3. NẾU CÓ ĐỘT PHÁ: Nếu bất kỳ NPC nào đột phá cảnh giới sau khi tính toán, hãy đề cập đến điều đó trong bản tóm tắt 'story'.`;
+        } else {
+            actionPromptText = systemEventPrompt || `${successText} Người chơi đã chọn hành động: "${choice.title}" (Thời gian thực hiện ước tính: ${choice.durationInMinutes} phút). Ghi chú đặc biệt của hành động này là: "${choice.specialNote || 'Không có'}".`;
+        }
+
         if (systemEventPrompt) {
             log('useActionLogic.ts', `System event triggered, overriding player action: "${systemEventPrompt}"`, 'INFO');
             setToast({ message: 'Một sự kiện quan trọng đã xảy ra!', type: 'info' });
@@ -324,9 +340,7 @@ export const useActionLogic = (props: UseActionLogicProps) => {
         for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) {
             try {
                 let currentActionText = actionPromptText;
-                if(choice.isTimeSkip && choice.turnsToSkip) {
-                    currentActionText = `(Hệ thống) Người chơi quyết định bỏ qua thời gian. Hãy tua nhanh ${choice.turnsToSkip} lượt và tóm tắt những sự kiện chính đã xảy ra.`
-                } else if (attempt > 1 && lastErrorReason) {
+                if (attempt > 1 && lastErrorReason) {
                     currentActionText = `**System Correction (Attempt ${attempt}):** Your previous response was invalid due to: "${lastErrorReason}". YOU MUST FIX THIS. If you mention a new entity using [[...]] syntax in the story or choices, you MUST define it in the appropriate array (newNPCs, newLocations, newItems, newSkills, or newWorldKnowledge). Do not update NPCs that are not in the provided context.\n\n**Original Action & Result:**\n${actionPromptText}`;
                 }
                 

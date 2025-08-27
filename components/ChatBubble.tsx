@@ -20,7 +20,7 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({ speakerName, speakerAvat
     } else if (gender === CharacterGender.MALE) {
         bubbleColorClass = 'bg-sky-800/60';
     } else {
-        bubbleColorClass = 'bg-fuchsia-800/60';
+        bubbleColorClass = 'bg-pink-800/60';
     }
     
     const alignmentClass = isPlayer ? 'justify-end' : 'justify-start';

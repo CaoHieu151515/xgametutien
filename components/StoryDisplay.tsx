@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { StoryPart, CharacterProfile, WorldSettings, NPC, CharacterGender, Identity } from '../types';
 import { ChatBubble } from './ChatBubble';
@@ -383,7 +384,7 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ history, characterPr
                                     speakerAvatar={activeIdentity?.imageUrl || characterProfile.avatarUrl}
                                     message={linkifyStory(message)} 
                                     isPlayer={true}
-                                    gender={characterProfile.gender}
+                                    gender={activeIdentity ? activeIdentity.gender : characterProfile.gender}
                                 />
                             );
                         }

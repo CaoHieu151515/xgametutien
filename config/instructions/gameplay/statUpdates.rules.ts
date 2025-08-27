@@ -1,6 +1,3 @@
-
-
-
 export const statUpdatesInstruction = `
 **MỆNH LỆNH TUYỆT ĐỐI: CẬP NHẬT TRẠNG THÁI MÁY MÓC**
 
@@ -97,7 +94,7 @@ Sau khi đã đảm bảo lệnh cập nhật JSON được tạo, bạn PHẢI 
     - **Chiến thắng:** Đánh bại một kẻ thù mạnh hoặc vượt qua một thử thách khó khăn.
     - **Đốn ngộ:** Có được sự giác ngộ về một công pháp, một quy luật của thế giới, hoặc một triết lý tu luyện.
     - **Hoàn thành Nhiệm vụ:** Hoàn thành các nhiệm vụ quan trọng.
-    Hãy sáng tạo và trao thưởng một cách hợp lý để phản ánh sự trưởng thành của nhân vật.
+Hãy sáng tạo và trao thưởng một cách hợp lý để phản ánh sự trưởng thành của nhân vật.
 - **Kinh nghiệm Nhân vật & NPC:** Trao thưởng điểm kinh nghiệm qua 'gainedExperience' cho các hành động. Hệ thống sẽ tự xử lý việc lên cấp.
 - **Sử dụng Kỹ năng & Tiêu hao Linh Lực (MỆNH LỆNH):** Bất cứ khi nào câu chuyện mô tả một nhân vật (người chơi hoặc NPC) sử dụng một kỹ năng có tên, bạn **BẮT BUỘC** phải tìm kỹ năng đó trong dữ liệu được cung cấp và trừ đi lượng Linh Lực (\`mana\`) tương ứng với \`manaCost\` của kỹ năng đó. Việc này phải được phản ánh trong \`updatedStats\` (cho người chơi) hoặc trong đối tượng tương ứng trong \`updatedNPCs\` bằng cách cung cấp một giá trị âm (ví dụ: \`"mana": -50\`).
 - **Kinh nghiệm Kỹ năng (HỌC BẰNG CÁCH LÀM):** Bất cứ khi nào một nhân vật (người chơi hoặc NPC) sử dụng một kỹ năng trong 'story', bạn **PHẢI** trao thưởng kinh nghiệm cho kỹ năng đó qua 'updatedSkills' (cho người chơi) hoặc suy ra từ logic cho NPC.
@@ -118,6 +115,7 @@ Sau khi đã đảm bảo lệnh cập nhật JSON được tạo, bạn PHẢI 
 
 **D. Hồi phục Hoàn toàn (LOGIC CỐT LÕI):**
 - Nếu trong câu chuyện, người chơi sử dụng một kỹ năng hoặc vật phẩm có tác dụng **hồi phục hoàn toàn/đầy** sinh lực và linh lực, bạn **BẮT BUỘC** phải đặt trường \`"usedFullRestoreSkill": true\` trong đối tượng \`updatedStats\`. Hệ thống sẽ tự động tính toán và đặt lại sinh lực/linh lực về mức tối đa. **KHÔNG** cần cung cấp giá trị cho \`health\` và \`mana\` trong trường hợp này.
+- **Xử lý Time Skip & Tu luyện Tự động:** Khi bạn xử lý một hành động tua nhanh thời gian (ví dụ: 'tua nhanh X lượt'), bạn **BẮT BUỘC** phải tính toán sự tiến bộ cho tất cả các NPC đang sống. Đối với MỖI kỹ năng hiện có của MỖI NPC, hãy trao cho họ \`X * 5\` điểm kinh nghiệm. Sử dụng mảng \`updatedNPCs[...].updatedSkills\` để ghi lại những thay đổi này. Nếu một kỹ năng lên cấp hoặc đột phá phẩm chất, bạn PHẢI đề cập đến điều này trong bản tóm tắt 'story'.
 
 ---
 **4. THÀNH TÍCH & DANH HIỆU VĨNH VIỄN (CHỈ NGƯỜI CHƠI)**
