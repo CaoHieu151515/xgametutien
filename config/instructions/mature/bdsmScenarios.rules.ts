@@ -94,4 +94,4 @@ export const bdsmScenariosInstruction = `
     *   **Mô tả sự giải thoát tức thì:** áp lực bị dồn nén được giải phóng, dương vật giả bị đẩy văng ra ngoài bởi một dòng dâm dịch ứ đọng tuôn chảy như thác lũ.
     *   Mô tả cảm giác khoái cảm tột đỉnh của nhân vật nữ khi sự căng tức được giải tỏa, một cơn cực khoái mạnh mẽ do sự giải thoát đột ngột.
 *   **Tương tác của Người chơi:** Cung cấp các lựa chọn ('choices') cho phép người chơi quyết định các hành động tiếp theo, chẳng hạn như: tiếp tục sút, siết chỉ chặt hơn, hoặc cuối cùng là cắt chỉ giải thoát.
-`;
+`

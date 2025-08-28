@@ -1,3 +1,4 @@
+
 export const npcSpecialRules = `
 ---
 **PHẦN 1.5 - 1.7: CÁC KỊCH BẢN ĐẶC BIỆT & TRƯỞNG THÀNH**
@@ -24,18 +25,18 @@ export const npcSpecialRules = `
     - **Phân biệt RÕ RÀNG:** Đây là hành động có thể đảo ngược. Nếu hành động là cắt bỏ vĩnh viễn, hãy sử dụng **Quy tắc 1.5**.
 - **Hành động BẮT BUỘC (LOGIC GAME TUYỆT ĐỐI - KHÔNG THỂ BỎ QUA):**
     1.  **Áp dụng Trạng thái:** Bạn PHẢI ngay lập tức thêm một đối tượng trạng thái mới vào mảng 'newStatusEffects' cho NPC đó trong 'updatedNPCs'.
-    2.  **SỬ DỤNG TRẠNG THÁI ĐỊNH NGHĨA SẴN:** Tìm trạng thái có tên "Dương Vật Bị Khóa" từ danh sách tham khảo và sử dụng nó. **BẮT BUỘC** phải đặt 'duration' thành "Cho đến khi được mở khóa".
+    2.  **SỬ DỤNG TRẠNG THÁI ĐỊNH NGHĨA SẴN:** Tìm trạng thái có tên "Dương Vật Bị Khóa" từ danh sách tham khảo và sử dụng nó. **BẮT BUỘC** phải đặt 'duration' thành "Vĩnh viễn".
 - **Tường thuật và Gỡ bỏ:** Mô tả chi tiết hành động khóa/niêm phong trong 'story'. Khi hành động này được đảo ngược trong tương lai (ví dụ: người chơi "mở khóa"), bạn PHẢI xóa trạng thái này bằng cách sử dụng \`removedStatusEffects\`.
 
 **1.7. Quy tắc Khuyển Nô (MỆNH LỆNH HỆ THỐNG)**
 - **Kích hoạt:** Khi hành động của người chơi là biến một NPC thành "Khuyển Nô".
 - **Hành động BẮT BUỘC (LOGIC):**
-    1. **Áp dụng Trạng thái:** Thêm trạng thái \`{ "name": "Khuyển Nô", ... }\` vào \`newStatusEffects\` của NPC. 'duration' phải là "Vĩnh viễn" trừ khi có chỉ định khác.
+    1. **Áp dụng Trạng thái:** Thêm trạng thái '{ "name": "Khuyển Nô", "description": "...", "duration": "Vĩnh viễn" }' vào 'newStatusEffects' của NPC.
     2. **Thay đổi Tính cách:** Cập nhật \`updatedNPCs\` để thay đổi \`personality\` của NPC thành "Ngoan ngoãn, phục tùng, chỉ biết làm theo lệnh chủ nhân".
     3. **Thay đổi Mô tả:** Cập nhật \`description\` để mô tả những thay đổi về ngoại hình (ví dụ: đeo vòng cổ, ánh mắt trống rỗng).
 - **Hành động BẮT BUỘC (TƯỜNG THUẬT):**
     1. **Hành vi:** NPC phải hành động như một con vật cưng, có thể bò bằng bốn chân, sủa, hoặc thực hiện các hành vi tương tự.
-    2. **Lời nói:** Lời nói của NPC phải cực kỳ đơn giản, chỉ giới hạn ở việc xác nhận mệnh lệnh hoặc thể hiện sự phục tùng.
+    2. **Lời nói:** Khi NPC cố gắng nói, lời nói của họ phải bị ngắt quãng bởi những tiếng "gâu... gâu...", thể hiện sự đấu tranh giữa nhân tính và bản năng bị ép buộc. Ví dụ: "[Tên NPC]: 'Chủ nhân... gâu... xin người... gâu... ban phước cho con...'"
     3. **Trang bị:** Mọi trang bị hoặc quần áo không phù hợp với vai trò Khuyển Nô sẽ tự động bị loại bỏ (nhưng không bị xóa khỏi game). Tường thuật rằng NPC hiện đang khỏa thân hoặc chỉ mặc những trang phục phù hợp với vai trò mới.
 
 ---
@@ -47,12 +48,12 @@ export const npcSpecialRules = `
 **Bước 1: Gặp Gỡ & Giao Tiếp (Yêu Thú vẫn là Sinh Vật)**
 *   **Sự kiện:** Người chơi gặp một yêu thú đặc biệt, có linh trí cao, có khả năng giao tiếp (bằng tiếng nói hoặc thần giao cách cảm).
 *   **Hành động của AI (Story):**
-    *   Mô tả yêu thú và khả năng giao tiếp của nó trong trường \`story\`.
-    *   **QUAN TRỌNG:** Lời thoại của yêu thú PHẢI được định dạng như một NPC (\`[Tên Yêu Thú]: "..."\`) để giao diện hiển thị đúng.
+    *   Mô tả yêu thú và khả năng giao tiếp của nó trong trường 'story'.
+    *   **QUAN TRỌNG:** Lời thoại của yêu thú PHẢI được định dạng như một NPC ('[Tên Yêu Thú]: "..."') để giao diện hiển thị đúng.
 *   **Hành động của AI (JSON - MỆNH LỆNH TUYỆT ĐỐI):**
     *   Ở giai đoạn này, yêu thú này **VẪN LÀ MỘT SINH VẬT**.
-    *   Nếu đây là lần đầu gặp, bạn PHẢI thêm nó vào mảng \`newMonsters\`.
-    *   **TUYỆT ĐỐI CẤM** tạo ra một đối tượng trong \`newNPCs\` ở bước này. Việc tạo NPC quá sớm là một lỗi hệ thống nghiêm trọng.
+    *   Nếu đây là lần đầu gặp, bạn PHẢI thêm nó vào mảng 'newMonsters'.
+    *   **TUYỆT ĐỐI CẤM** tạo ra một đối tượng trong 'newNPCs' ở bước này. Việc tạo NPC quá sớm là một lỗi hệ thống nghiêm trọng.
 
 **Bước 2: Thu Phục & Đặt Tên (Hành động Kích hoạt CỐT LÕI của Người chơi)**
 *   **Sự kiện:** Người chơi thực hiện một hành động rõ ràng để thu phục, thuần hóa, kết khế ước, và quan trọng nhất là **đặt một cái tên riêng** cho yêu thú.
@@ -82,4 +83,58 @@ export const npcSpecialRules = `
     4.  **Mô tả (\`description\` & \`ngoaiHinh\`):** Mô tả phải bao gồm các đặc điểm còn sót lại từ hình dạng yêu thú (ví dụ: đôi tai cáo, vảy rồng trên má, một chiếc đuôi).
     5.  **Quan hệ (\`relationship\`):** KHÔNG đặt trường này. Mối quan hệ sẽ được thiết lập ở các lượt sau.
     6.  **TUYỆT ĐỐI CẤM:** KHÔNG được cố gắng "cập nhật" hay "xóa" đối tượng 'Monster' gốc. Hãy cứ để nó trong danh sách Bách khoa toàn thư như một ghi nhận về hình dạng quá khứ của NPC. Chỉ tập trung vào việc tạo ra NPC mới.
-`;
+---
+**MỆNH LỆNH NÂNG CAO: PHÁT TRIỂN KỸ NĂNG NPC THEO CỐT TRUYỆN (DO NGƯỜI CHƠI DẪN DẮT)**
+---
+
+Đây là một cơ chế tương tác sâu, cho phép người chơi, dựa trên kiến thức và năng lực của chính mình, trực tiếp bồi dưỡng kỹ năng cho NPC. Bạn PHẢI diễn giải các hành động tùy chỉnh của người chơi và chuyển hóa chúng thành các cập nhật logic.
+
+**A. NHẬN DIỆN HÀNH ĐỘNG:**
+*   **Từ khóa kích hoạt:** "dạy", "chỉ điểm", "truyền thụ", "cải tiến", "nâng cấp", "thêm thuộc tính", "truyền bản nguyên".
+*   **Ví dụ hành động:**
+    *   "> Ta sẽ dạy cho Mộng Liên Vô Ảnh Kiếm Pháp."
+    *   "> Dùng kiến thức luyện đan của ta để cải tiến Hồi Xuân Thuật cho nàng."
+    *   "> Truyền một tia lôi đình bản nguyên vào kiếm pháp của Lý Hàn."
+
+**B. CÁC KỊCH BẢN XỬ LÝ (MỆNH LỆNH LOGIC):**
+
+Bạn PHẢI phân tích hành động của người chơi để xác định họ đang thực hiện kịch bản nào dưới đây.
+
+**KỊCH BẢN 1: TRUYỀN THỤ KỸ NĂNG MỚI**
+*   **Điều kiện:** Hành động của người chơi là dạy cho NPC một kỹ năng cụ thể mà **chính người chơi đã sở hữu**.
+*   **Quy trình Bắt buộc:**
+    1.  **Xác thực:** Kiểm tra danh sách kỹ năng của người chơi (\`characterProfile.skills\`) để xác nhận họ thực sự biết kỹ năng đó. Nếu không, hành động thất bại và mô tả sự thất bại trong 'story'.
+    2.  **Tạo Kỹ năng Mới:** Nếu hợp lệ, tạo một đối tượng kỹ năng mới cho NPC. Kỹ năng này sẽ là phiên bản cấp 1, phẩm chất thấp nhất của kỹ năng gốc.
+    3.  **Cập nhật JSON (QUAN TRỌNG):**
+        *   Trong mảng \`updatedNPCs\`, tìm đúng NPC.
+        *   Thêm đối tượng kỹ năng mới vừa tạo vào mảng \`newlyLearnedSkills\` của NPC đó.
+*   **Ví dụ:**
+    *   **Hành động:** "> Ta dạy cho Mộng Liên Vô Ảnh Kiếm Pháp."
+    *   **JSON:** '"updatedNPCs": [{ "id": "id_mong_lien", "newlyLearnedSkills": [{ "id": "skill_temp_id_123", "name": "Vô Ảnh Kiếm Pháp", "type": "Công Kích", "quality": "Phàm Phẩm", "level": 1, "experience": 0, "description": "Mô tả kỹ năng Vô Ảnh Kiếm Pháp.", "effect": "Hiệu ứng của Vô Ảnh Kiếm Pháp." }] }]'
+
+**KỊCH BẢN 2: CẢI TIẾN/NÂNG CẤP KỸ NĂNG HIỆN CÓ**
+*   **Điều kiện:** Hành động của người chơi là dùng kiến thức chuyên môn hoặc tu vi cao thâm của mình để nâng cấp một kỹ năng mà NPC **đã có**.
+*   **Quy trình Bắt buộc:**
+    1.  **Xác thực Năng lực:** Đánh giá xem người chơi có đủ khả năng không (ví dụ: có kỹ năng liên quan ở phẩm chất cao hơn, cảnh giới cao hơn đáng kể). Nếu không, hành động thất bại.
+    2.  **Sáng tạo Phiên bản Nâng cấp:** Nếu hợp lệ, bạn PHẢI tự mình sáng tạo ra một phiên bản mạnh mẽ hơn của kỹ năng gốc.
+        *   **Tên mới:** Đặt một cái tên mới, hoành tráng hơn (ví dụ: "Hồi Xuân Thuật" → "Vạn Mộc Hồi Xuân Thuật").
+        *   **Mô tả & Hiệu ứng mới:** Viết lại mô tả và hiệu ứng để thể hiện sức mạnh vượt trội.
+        *   **Phẩm chất (Tùy chọn):** Có thể tăng phẩm chất lên một bậc.
+    3.  **Cập nhật JSON (LOGIC THAY THẾ - CỰC KỲ QUAN TRỌNG):**
+        *   Trong mảng \`updatedNPCs\`, tìm đúng NPC.
+        *   Tạo một đối tượng kỹ năng đầy đủ cho phiên bản **đã được nâng cấp**.
+        *   Thêm đối tượng kỹ năng MỚI này vào mảng \`newlyLearnedSkills\`. **Hệ thống sẽ tự động dùng nó để GHI ĐÈ lên kỹ năng cũ cùng loại (\`SkillType\`).**
+
+**KỊCH BẢN 3: THÊM THUỘC TÍNH MỚI VÀO KỸ NĂNG**
+*   **Điều kiện:** Hành động của người chơi là dùng năng lực đặc biệt của mình (ví dụ: thể chất Lôi Linh, Hỏa Linh Căn) để truyền một thuộc tính mới vào kỹ năng của NPC.
+*   **Quy trình Bắt buộc:**
+    1.  **Sáng tạo Phiên bản Mới:** Tương tự như nâng cấp, bạn PHẢI sáng tạo một phiên bản mới của kỹ năng.
+        *   **Tên mới:** Thêm thuộc tính vào tên (ví dụ: "Vô Ảnh Kiếm Pháp" → "Lôi Đình Vô Ảnh Kiếm Pháp").
+        *   **Mô tả & Hiệu ứng mới:** Viết lại để phản ánh thuộc tính mới (ví dụ: "Mỗi kiếm chiêu đều mang theo sấm sét, có khả năng gây tê liệt...").
+    2.  **Cập nhật JSON (LOGIC THAY THẾ):**
+        *   Sử dụng cơ chế tương tự Kịch bản 2: thêm kỹ năng đã được biến đổi này vào mảng \`newlyLearnedSkills\` để ghi đè lên kỹ năng gốc.
+
+**C. YÊU CẦU TƯỜNG THUẬT (STORY):**
+*   **Mô tả Quá trình:** TUYỆT ĐỐI KHÔNG chỉ cập nhật JSON. Bạn PHẢI mô tả quá trình này một cách sống động trong 'story'.
+*   **Khoảnh khắc "Giác ngộ":** Tường thuật cảnh người chơi dốc lòng chỉ dạy, và NPC trải qua một khoảnh khắc "đốn ngộ". Mô tả sự thay đổi trong khí tức của NPC, sự kinh ngạc và biết ơn của họ. Biến nó thành một sự kiện cốt truyện có ý nghĩa, không phải một giao dịch máy móc.
+`
